@@ -1,6 +1,6 @@
 import { defineNuxtModule, createResolver, addImports } from '@nuxt/kit'
 import { loadTheme } from './shared/utils/load'
-import type { TypographyConfig, ScrollbarConfig, CursorConfig, ColorOptions, TranslationConfig, UnoCSSOptions, VuetifyOptions, IconOptions } from './shared/types'
+import type { TypographyConfig, ScrollbarConfig, CursorConfig, ColorOptions, TranslationConfig, VuetifyOptions, IconOptions } from './shared/types'
 import { DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME } from './shared/constants'
 import { resolveFeatureOption } from './shared/utils/options'
 import { customizeTheme } from './setup/customize-theme'
@@ -8,7 +8,6 @@ import { registerPublicAssets } from './setup/register-assets'
 import { registerThemeComponents } from './setup/register-components'
 import { registerThemePlugins } from './setup/register-plugins'
 import { registerThemeCSS } from './setup/register-css'
-import { registerThemeUnoCSS } from './setup/register-unocss'
 import { registerThemeVuetify } from './setup/register-vuetify'
 import { registerThemeIcon } from './setup/register-icon'
 
@@ -19,8 +18,6 @@ export interface ModuleOptions {
   scrollbar?: boolean | Partial<ScrollbarConfig>
   cursor?: boolean | Partial<CursorConfig>
   typography?: boolean | Partial<TypographyConfig>
-  /** Auto-configura o UnoCSS (`@unocss/nuxt`) com as cores do tema, se instalado */
-  unocss?: boolean | Partial<UnoCSSOptions>
   /**
    * Registra os temas de cor no Vuetify (`vuetify-nuxt-module`), se instalado.
    * Desligado por padrão — ligue explicitamente em projetos que usam Vuetify.
@@ -46,7 +43,6 @@ export default defineNuxtModule<ModuleOptions>({
     scrollbar: true,
     cursor: true,
     typography: true,
-    unocss: true,
     vuetify: false,
     icon: true,
   },
@@ -92,27 +88,21 @@ export default defineNuxtModule<ModuleOptions>({
     // 6. Registra plugins
     registerThemePlugins(nuxt, resolver, shouldApplyColors)
 
-    // 7. Injeta as cores do tema no UnoCSS, se instalado
-    const unocssOptions = resolveFeatureOption<UnoCSSOptions>(options.unocss, {
-      enabled: true,
-    })
-    registerThemeUnoCSS(nuxt, theme, unocssOptions.enabled)
-
-    // 8. Registra os temas de cor no Vuetify, se habilitado
+    // 7. Registra os temas de cor no Vuetify, se habilitado
     const vuetifyOptions = resolveFeatureOption<VuetifyOptions>(options.vuetify, {
       enabled: true,
     })
     registerThemeVuetify(nuxt, resolver, theme, colorOptions.defaultColor, vuetifyOptions.enabled)
 
-    // 9. Registra @nuxt/icon + <VenixIcon> / useVenixIcon
+    // 8. Registra @nuxt/icon + <VenixIcon> / useVenixIcon
     const iconOptions = resolveFeatureOption<IconOptions>(options.icon, {
       enabled: true,
       collections: ['line-md'],
       aliases: {},
     })
-    await registerThemeIcon(nuxt, resolver, iconOptions)
+    await registerThemeIcon(nuxt, resolver, iconOptions, theme.colors)
 
-    // 10. Configura runtimeConfig
+    // 9. Configura runtimeConfig
     nuxt.options.runtimeConfig.public.venixTheme = {
       defaultTheme: theme.colors?.defaultColor || 'dark',
       colorThemes: colorOptions.themes,
@@ -131,7 +121,6 @@ export default defineNuxtModule<ModuleOptions>({
         color: colorOptions.enabled,
         translation: translationOptions.enabled,
         manageHtmlLang: translationOptions.manageHtmlLang,
-        unocss: unocssOptions.enabled,
         vuetify: vuetifyOptions.enabled,
         icon: iconOptions.enabled,
       },

@@ -1,39 +1,21 @@
 // runtime/composables/useVenixTheme.ts
-import { computed, watch, onMounted, onUnmounted } from 'vue'
+import { computed, watch, onMounted, onUnmounted, getCurrentInstance } from 'vue'
 import { useRuntimeConfig, useState } from '#app'
-import themeData from '../../shared/theme.json' with { type: 'json' }
-import type { ThemeConfig } from '../../shared/types'
 import { DEFAULT_THEME, DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY } from '../../shared/constants'
 import { useThemeCookies } from './useThemeCookies'
 import { useThemeLocale } from './useThemeLocale'
 import { useThemeSeasonal } from './useThemeSeasonal'
 import { useThemeColors } from './useThemeColors'
 import { hasCookieConsent } from '../../shared/utils/consent'
+import { buildResolvedTheme } from '../../shared/utils/theme-config'
+import { resolveThemePreference } from '../../shared/utils/theme-resolve'
 import type { ThemeIconFormat } from '../../shared/utils/icon'
 
 export const useVenixTheme = () => {
   const config = useRuntimeConfig()
   const themeConfig = config.public.venixTheme
 
-  // Garantir que colors e themes existem
-  const defaultColors: ThemeConfig['colors'] = {
-    enabled: true,
-    defaults: true,
-    defaultColor: 'dark',
-    themes: {},
-  }
-
-  const theme: ThemeConfig = {
-    ...themeData as ThemeConfig,
-    colors: {
-      ...(themeData.colors || defaultColors),
-      defaultColor: themeConfig?.defaultTheme || themeData.colors?.defaultColor || DEFAULT_THEME,
-      themes: {
-        ...(themeData.colors?.themes || {}),
-        ...(themeConfig?.colorThemes || {}),
-      },
-    },
-  }
+  const theme = buildResolvedTheme(themeConfig)
 
   const defaultTheme = theme.colors.defaultColor || DEFAULT_THEME
   const shouldApplyColors = themeConfig?.applyColors !== false && theme.colors.defaults !== false
@@ -87,22 +69,11 @@ export const useVenixTheme = () => {
   const preference = useState<string>('venix-theme-preference', () => initialPreference || 'system')
 
   const getResolvedTheme = (pref: string): string => {
-    if (pref === 'system') {
-      const prefersDark = typeof window !== 'undefined'
-        ? window.matchMedia('(prefers-color-scheme: dark)').matches
-        : true
+    const prefersDark = typeof window !== 'undefined'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+      : true
 
-      const seasonalTheme = seasonal.getActiveSeasonalTheme(prefersDark)
-      if (seasonalTheme) return seasonalTheme
-
-      return prefersDark ? 'dark' : 'light'
-    }
-
-    if (pref && theme.colors.themes[pref]) {
-      return pref
-    }
-
-    return defaultTheme
+    return resolveThemePreference(pref, theme.colors.themes, defaultTheme, prefersDark)
   }
 
   const apply = (pref: string) => {
@@ -207,7 +178,25 @@ export const useVenixTheme = () => {
     window.dispatchEvent(new Event(COOKIE_PREFERENCES_UPDATED_EVENT))
   }
 
-  onMounted(() => {
+  // `onMounted` exige uma instância de componente ativa — se `useVenixTheme()`
+  // for chamado fora de um `setup()` síncrono normal (ex.: contexto perdido
+  // sob Suspense/async setup em alguns fluxos de SSR+i18n), ela avisa
+  // "onMounted is called when there is no active component instance" e a
+  // callback nunca roda. Com instância, comportamento igual a antes; sem
+  // instância, roda a mesma lógica assim que possível no cliente em vez de
+  // simplesmente falhar — o preço é não conseguir registrar `onUnmounted`
+  // para limpeza automática nesse caso específico (ver abaixo).
+  const instance = getCurrentInstance()
+  const runOnClientMount = (fn: () => void) => {
+    if (instance) {
+      onMounted(fn)
+    }
+    else if (typeof window !== 'undefined') {
+      queueMicrotask(fn)
+    }
+  }
+
+  runOnClientMount(() => {
     // `localStorage` só existe no cliente — o SSR sempre inicializa `hasConsent`
     // como `false` (ver useState acima); aqui corrigimos para o valor real
     // assim que hidrata, caso o consentimento já tenha sido concedido antes.
@@ -235,11 +224,13 @@ export const useVenixTheme = () => {
 
     window.addEventListener(COOKIE_PREFERENCES_UPDATED_EVENT, syncPersistence)
 
-    onUnmounted(() => {
-      mq.removeEventListener('change', handleSystemThemeChange)
-      clearTimeout(midnightTimeout)
-      window.removeEventListener(COOKIE_PREFERENCES_UPDATED_EVENT, syncPersistence)
-    })
+    if (instance) {
+      onUnmounted(() => {
+        mq.removeEventListener('change', handleSystemThemeChange)
+        clearTimeout(midnightTimeout)
+        window.removeEventListener(COOKIE_PREFERENCES_UPDATED_EVENT, syncPersistence)
+      })
+    }
   })
 
   watch(preference, (newPref) => {

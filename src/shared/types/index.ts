@@ -7,6 +7,5 @@ export type { ThemeColors, ThemeTranslations, ColorsConfig, ThemeIconFormats } f
 export type { ThemeConfig } from './theme'
 export type { TranslationConfig } from './translation'
 export type { ColorOptions } from './color-options'
-export type { UnoCSSOptions } from './unocss'
 export type { VuetifyOptions } from './vuetify'
 export type { IconOptions } from './icon'

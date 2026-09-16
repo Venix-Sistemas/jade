@@ -1,5 +1,7 @@
 import { defineNuxtPlugin } from '#app'
 
 export default defineNuxtPlugin((_nuxtApp) => {
-  console.log('Plugin injected by @venix-sistemas/nuxt-theme')
+  if (import.meta.dev) {
+    console.log('[@venix-sistemas/nuxt-theme] plugin injected')
+  }
 })

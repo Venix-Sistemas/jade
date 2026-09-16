@@ -21,7 +21,6 @@ declare module '@nuxt/schema' {
         color: boolean
         translation: boolean
         manageHtmlLang: boolean
-        unocss: boolean
         vuetify: boolean
         icon: boolean
       }
@@ -32,7 +31,6 @@ declare module '@nuxt/schema' {
 declare global {
   interface Window {
     __VENIX_INITIAL_THEME__?: string
-    __VENIX_INITIAL_LOCALE__?: string
   }
 }
 

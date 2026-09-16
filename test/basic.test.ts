@@ -20,6 +20,15 @@ describe('nuxt-theme module', () => {
       const html = await $fetch('/')
       expect(html).toMatch(/data-theme="[^"]*"/)
     })
+
+    it('injeta o script anti-FOUC inline no <head>, antes do bundle do Vue', async () => {
+      const html = await $fetch('/')
+      const headEnd = html.indexOf('</head>')
+      const scriptIndex = html.indexOf('function initTheme')
+
+      expect(scriptIndex).toBeGreaterThan(-1)
+      expect(scriptIndex).toBeLessThan(headEnd)
+    })
   })
 
   // Teste de integração

@@ -26,7 +26,11 @@
       "import": "./dist/module.mjs",
       "exports": "./src/module.ts"
     },
-    "./theme.json": "./dist/shared/theme.json"
+    "./theme.json": "./dist/shared/theme.json",
+    "./unocss": {
+      "types": "./dist/shared/unocss-preset.d.ts",
+      "import": "./dist/shared/unocss-preset.js"
+    }
   },
   "main": "./dist/module.mjs",
   "typesVersions": {
@@ -55,6 +59,8 @@
   },
   "dependencies": {
     "@iconify-json/line-md": "^1.2.16",
+    "@iconify-json/mdi": "^1.2.3",
+    "@iconify/utils": "^3.1.4",
     "@nuxt/icon": "^2.5.1",
     "@nuxt/kit": "^4.5.2"
   },

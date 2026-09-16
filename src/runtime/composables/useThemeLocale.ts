@@ -1,10 +1,11 @@
 // runtime/composables/useThemeLocale.ts
-import { ref, watch } from 'vue'
+import { watch } from 'vue'
 import type { Ref } from 'vue'
-import { useRequestHeaders } from '#app'
+import { useRequestHeaders, useState } from '#app'
 import type { ThemeConfig } from '../../shared/types'
 import { DEFAULT_LOCALE } from '../../shared/constants'
 import { normalizeLocale, extractFirstLocale } from '../../shared/utils/normalize'
+import { hasCookieConsent } from '../../shared/utils/consent'
 
 export interface UseThemeLocaleOptions {
   enabled?: boolean
@@ -83,7 +84,13 @@ export const useThemeLocale = (
     return fallbackLocale
   }
 
-  const currentLocale = ref<string>(detectLocale())
+  // `useState` (não `ref()`) para que múltiplas chamadas de `useThemeLocale`
+  // (via `useVenixTheme()` — ex.: a página e o `<VenixThemeSwitcher>`, ou
+  // após uma navegação client-side) compartilhem a mesma instância reativa
+  // em vez de cada uma ter sua própria cópia desconectada — mesmo motivo e
+  // mesmo padrão de `theme.preference` em `useVenixTheme.ts`. Sem isso,
+  // `setLocale()` chamado numa instância não refletia em outras já montadas.
+  const currentLocale = useState<string>('venix-theme-locale', () => detectLocale())
 
   // Atualiza o locale quando o cookie mudar
   watch(localeCookie, (newLocale) => {
@@ -115,7 +122,11 @@ export const useThemeLocale = (
 
   const setLocale = (locale: string) => {
     currentLocale.value = normalizeLocale(locale)
-    if (enabled && !forcedLocale) {
+    // Mesma regra de consentimento usada para os cookies de tema (ver
+    // `useThemeCookies.persistIfConsented`) — sem isso, o cookie de locale
+    // era gravado incondicionalmente, inconsistente com a postura de
+    // privacidade do resto do módulo.
+    if (enabled && !forcedLocale && hasCookieConsent()) {
       localeCookie.value = normalizeLocale(locale)
     }
   }

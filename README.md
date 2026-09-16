@@ -17,7 +17,7 @@ A complete theme module for Nuxt applications, providing a centralized system fo
 * 💾 **Cookie-based persistence**
 * 🖥️ **System theme preference detection**
 * ⚡ **Nuxt-native integration**
-* 🎯 **UnoCSS auto-configuration**
+* 🎯 **UnoCSS preset** for the theme's color variables
 * 🎭 **Vuetify theme auto-configuration**
 * ✨ **Unified icons** — emoji, Iconify (including animated `line-md` icons) or inline SVG through one component
 
@@ -144,7 +144,6 @@ Every feature (`translation`, `color`, `scrollbar`, `cursor`, `typography`) is c
 | `scrollbar`   | `boolean \| object`  | `true`  | Enable or configure the custom scrollbar        |
 | `cursor`      | `boolean \| object`  | `true`  | Enable or configure the custom cursor           |
 | `typography`  | `boolean \| object`  | `true`  | Enable or configure typography                  |
-| `unocss`      | `boolean \| object`  | `true`  | Auto-configure UnoCSS with the theme colors      |
 | `vuetify`     | `boolean \| object`  | `false` | Auto-configure Vuetify's theme with the theme colors |
 | `icon`        | `boolean \| object`  | `true`  | Install and configure `@nuxt/icon`, register `<VenixIcon>` / `useVenixIcon` |
 
@@ -170,32 +169,44 @@ Setting `translation: false` fully disables locale auto-detection and cookie syn
 
 ## UnoCSS integration
 
-If [`@unocss/nuxt`](https://unocss.dev/integrations/nuxt) is installed, `nuxt-theme` automatically registers the theme's color variables under `theme.colors` in your UnoCSS config — no manual `uno.config.ts` setup required:
+`nuxt-theme` ships a UnoCSS preset that exposes the theme's color variables under `theme.colors` — add it to your own `uno.config.ts`:
 
 ```typescript
-// generated automatically, equivalent to writing this in uno.config.ts
+// uno.config.ts
+import { defineConfig } from 'unocss'
+import { venixUnoPreset } from '@venix-sistemas/nuxt-theme/unocss'
+
 export default defineConfig({
-  theme: {
-    colors: {
-      primary: 'var(--color-primary)',
-      secondary: 'var(--color-secondary)',
-      accent: 'var(--color-accent)',
-      error: 'var(--color-error)',
-      info: 'var(--color-info)',
-      success: 'var(--color-success)',
-      warning: 'var(--color-warning)',
-      background: 'var(--color-background)',
-      background2: 'var(--color-background2)',
-      background3: 'var(--color-background3)',
-      inverse: 'var(--color-inverse)',
-    },
-  },
+  presets: [
+    venixUnoPreset(),
+    // ...your other presets
+  ],
 })
 ```
 
-This means utilities like `text-primary`, `bg-background2` or `border-accent` work out of the box. If you already define any of these colors yourself in `uno.config.ts`, your values take precedence — the module only fills in what's missing.
+`venixUnoPreset()` is equivalent to writing this yourself:
 
-There's no hard dependency on UnoCSS: if it isn't installed, this is a no-op. Setting `unocss: false` (or `color: false`, since there would be no CSS variables to point to) also disables it.
+```typescript
+theme: {
+  colors: {
+    primary: 'var(--color-primary)',
+    secondary: 'var(--color-secondary)',
+    accent: 'var(--color-accent)',
+    error: 'var(--color-error)',
+    info: 'var(--color-info)',
+    success: 'var(--color-success)',
+    warning: 'var(--color-warning)',
+    background: 'var(--color-background)',
+    background2: 'var(--color-background2)',
+    background3: 'var(--color-background3)',
+    inverse: 'var(--color-inverse)',
+  },
+}
+```
+
+This means utilities like `text-primary`, `bg-background2` or `border-accent` work out of the box. If you already define any of these colors yourself in `uno.config.ts`, your values take precedence.
+
+This has to be added manually rather than auto-injected: `@unocss/nuxt` reloads `uno.config.ts` from disk on its own (to support HMR) and shallow-merges that file against anything injected through the `unocss:config` hook, which silently discards a hook-injected `theme` whenever your `uno.config.ts` already declares its own `theme` key — even one without any colors in it. As a preset living inside your own `presets` array, these colors become part of what's actually read from the file, so they survive that merge.
 
 ## Vuetify integration
 
@@ -259,7 +270,7 @@ venixTheme: {
 
 ### Offline icon collections
 
-By default, the `line-md` collection is bundled at build time via `@iconify-json/line-md` (a direct dependency of this module) — icons resolve from the published package itself, not from the Iconify API, so they keep working the same way in the playground and once this module is installed as a dependency elsewhere, including offline. Add more collections with `icon.collections` (each one needs its matching `@iconify-json/<collection>` package installed in your project):
+By default, the `line-md` collection is bundled at build time via `@iconify-json/line-md` (a direct dependency of this module) — icons resolve from the published package itself, not from the Iconify API, so they keep working the same way in the playground and once this module is installed as a dependency elsewhere, including offline. Add more collections with `icon.collections` (each one needs its matching `@iconify-json/<collection>` package installed in your project — this fully bundles the whole collection, so any icon from it can be used anywhere in your app, not just in theme icons):
 
 ```typescript
 venixTheme: {
@@ -268,6 +279,8 @@ venixTheme: {
   },
 }
 ```
+
+Independently of `icon.collections`, any `collection:name` value used in a theme's `icon` (see [Theme icons](#theme-icons) below) or in `icon.aliases` is detected automatically and bundled offline with **only the icons actually referenced** (via [`@iconify/utils`](https://iconify.design/docs/libraries/utils/)'s tree-shaking) — so picking any Iconify collection for a theme icon (the built-in themes use `mdi` for their `css` variant, for example) never embeds the whole collection just for a handful of icons. This lookup tries this module's own dependencies first, then your project's `node_modules`, so a collection you install yourself for a custom theme icon (without adding it to `icon.collections`) is found and tree-shaken the same way. If a referenced collection isn't found in either place, `@nuxt/icon` falls back to fetching it from the Iconify API at runtime (needs internet).
 
 Setting `icon: false` skips installing `@nuxt/icon` entirely — useful if your project already configures it directly.
 
