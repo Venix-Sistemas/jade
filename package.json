@@ -1,6 +1,6 @@
 {
   "name": "@venix-sistemas/nuxt-theme",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "Complete color system for Nuxt: seasonal colors, automatic theme, SSR, Cookie Policy, cursor, scrollbar, etc...",
   "keywords": [
     "nuxt",
