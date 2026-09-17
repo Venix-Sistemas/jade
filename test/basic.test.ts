@@ -29,6 +29,17 @@ describe('nuxt-theme module', () => {
       expect(scriptIndex).toBeGreaterThan(-1)
       expect(scriptIndex).toBeLessThan(headEnd)
     })
+
+    it('the anti-FOUC script knows about a custom theme registered via color.themes, not just the bundled theme.json', async () => {
+      // Regression: the script used to be built from the static theme.json
+      // alone, so a custom/project-only theme's `venix-theme-resolved`
+      // cookie would fail its isColorTheme check and get silently reset to
+      // the default theme on every full reload.
+      const html = await $fetch('/')
+
+      expect(html).toContain('"customFixtureTheme"')
+      expect(html).toContain('#123456')
+    })
   })
 
   // Teste de integração
