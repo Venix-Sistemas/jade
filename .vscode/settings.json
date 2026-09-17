@@ -1,3 +1,6 @@
 {
-  "eslint.useFlatConfig": true
+  "eslint.useFlatConfig": true,
+  "i18n-ally.localesPaths": [
+    "playground/i18n"
+  ]
 }
