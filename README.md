@@ -3,23 +3,22 @@
 [![npm version](https://badge.fury.io/js/@venix-sistemas%2Fnuxt-theme.svg)](https://badge.fury.io/js/@venix-sistemas%2Fnuxt-theme)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A complete theme module for Nuxt applications, providing a centralized system for colors, typography, cursor, scrollbar, internationalization and seasonal themes.
+A complete, centralized theming system for Nuxt applications: colors, typography, cursor, scrollbar, internationalization and seasonal themes, with UnoCSS, Vuetify and Iconify integrations.
 
 ## Features
 
-* 🎨 **Dark and light themes**
-* 🌈 **Custom color themes**
-* 🌐 **Internationalization and locale detection**
 * 📝 **Custom typography and font faces**
 * 🖱️ **Custom cursor**
 * 📜 **Custom scrollbar**
+* 🎨 **Dark and light themes**, with custom color themes on top
+* 🖥️ **System theme preference detection**, including seasonal overrides
 * 🎃 **Seasonal themes** — Carnival, Halloween, Christmas and more
-* 💾 **Cookie-based persistence**
-* 🖥️ **System theme preference detection**
+* 💾 **Cookie-based persistence that respects cookie consent** — nothing is written until the user opts in
+* 🌐 **Internationalization and locale detection** for theme names and your own strings
 * ⚡ **Nuxt-native integration**
 * 🎯 **UnoCSS preset** for the theme's color variables
-* 🎭 **Vuetify theme auto-configuration**
-* ✨ **Unified icons** — emoji, Iconify (including animated `line-md` icons) or inline SVG through one component
+* 🎭 **Vuetify 4 theme auto-configuration**, kept in sync with live theme changes
+* ✨ **Unified icons** — emoji, Iconify (animated `line-md`, `mdi`, both bundled and tree-shaken offline) or inline SVG through one component
 
 ## Installation
 
@@ -46,12 +45,6 @@ export default defineNuxtConfig({
   modules: ['@venix-sistemas/nuxt-theme'],
 
   venixTheme: {
-    translation: {
-      locale: 'pt-BR',
-      defaultLocale: 'en-US',
-      cookieSync: 'i18n_redirected',
-    },
-
     color: {
       themes: {
         dark: {
@@ -59,13 +52,11 @@ export default defineNuxtConfig({
         },
       },
     },
-
-    scrollbar: true,
-    cursor: true,
-    typography: true,
   },
 })
 ```
+
+Translation, color, scrollbar, cursor and typography are all on by default with sensible built-in values — the example above only overrides what it needs to. See [Configuration](#configuration) for the full reference.
 
 ### 2. Use the theme
 
@@ -138,7 +129,6 @@ Every feature (`translation`, `color`, `scrollbar`, `cursor`, `typography`) is c
 
 | Option        | Type                 | Default | Description                                    |
 | ------------- | -------------------- | ------- | ----------------------------------------------- |
-| `theme`       | `string`             | —       | Path to a custom theme JSON file                |
 | `translation` | `boolean \| object`  | `true`  | Enable or configure locale detection/i18n       |
 | `color`       | `boolean \| object`  | `true`  | Enable or configure the color system            |
 | `scrollbar`   | `boolean \| object`  | `true`  | Enable or configure the custom scrollbar        |
@@ -156,7 +146,7 @@ Every feature (`translation`, `color`, `scrollbar`, `cursor`, `typography`) is c
 | `cookieSync`   | `string`  | `'i18n_redirected'`   | Cookie used to persist/sync the selected locale    |
 | `manageHtmlLang` | `boolean` | `false`             | Keep `<html lang>` in sync with the resolved locale (see [Internationalization](#internationalization)) |
 
-Setting `translation: false` fully disables locale auto-detection and cookie syncing — useful if another module (e.g. `@nuxtjs/i18n`) already owns that cookie.
+Setting `translation: false` fully disables locale detection and stops `locale.set()` from ever writing to the locale cookie — theme names and `<VenixThemeSwitcher>`'s own strings always render in `defaultLocale` instead. Useful if you don't need theme-name translations at all and want this module to leave locale-related state alone entirely, not just because another module also reads that cookie (reading it is harmless either way — this module only ever writes to it through `locale.set()`, which nothing calls automatically).
 
 #### `color` object
 
@@ -165,7 +155,7 @@ Setting `translation: false` fully disables locale auto-detection and cookie syn
 | `apply`       | `boolean` | `true`   | Automatically apply the resolved theme (`data-theme`) |
 | `defaultColor`| `string`  | `'dark'` | Name of the theme used when no preference is set      |
 | `themes`      | `object`  | `{}`     | Override or add custom color themes                   |
-| `iconFormat`  | `'emote' \| 'css' \| 'svg'` | `'emote'` | Preferred variant for themes with an `icon` object — see [Theme icons](#theme-icons) |
+| `iconFormat`  | `'emote' \| 'css' \| 'svg'` | `'svg'` | Preferred variant for themes with an `icon` object — see [Theme icons](#theme-icons) |
 
 ## UnoCSS integration
 
@@ -226,11 +216,11 @@ export default defineNuxtConfig({
 
 Unlike the UnoCSS integration (which points at CSS variables), Vuetify computes contrast and `on-*` colors in JavaScript, so it needs real hex values — the module passes the actual colors from each theme, not `var(...)` strings. `background2` is also mapped to Vuetify's `surface` slot (used by cards, toolbars, etc.), since that's the closest match in this module's color system, and every color is still available under its own name too (`bg-background2`, `text-inverse`, ...).
 
-`vuetify: true` also adds a small runtime plugin that resolves the same `theme-preference`/`theme-resolved` cookies used elsewhere in the module, so Vuetify's `defaultTheme` matches what's rendered on the page from the first paint — both on the server and the client.
+`vuetify: true` also adds a small runtime plugin that keeps Vuetify's active theme in sync at every point: it resolves the same `theme-preference`/`theme-resolved` cookies used elsewhere in the module so Vuetify's `defaultTheme` matches what's rendered from the first paint (server and client), and it applies every later runtime switch (`theme.toggle()`, the switcher, a system/seasonal auto-change) via `theme.change()` (the current, non-deprecated API), inside the same View Transition the rest of the module uses rather than racing it as a separate update.
 
 **This must come before the Vuetify module in your `modules` array** — the registration happens through Vuetify's own [`vuetify:registerModule`](https://nuxt.vuetifyjs.com/guide/advanced/layers-and-hooks.html) build hook, which only picks up registrations made before Vuetify resolves its configuration. If you already define `vuetify.vuetifyOptions.theme.themes` yourself, your values take precedence over the generated ones (merged per color, not replaced wholesale).
 
-`vuetify` defaults to `false` — unlike the other integrations, it ships a runtime plugin, so it's opt-in rather than automatic. There's no hard dependency on Vuetify: if `vuetify-nuxt-module` isn't installed, enabling this option is a no-op.
+`vuetify` defaults to `false` — unlike the other integrations, it ships a runtime plugin, so it's opt-in rather than automatic. There's no hard dependency on Vuetify: if `vuetify-nuxt-module` isn't installed, enabling this option is a no-op. Tested against Vuetify `^4.2.1` with `vuetify-nuxt-module@1.0.0-rc.6` — as that module is still pre-1.0, its hooks may still change between releases.
 
 ## Icons
 
@@ -270,17 +260,17 @@ venixTheme: {
 
 ### Offline icon collections
 
-By default, the `line-md` collection is bundled at build time via `@iconify-json/line-md` (a direct dependency of this module) — icons resolve from the published package itself, not from the Iconify API, so they keep working the same way in the playground and once this module is installed as a dependency elsewhere, including offline. Add more collections with `icon.collections` (each one needs its matching `@iconify-json/<collection>` package installed in your project — this fully bundles the whole collection, so any icon from it can be used anywhere in your app, not just in theme icons):
+By default, the `line-md` collection is bundled at build time via `@iconify-json/line-md` (a direct dependency of this module) — icons resolve from the published package itself, not from the Iconify API, so they keep working the same way in the playground and once this module is installed as a dependency elsewhere, including offline. `@iconify-json/mdi` is also a direct dependency for the same reason: the built-in themes' `css` icon variant uses `mdi:*` names (see [Theme icons](#theme-icons)), and switching `color.iconFormat` to `'css'` pulls from it — only the handful of `mdi` icons actually referenced get bundled (see the tree-shaking note below), not the whole collection. Add more collections with `icon.collections` (each one needs its matching `@iconify-json/<collection>` package installed in your project — this fully bundles the whole collection, so any icon from it can be used anywhere in your app, not just in theme icons):
 
 ```typescript
 venixTheme: {
   icon: {
-    collections: ['line-md', 'mdi'],
+    collections: ['line-md', 'tabler'],
   },
 }
 ```
 
-Independently of `icon.collections`, any `collection:name` value used in a theme's `icon` (see [Theme icons](#theme-icons) below) or in `icon.aliases` is detected automatically and bundled offline with **only the icons actually referenced** (via [`@iconify/utils`](https://iconify.design/docs/libraries/utils/)'s tree-shaking) — so picking any Iconify collection for a theme icon (the built-in themes use `mdi` for their `css` variant, for example) never embeds the whole collection just for a handful of icons. This lookup tries this module's own dependencies first, then your project's `node_modules`, so a collection you install yourself for a custom theme icon (without adding it to `icon.collections`) is found and tree-shaken the same way. If a referenced collection isn't found in either place, `@nuxt/icon` falls back to fetching it from the Iconify API at runtime (needs internet).
+Independently of `icon.collections`, any `collection:name` value used in a theme's `icon` (see [Theme icons](#theme-icons) below) or in `icon.aliases` — `mdi` included — is detected automatically and bundled offline with **only the icons actually referenced**, the same tree-shaking `mdi` gets by default (via [`@iconify/utils`](https://iconify.design/docs/libraries/utils/)). This lookup tries this module's own dependencies first, then your project's `node_modules`, so a collection you install yourself for a custom theme icon (without adding it to `icon.collections`) is found and tree-shaken the same way. If a referenced collection isn't found in either place, `@nuxt/icon` falls back to fetching it from the Iconify API at runtime (needs internet).
 
 Setting `icon: false` skips installing `@nuxt/icon` entirely — useful if your project already configures it directly.
 
@@ -310,12 +300,12 @@ Each color theme's `icon` (used by `useVenixTheme().themes` for things like a th
 * `css` — an Iconify icon name rendered via `@nuxt/icon` in **CSS mode** (background/mask, no animation, lighter weight).
 * `svg` — an Iconify icon name rendered via `@nuxt/icon` in **SVG mode** (a real `<svg>` element — required for animated icons like `line-md`'s to actually animate).
 
-Which variant gets used is controlled globally by `color.iconFormat` (`'emote' | 'css' | 'svg'`, defaults to `'emote'`) — it falls back to `emote` automatically for any theme that doesn't define the chosen format (including themes that just use a plain string):
+Which variant gets used is controlled globally by `color.iconFormat` (`'emote' | 'css' | 'svg'`, defaults to `'svg'`) — it falls back to `emote` automatically for any theme that doesn't define the chosen format (including themes that just use a plain string):
 
 ```typescript
 venixTheme: {
   color: {
-    iconFormat: 'svg',
+    iconFormat: 'css', // lighter weight, no animation — trade the default 'svg' for this if you don't need line-md's animated icons
   },
 }
 ```
@@ -332,23 +322,31 @@ venixTheme: {
 
 ## Themes
 
-The module supports dark and light themes and can be extended with custom color configurations.
+The module ships with a built-in set of color themes (`dark`, `light`, plus the [seasonal ones](#seasonal-themes)) and can be extended through `color.themes`, which does two different things depending on the key:
+
+- An **existing** name (`dark`, `light`, or any seasonal one) overrides only the properties you give it, keeping the rest of that theme intact.
+- A **new** name registers a theme that doesn't exist in the built-in set at all — nothing further to opt into, it works the same as any built-in theme: real CSS variables, its own entry in `useVenixTheme().themes` (so it shows up in `<VenixThemeSwitcher>`), and Vuetify/UnoCSS integration if those are enabled. Useful for a theme specific to your project, e.g. a brand color scheme or a one-off campaign theme with no equivalent in the base set.
 
 ```typescript
 color: {
   themes: {
+    // Overrides an existing theme — the rest of `dark` stays as shipped
     dark: {
       primary: '#FF6B6B',
     },
 
-    light: {
-      primary: '#FF6B6B',
+    // Registers a brand new one, project-specific — 'summerSale' isn't a
+    // built-in theme name, so this doesn't override anything
+    summerSale: {
+      dark: false,
+      primary: '#FF8A00',
+      background: '#FFF8EE',
     },
   },
 }
 ```
 
-Theme preferences can be persisted using cookies and can also follow the user's system preference.
+This is currently the only supported way to customize colors — there's no option yet to load a completely custom theme file in place of the built-in one.
 
 ## Cookie Consent
 
@@ -394,9 +392,9 @@ The module supports locale detection and can integrate with the application's in
 
 The locale resolution can use:
 
-1. The explicitly configured locale (`translation.locale`)
-2. A forced locale from config
-3. The persisted locale cookie (`translation.cookieSync`, default `'i18n_redirected'`)
+1. The explicitly configured locale (`translation.locale`), if set — forces that locale everywhere, skipping every other step
+2. The persisted locale cookie (`translation.cookieSync`, default `'i18n_redirected'`)
+3. The current URL's locale prefix (e.g. `/en/...`), if it matches one of the theme's available locales — covers the case where a user opens a locale-prefixed route (e.g. via `@nuxtjs/i18n`) with no cookie yet and a browser language that disagrees with the URL
 4. The `Accept-Language` header (SSR) / `navigator.language` (client)
 5. The configured default locale (`translation.defaultLocale`)
 
@@ -428,53 +426,38 @@ Leave it off (the default) if you use `@nuxtjs/i18n` or a similar module: that m
 
 ## Seasonal Themes
 
-Seasonal themes allow the appearance of the application to change automatically based on predefined occasions.
+Built in: 🎭 Carnival, 🎃 Halloween, 🎄 Christmas — applied automatically, in place of `dark`/`light`, when the `'system'` preference is active and today falls inside their date range.
 
-Supported themes include:
+Add your own through `color.themes`, the same as any other custom theme — `seasonal: true` and `dateRange` (`MM-DD`, inclusive, wraps across year-end if `end` < `start`) opt it into this rotation instead of making it directly selectable. `dark` still matters here: it decides which system mode (light/dark) the theme pairs with.
 
-* 🎭 Carnival
-* 🎃 Halloween
-* 🎄 Christmas
-
-Additional seasonal themes can be added as the theme system evolves.
+```typescript
+color: {
+  themes: {
+    blackFriday: {
+      dark: true,
+      seasonal: true,
+      dateRange: { start: '11-24', end: '11-30' },
+      primary: '#111111',
+      background: '#000000',
+    },
+  },
+}
+```
 
 ## Development
 
-Clone the repository and install the dependencies:
+Clone the repository, then:
 
-```bash
-pnpm install
-```
+| Command | Description |
+| ------- | ----------- |
+| `pnpm install` | Install dependencies |
+| `pnpm dev` | Start the playground |
+| `pnpm test` | Run the tests |
+| `pnpm lint` | Run the linter |
+| `pnpm prepack` | Build the package |
 
-Start the playground:
-
-```bash
-pnpm dev
-```
-
-Run the tests:
-
-```bash
-pnpm test
-```
-
-Build the package:
-
-```bash
-pnpm prepack
-```
-
-Run the linter:
-
-```bash
-pnpm lint
-```
-
-## Documentation
-
-* [Online Documentation](https://github.com/seu-usuario/nuxt-theme)
-* [Playground](./playground)
+See the [Configuration](#configuration) section above for the full options reference, and the [Playground](./playground) for a working example.
 
 ## License
 
-MIT License
+[MIT](./LICENSE)
