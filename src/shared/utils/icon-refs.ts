@@ -14,12 +14,12 @@ function addRef(refs: Map<string, Set<string>>, value: string | undefined) {
 }
 
 /**
- * Extrai as referências `coleção:ícone` (Iconify) usadas nos temas de cor
- * (`icon.css` / `icon.svg`) e nos aliases de ícone configurados, agrupadas por
- * coleção. Permite empacotar cada coleção apenas com os ícones realmente
- * usados (tree-shaking), em vez da coleção inteira — essencial para coleções
- * grandes como `mdi` (milhares de ícones) usadas só para alguns ícones do
- * tema padrão.
+ * Extracts the Iconify `collection:icon` references used in color themes
+ * (`icon.css` / `icon.svg`) and in the configured icon aliases, grouped by
+ * collection. Lets each collection be bundled with only the icons actually
+ * used (tree-shaking) instead of the whole collection — essential for large
+ * collections like `mdi` (thousands of icons) used for only a handful of
+ * icons in the default theme.
  */
 export function extractIconRefs(
   themes: Record<string, ThemeColors>,

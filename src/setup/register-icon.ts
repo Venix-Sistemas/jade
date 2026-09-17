@@ -11,28 +11,28 @@ import { getIcons } from '@iconify/utils'
 import type { IconOptions, ColorsConfig } from '../shared/types'
 import { extractIconRefs } from '../shared/utils'
 
-// Extraído do tipo público de @nuxt/icon (não há subpath exportado só para
-// `ServerBundleOptions`) para tipar as coleções sem depender de @iconify/types
-// diretamente — evita uma dependência extra só para tipos.
+// Extracted from @nuxt/icon's public type (there's no subpath exported just
+// for `ServerBundleOptions`) to type the collections without depending on
+// @iconify/types directly — avoids an extra dependency just for types.
 type IconServerBundle = Exclude<NuxtIconOptions['serverBundle'], 'auto' | 'remote' | 'local' | false | undefined>
 type IconCollectionEntry = NonNullable<IconServerBundle['collections']>[number]
 type IconifyJSON = Parameters<typeof getIcons>[0]
 
-// `realpathSync` é essencial aqui: quando este pacote é instalado via pnpm
-// (sem hoist), o Node carrega este arquivo através de um symlink em
-// node_modules/@venix-sistemas/nuxt-theme/, e `createRequire` resolvido a
-// partir do caminho symlinked NÃO enxerga node_modules/ desta própria
-// dependência (fica "fora" da árvore real do pacote) — só funciona a partir
-// do caminho físico real.
+// `realpathSync` is essential here: when this package is installed via pnpm
+// (no hoisting), Node loads this file through a symlink under
+// node_modules/@venix-sistemas/nuxt-theme/, and `createRequire` resolved from
+// the symlinked path does NOT see this dependency's own node_modules/ (it
+// ends up "outside" the package's real tree) — only works from the real
+// physical path.
 const nodeRequire = createRequire(realpathSync(fileURLToPath(import.meta.url)))
 
 /**
- * Carrega o JSON bruto de uma coleção `@iconify-json/*`, tentando primeiro a
- * partir da localização deste próprio pacote (coleções que são dependência
- * do nuxt-theme, ex.: `line-md`, `mdi`) e depois a partir da raiz do projeto
- * consumidor (coleções que o próprio consumidor instalou para seus temas
- * customizados). Ver comentário de `nodeRequire` sobre por que a resolução
- * relativa a este pacote precisa do caminho físico real.
+ * Loads the raw JSON of an `@iconify-json/*` collection, trying first from
+ * this package's own location (collections that are a dependency of
+ * nuxt-theme, e.g. `line-md`, `mdi`) and then from the consumer project's
+ * root (collections the consumer installed themselves for their custom
+ * themes). See the `nodeRequire` comment for why resolution relative to this
+ * package needs the real physical path.
  */
 function loadCollectionJson(name: string, projectRequire: NodeRequire | null): IconifyJSON | null {
   try {
@@ -48,17 +48,17 @@ function loadCollectionJson(name: string, projectRequire: NodeRequire | null): I
   }
 }
 
-/** Coleção inteira, sem tree-shaking — para coleções explicitamente listadas em `icon.collections`. */
+/** Whole collection, no tree-shaking — for collections explicitly listed in `icon.collections`. */
 function loadFullCollection(name: string, projectRequire: NodeRequire | null): IconCollectionEntry {
-  return loadCollectionJson(name, projectRequire) ?? name // fallback: deixa o @nuxt/icon tentar resolver/buscar remoto
+  return loadCollectionJson(name, projectRequire) ?? name // fallback: let @nuxt/icon try to resolve/fetch it remotely
 }
 
 /**
- * Coleção reduzida a apenas os ícones referenciados (`getIcons`) — usada para
- * coleções detectadas nos temas/aliases mas não explicitamente listadas em
- * `icon.collections`, evitando embutir coleções grandes (ex.: `mdi`, com
- * milhares de ícones) inteiras no bundle do servidor só por causa de um
- * punhado de ícones usados.
+ * Collection reduced to only the referenced icons (`getIcons`) — used for
+ * collections detected in themes/aliases but not explicitly listed in
+ * `icon.collections`, avoiding bundling large collections (e.g. `mdi`, with
+ * thousands of icons) whole in the server bundle just for a handful of icons
+ * used.
  */
 function loadCollectionSubset(name: string, iconNames: Set<string>, projectRequire: NodeRequire | null): IconCollectionEntry | null {
   const json = loadCollectionJson(name, projectRequire)
@@ -82,7 +82,7 @@ export async function registerThemeIcon(nuxt: Nuxt, resolver: Resolver, options:
 
   const refs = extractIconRefs(colors.themes, options.aliases)
   for (const [name, iconNames] of refs) {
-    if (explicit.has(name)) continue // já embutida inteira acima
+    if (explicit.has(name)) continue // already bundled whole above
     collections.push(loadCollectionSubset(name, iconNames, projectRequire) ?? name)
   }
 

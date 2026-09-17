@@ -1,6 +1,6 @@
 // src/shared/css/transition.ts
 
-/** Duração do cross-fade nativo (View Transitions API) ao trocar de tema. */
+/** Duration of the native cross-fade (View Transitions API) when switching themes. */
 export function generateThemeTransitionCSS(): string {
   return `\n/* ============================================ */\n`
     + `/* Theme transition                              */\n`
@@ -9,14 +9,15 @@ export function generateThemeTransitionCSS(): string {
     + `::view-transition-new(root) {\n`
     + `  animation-duration: 0.3s;\n`
     + `}\n\n`
-    // Sem isso, a camada de overlay da transição (que cobre a tela toda
-    // enquanto anima) intercepta o hit-test do ponteiro — o cursor customizado
-    // (e o hover de elementos por baixo) "trava" no cursor padrão do SO até o
-    // mouse se mexer de novo. `pointer-events: none` deixa o hit-test passar
-    // direto pro conteúdo real por baixo, como se o overlay não existisse.
-    // Aplicado em cada nível da árvore de pseudo-elementos (não só na raiz)
-    // com `!important`, para não depender de herança funcionar do mesmo jeito
-    // nessa árvore especial em todo navegador.
+    // Without this, the transition's overlay layer (which covers the whole
+    // screen while animating) intercepts pointer hit-testing — the custom
+    // cursor (and hover on elements underneath) "freezes" at the OS default
+    // cursor until the mouse moves again. `pointer-events: none` lets
+    // hit-testing pass straight through to the real content underneath, as
+    // if the overlay didn't exist. Applied at every level of the
+    // pseudo-element tree (not just the root) with `!important`, so it
+    // doesn't depend on inheritance working the same way across browsers in
+    // this special tree.
     + `::view-transition,\n`
     + `::view-transition-group(*),\n`
     + `::view-transition-image-pair(*),\n`

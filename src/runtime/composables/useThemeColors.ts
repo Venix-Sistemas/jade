@@ -7,7 +7,7 @@ import type { ThemeIconFormat } from '../../shared/utils/icon'
 export const useThemeColors = (
   theme: ThemeConfig,
   translate: (translations?: Record<string, string>, fallback?: string) => string,
-  iconFormat: ThemeIconFormat = 'emote',
+  iconFormat: ThemeIconFormat = 'svg',
 ) => {
   const themes = computed(() => {
     const list = Object.entries(theme.colors.themes)

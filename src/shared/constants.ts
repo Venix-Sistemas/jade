@@ -3,13 +3,27 @@
 // ===== COOKIES =====
 export const THEME_PREFERENCE_COOKIE = 'venix-theme-preference'
 export const THEME_RESOLVED_COOKIE = 'venix-theme-resolved'
-export const THEME_LOCALE_COOKIE = 'venix-theme-locale'
 
 // ===== EVENTS =====
 export const COOKIE_PREFERENCES_UPDATED_EVENT = 'venix-cookie-preferences-updated'
+/**
+ * Dispatched synchronously by `apply()` (useVenixTheme.ts), inside the same
+ * `document.startViewTransition()` callback — BEFORE the View Transition
+ * captures the new state. Integrations that need to react to theme changes
+ * (e.g. `vuetify-theme.ts`) should listen for this event instead of watching
+ * `theme.preference` on their own: a separate `watch()` runs asynchronously,
+ * decoupled from the transition (Vue's timing isn't the browser's), so the
+ * integration's DOM mutation ends up competing with the View Transition's
+ * snapshot capture for the same frame — in practice this can cause a real,
+ * noticeable freeze in apps with a lot of theme-reactive DOM (e.g. Vuetify
+ * recomputing CSS vars for every component). Listening for this event
+ * guarantees the integration runs in the same synchronous tick as the
+ * `data-theme` change, as part of the same transition.
+ */
+export const THEME_APPLIED_EVENT = 'venix-theme-applied'
 
 // ===== LOCAL STORAGE =====
-/** Lido (nunca escrito) por este módulo — a UI de consentimento de cookies do app consumidor grava aqui. */
+/** Read (never written) by this module — the consumer app's cookie-consent UI writes here. */
 export const COOKIE_CONSENT_STORAGE_KEY = 'venix-cookie-consent'
 
 // ===== LOCALE =====

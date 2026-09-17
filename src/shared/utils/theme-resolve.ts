@@ -2,9 +2,10 @@
 import type { ThemeColors } from '../types'
 
 /**
- * Um tema só é "de cor" de verdade se tiver ao menos uma cor real — chaves
- * como o placeholder `'system'` (usado só para exibir "Automático" na UI, ver
- * `theme.json`) têm `translations`/`icon` mas nenhuma cor e não contam.
+ * A theme only really counts as a "color" theme if it has at least one real
+ * color — placeholder entries like `'system'` (only used to show
+ * "Automatic" in the UI, see `theme.json`) have `translations`/`icon` but no
+ * color, and don't count.
  */
 export function isColorTheme(themeConfig: ThemeColors | undefined): boolean {
   if (!themeConfig) return false
@@ -38,9 +39,9 @@ function isDateInSeasonalRange(themeConfig: ThemeColors, now: Date): boolean {
 }
 
 /**
- * Tema sazonal ativo hoje. Quando `prefersDark` é informado, só retorna temas
- * que casam com esse modo (claro/escuro); quando omitido, retorna o primeiro
- * tema sazonal ativo independente do modo.
+ * Active seasonal theme for today. When `prefersDark` is given, only returns
+ * themes matching that mode (light/dark); when omitted, returns the first
+ * active seasonal theme regardless of mode.
  */
 export function getActiveSeasonalTheme(
   themes: Record<string, ThemeColors>,
@@ -59,13 +60,13 @@ export function getActiveSeasonalTheme(
 }
 
 /**
- * Resolve uma preferência de tema (`'system'`, o nome de um tema, ou vazio)
- * no tema de cor concreto que deve ser aplicado. Implementação única desta
- * regra — usada por `useVenixTheme`/`useThemeSeasonal` e pelo plugin de SSR
- * (`theme-init.server.ts`). O script pré-hidratação
- * (`runtime/scripts/theme-init.ts`) é a única exceção documentada: precisa
- * rodar como IIFE autocontida (sem imports), então duplica esta lógica de
- * propósito — mantenha as duas em sincronia ao alterar uma delas.
+ * Resolves a theme preference (`'system'`, a theme name, or empty) to the
+ * concrete color theme that should be applied. Single implementation of this
+ * rule — used by `useVenixTheme`/`useThemeSeasonal` and the SSR plugin
+ * (`theme-init.server.ts`). The pre-hydration script
+ * (`runtime/scripts/theme-init.ts`) is the one documented exception: it has
+ * to run as a self-contained IIFE (no imports), so it deliberately duplicates
+ * this logic — keep the two in sync when changing either.
  */
 export function resolveThemePreference(
   preference: string | undefined,

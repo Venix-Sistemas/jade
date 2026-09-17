@@ -1,7 +1,7 @@
 // runtime/composables/useVenixTheme.ts
 import { computed, watch, onMounted, onUnmounted, getCurrentInstance } from 'vue'
 import { useRuntimeConfig, useState } from '#app'
-import { DEFAULT_THEME, DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY } from '../../shared/constants'
+import { DEFAULT_THEME, DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT } from '../../shared/constants'
 import { useThemeCookies } from './useThemeCookies'
 import { useThemeLocale } from './useThemeLocale'
 import { useThemeSeasonal } from './useThemeSeasonal'
@@ -20,33 +20,32 @@ export const useVenixTheme = () => {
   const defaultTheme = theme.colors.defaultColor || DEFAULT_THEME
   const shouldApplyColors = themeConfig?.applyColors !== false && theme.colors.defaults !== false
 
-  // Cookies — o cookie de locale é o mesmo usado por soluções de i18n de rotas
-  // (ex.: @nuxtjs/i18n usa 'i18n_redirected' por padrão, igual ao nosso), para
-  // que as traduções de nome de tema sigam automaticamente o idioma do app.
+  // Cookies — the locale cookie is the same one used by routing i18n
+  // solutions (e.g. @nuxtjs/i18n defaults to 'i18n_redirected', same as
+  // ours), so theme-name translations automatically follow the app's locale.
   const cookies = useThemeCookies(themeConfig?.localeCookie)
 
-  // Consentimento de cookies — compartilhado via useState pelo mesmo motivo
-  // que `preference` (múltiplas chamadas de useVenixTheme() devem concordar
-  // sobre o estado atual). `venix-theme-preference`/`venix-theme-resolved` só
-  // são gravados quando isto for `true` (ver useThemeCookies.ts).
+  // Cookie consent — shared via useState for the same reason as `preference`
+  // (multiple calls to useVenixTheme() must agree on the current state).
+  // `venix-theme-preference`/`venix-theme-resolved` are only written when
+  // this is `true` (see useThemeCookies.ts).
   const hasConsent = useState<boolean>('venix-cookie-consent', () =>
     typeof window !== 'undefined' && hasCookieConsent(),
   )
 
-  // Locale
   const locale = useThemeLocale(theme, cookies.localeCookie, {
     enabled: themeConfig?.enabled?.translation !== false,
     forcedLocale: themeConfig?.locale,
     defaultLocale: themeConfig?.defaultLocale || DEFAULT_LOCALE,
   })
 
-  // `lang` precisa refletir o locale resolvido (WCAG 3.1.1) — mas só quando
-  // NADA MAIS já for dono desse atributo. Desligado por padrão porque, se o
-  // projeto usa um módulo de i18n de rotas (ex.: @nuxtjs/i18n), é ele quem
-  // deve controlar `lang`: o locale dele reflete a URL atual, enquanto o
-  // nosso só reflete cookie/idioma do navegador — os dois podem divergir
-  // (ex.: usuário navega para `/es`, mas nosso cookie ainda diz `pt`), e essa
-  // sincronização ficaria "brigando" com a do i18n. Ver `translation.manageHtmlLang`.
+  // `lang` needs to reflect the resolved locale (WCAG 3.1.1) — but only when
+  // NOTHING ELSE already owns that attribute. Off by default because, if the
+  // project uses a routing i18n module (e.g. @nuxtjs/i18n), that's the one
+  // that should control `lang`: its locale reflects the current URL, while
+  // ours only reflects the cookie/browser language — the two can diverge
+  // (e.g. user navigates to `/es`, but our cookie still says `pt`), and this
+  // sync would end up fighting with i18n's own. See `translation.manageHtmlLang`.
   if (themeConfig?.enabled?.manageHtmlLang) {
     if (typeof document !== 'undefined') {
       document.documentElement.lang = locale.currentLocale.value
@@ -56,15 +55,13 @@ export const useVenixTheme = () => {
     })
   }
 
-  // Temas sazonais
   const seasonal = useThemeSeasonal(theme)
 
-  // Cores e temas
-  const colors = useThemeColors(theme, locale.translate, (themeConfig?.iconFormat as ThemeIconFormat) || 'emote')
+  const colors = useThemeColors(theme, locale.translate, (themeConfig?.iconFormat as ThemeIconFormat) || 'svg')
 
-  // Estado de preferência — compartilhado via useState para que múltiplas
-  // chamadas de useVenixTheme() (ex.: a página e o <VenixThemeSwitcher>) fiquem
-  // sincronizadas em vez de terem cada uma sua própria cópia desconectada.
+  // Preference state — shared via useState so multiple calls to
+  // useVenixTheme() (e.g. the page and <VenixThemeSwitcher>) stay in sync
+  // instead of each getting its own disconnected copy.
   const initialPreference = cookies.preferenceCookie.value || defaultTheme
   const preference = useState<string>('venix-theme-preference', () => initialPreference || 'system')
 
@@ -87,11 +84,17 @@ export const useVenixTheme = () => {
       html.classList.add(resolved)
       html.setAttribute('data-theme', resolved)
       window.__VENIX_INITIAL_THEME__ = resolved
+
+      // Synchronous, on purpose — see the THEME_APPLIED_EVENT comment in
+      // shared/constants.ts for why integrations (e.g. Vuetify) should
+      // listen for this event instead of watching `theme.preference` with
+      // their own `watch()`.
+      window.dispatchEvent(new CustomEvent<string>(THEME_APPLIED_EVENT, { detail: resolved }))
     }
   }
 
-  // Anima a troca de tema com a View Transitions API (cross-fade nativo do
-  // navegador) quando disponível; sem isso a troca continua instantânea.
+  // Animates the theme switch with the View Transitions API (the browser's
+  // native cross-fade) when available; without it the switch is instant.
   const applyWithTransition = (pref: string) => {
     const canAnimate = typeof document !== 'undefined'
       && typeof document.startViewTransition === 'function'
@@ -102,30 +105,37 @@ export const useVenixTheme = () => {
       return
     }
 
-    // Durante a transição, navegadores baseados em Chromium voltam a exibir o
-    // cursor padrão do SO em vez do customizado. O cursor customizado é
-    // definido em `body` (ver shared/css/cursor.ts) — fixar o mesmo valor
-    // via inline style *no próprio `body`* (não em `<html>`: `body` tem sua
-    // própria regra direta, que sempre vence a herança do elemento pai,
-    // então fixar em `<html>` não tem efeito nenhum sobre o que é exibido
-    // dentro do body) garante, com a maior especificidade possível, que o
-    // cursor certo continue aparecendo mesmo se o navegador ignorar isso
-    // durante a animação. Elementos com sua própria regra de cursor (botões,
-    // links, campos de texto) não são afetados — uma regra que casa
-    // diretamente com o elemento sempre vence a herança, com ou sem
-    // `!important` de qualquer um dos lados.
+    // During the transition, Chromium-based browsers revert to the OS
+    // default cursor instead of the custom one. The custom cursor is defined
+    // on `body` (see shared/css/cursor.ts) — pinning the same value via
+    // inline style *on `body` itself* (not on `<html>`: `body` has its own
+    // direct rule, which always wins over the parent element's inheritance,
+    // so pinning it on `<html>` has no effect at all on what's shown inside
+    // body) guarantees, with the highest possible specificity, that the
+    // right cursor keeps showing even if the browser ignores this during the
+    // animation. Elements with their own cursor rule (buttons, links, text
+    // fields) are unaffected — a rule that matches the element directly
+    // always wins over inheritance, with or without `!important` on either side.
+    //
+    // `getComputedStyle` forces a synchronous style recalculation — only
+    // worth paying that cost (right in the middle of the transition) when
+    // the project actually has a custom cursor configured; otherwise `body`
+    // would never have its own `cursor` rule anyway, so the result would
+    // always be 'auto' and this whole block would be wasted work.
     const body = document.body
-    const currentCursor = getComputedStyle(body).cursor
+    const hasCustomCursor = theme.customCursor?.enabled !== false && !!theme.customCursor?.cursors
+    const currentCursor = hasCustomCursor ? getComputedStyle(body).cursor : null
     if (currentCursor && currentCursor !== 'auto') {
       body.style.setProperty('cursor', currentCursor, 'important')
     }
 
     const restoreCursor = () => body.style.removeProperty('cursor')
 
-    // `.ready`/`.finished` rejeitam quando o navegador pula ou aborta a
-    // transição (ex.: uma troca nova chega antes da anterior terminar, ou a
-    // aba está oculta) — um resultado esperado, não um erro real; sem os
-    // `.catch()`, isso vira "Uncaught (in promise)" no console.
+    // `.ready`/`.finished` reject when the browser skips or aborts the
+    // transition (e.g. a new switch arrives before the previous one
+    // finishes, or the tab is hidden) — an expected outcome, not a real
+    // error; without the `.catch()`s, this turns into "Uncaught (in
+    // promise)" in the console.
     const transition = document.startViewTransition(() => apply(pref))
     transition.ready.catch(() => {})
     transition.finished.then(restoreCursor).catch(restoreCursor)
@@ -143,11 +153,11 @@ export const useVenixTheme = () => {
     }
   }
 
-  // Re-lê o consentimento e sincroniza os cookies de tema de acordo — chamado
-  // sempre que COOKIE_PREFERENCES_UPDATED_EVENT dispara (de qualquer origem:
-  // grant()/revoke() abaixo, ou a UI de consentimento do app consumidor) e
-  // também diretamente por grant()/revoke() para refletir na hora, sem
-  // depender do round-trip do evento.
+  // Re-reads consent and syncs the theme cookies accordingly — called
+  // whenever COOKIE_PREFERENCES_UPDATED_EVENT fires (from any source:
+  // grant()/revoke() below, or the consumer app's own consent UI), and also
+  // called directly by grant()/revoke() to reflect immediately, without
+  // depending on the event's round-trip.
   const syncPersistence = () => {
     hasConsent.value = hasCookieConsent()
 
@@ -159,11 +169,11 @@ export const useVenixTheme = () => {
     }
   }
 
-  // Grava o consentimento no formato que este módulo lê (ver hasCookieConsent
-  // em shared/utils/consent.ts) e dispara o evento — conveniência para quem
-  // não tem um CMP próprio. Um CMP existente pode gravar em COOKIE_CONSENT
-  // _STORAGE_KEY e disparar COOKIE_PREFERENCES_UPDATED_EVENT diretamente, sem
-  // precisar chamar isto.
+  // Writes consent in the format this module reads (see hasCookieConsent in
+  // shared/utils/consent.ts) and dispatches the event — a convenience for
+  // apps without their own CMP. An existing CMP can write to
+  // COOKIE_CONSENT_STORAGE_KEY and dispatch COOKIE_PREFERENCES_UPDATED_EVENT
+  // directly, without needing to call this.
   const grantPersistence = () => {
     if (typeof localStorage === 'undefined') return
     localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify({ functionality: true }))
@@ -178,14 +188,14 @@ export const useVenixTheme = () => {
     window.dispatchEvent(new Event(COOKIE_PREFERENCES_UPDATED_EVENT))
   }
 
-  // `onMounted` exige uma instância de componente ativa — se `useVenixTheme()`
-  // for chamado fora de um `setup()` síncrono normal (ex.: contexto perdido
-  // sob Suspense/async setup em alguns fluxos de SSR+i18n), ela avisa
-  // "onMounted is called when there is no active component instance" e a
-  // callback nunca roda. Com instância, comportamento igual a antes; sem
-  // instância, roda a mesma lógica assim que possível no cliente em vez de
-  // simplesmente falhar — o preço é não conseguir registrar `onUnmounted`
-  // para limpeza automática nesse caso específico (ver abaixo).
+  // `onMounted` requires an active component instance — if `useVenixTheme()`
+  // is called outside a normal synchronous `setup()` (e.g. context lost
+  // under Suspense/async setup in some SSR+i18n flows), it warns "onMounted
+  // is called when there is no active component instance" and the callback
+  // never runs. With an instance, behavior is unchanged; without one, this
+  // runs the same logic as soon as possible on the client instead of simply
+  // failing — the price is not being able to register `onUnmounted` for
+  // automatic cleanup in that specific case (see below).
   const instance = getCurrentInstance()
   const runOnClientMount = (fn: () => void) => {
     if (instance) {
@@ -197,9 +207,10 @@ export const useVenixTheme = () => {
   }
 
   runOnClientMount(() => {
-    // `localStorage` só existe no cliente — o SSR sempre inicializa `hasConsent`
-    // como `false` (ver useState acima); aqui corrigimos para o valor real
-    // assim que hidrata, caso o consentimento já tenha sido concedido antes.
+    // `localStorage` only exists on the client — SSR always initializes
+    // `hasConsent` as `false` (see useState above); here we correct it to
+    // the real value as soon as it hydrates, in case consent was already
+    // granted before.
     hasConsent.value = hasCookieConsent()
 
     if (!shouldApplyColors) return

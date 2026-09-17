@@ -18,9 +18,9 @@ export const useThemeCookies = (localeCookieName: string = DEFAULT_LOCALE_COOKIE
     }
   }
 
-  // Só grava se o app consumidor já registrou consentimento de cookies
-  // funcionais — chamado tanto automaticamente (a cada troca de tema) quanto
-  // explicitamente via `persistence.enable()`.
+  // Only writes if the consumer app has already recorded functional-cookie
+  // consent — called both automatically (on every theme change) and
+  // explicitly via `persistence.enable()`.
   const persistIfConsented = (preference: string, resolved: string) => {
     if (!hasCookieConsent()) return
     preferenceCookie.value = preference

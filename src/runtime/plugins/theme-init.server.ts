@@ -18,15 +18,16 @@ export default defineNuxtPlugin({
     const theme = buildResolvedTheme(themeConfig)
     const defaultTheme = theme.colors.defaultColor || DEFAULT_THEME
 
-    // Sem `matchMedia` no servidor: `resolveThemePreference` não sabe se o
-    // usuário prefere claro/escuro quando a preferência é 'system' (ex.:
-    // "Automático"), então assume escuro — o script pré-hidratação
-    // (`runtime/scripts/theme-init.ts`) corrige no cliente antes do primeiro
-    // paint, se necessário. Antes, um preferenceCookie 'system' era tratado
-    // como um nome de tema válido (a chave existe em `colors.themes` como
-    // placeholder de UI — ver `theme.json`) e virava `data-theme="system"`,
-    // para o qual não existe CSS gerado (`generateThemeVars` pula 'system'
-    // de propósito) — resultando em flash sem cor nenhuma.
+    // No `matchMedia` on the server: `resolveThemePreference` doesn't know
+    // whether the user prefers light/dark when the preference is 'system'
+    // (i.e. "Automatic"), so it assumes dark — the pre-hydration script
+    // (`runtime/scripts/theme-init.ts`) corrects it on the client before the
+    // first paint, if needed. Previously, a `preferenceCookie` of 'system'
+    // was treated as a valid theme name (the key exists in `colors.themes`
+    // as a UI placeholder — see `theme.json`) and turned into
+    // `data-theme="system"`, for which no CSS is generated
+    // (`generateThemeVars` skips 'system' on purpose) — resulting in a flash
+    // with no color at all.
     let resolvedTheme = defaultTheme
 
     if (resolvedCookie.value && isColorTheme(theme.colors.themes[resolvedCookie.value])) {
@@ -41,10 +42,10 @@ export default defineNuxtPlugin({
       'class': resolvedTheme,
     }
 
-    // `lang` precisa refletir o locale resolvido (WCAG 3.1.1) — mas só quando
-    // habilitado explicitamente (ver `translation.manageHtmlLang` e o mesmo
-    // comentário em useVenixTheme.ts): se o projeto já usa um módulo de i18n
-    // de rotas, é ele quem deve ser o dono desse atributo.
+    // `lang` needs to reflect the resolved locale (WCAG 3.1.1) — but only
+    // when enabled explicitly (see `translation.manageHtmlLang` and the same
+    // comment in useVenixTheme.ts): if the project already uses a routing
+    // i18n module, that one should own this attribute.
     if (themeConfig?.enabled?.manageHtmlLang) {
       const localeCookie = useCookie<string>(themeConfig?.localeCookie || DEFAULT_LOCALE_COOKIE_NAME)
       const locale = useThemeLocale(theme, localeCookie, {
@@ -55,7 +56,7 @@ export default defineNuxtPlugin({
       htmlAttrs.lang = locale.currentLocale.value
     }
 
-    // Aplica no SSR diretamente
+    // Applies directly during SSR
     useHead({ htmlAttrs })
   },
 })

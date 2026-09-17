@@ -3,8 +3,8 @@ import { isColorTheme, getActiveSeasonalTheme, resolveThemePreference } from '..
 import type { ThemeColors } from '../../src/shared/types'
 
 const themes: Record<string, ThemeColors> = {
-  // Placeholder de UI (ver theme.json) — existe como chave mas não tem cor
-  // nenhuma, só serve pra exibir "Automático" num seletor de tema.
+  // UI placeholder (see theme.json) — exists as a key but has no color at
+  // all, only used to show "Automatic" in a theme picker.
   system: { translations: { 'en-US': 'Automatic' } },
   dark: { dark: true, primary: '#111111' },
   light: { dark: false, primary: '#eeeeee' },
@@ -74,9 +74,9 @@ describe('resolveThemePreference', () => {
   })
 
   it('NUNCA deve retornar "system" como tema resolvido, mesmo que a chave exista em `themes`', () => {
-    // Regressão: o plugin de SSR antes tratava a existência da chave 'system'
-    // (placeholder de UI, sem cor) como um tema válido e aplicava
-    // `data-theme="system"`, para o qual não existe CSS gerado.
+    // Regression: the SSR plugin used to treat the existence of the 'system'
+    // key (a UI placeholder, no color) as a valid theme and applied
+    // `data-theme="system"`, for which no CSS is generated.
     const resolved = resolveThemePreference('system', themes, 'dark', true)
     expect(resolved).not.toBe('system')
   })

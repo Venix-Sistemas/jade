@@ -8,13 +8,13 @@ export interface ResolvedIcon {
 }
 
 /**
- * Resolve um valor de ícone para o tipo de renderização correto:
- * - SVG inline (começa com `<svg`)
- * - nome de ícone Iconify (formato `coleção:nome`, ex.: `line-md:home`)
- * - emoji/texto (qualquer outro valor)
+ * Resolves an icon value to the correct rendering type:
+ * - inline SVG (starts with `<svg`)
+ * - Iconify icon name (`collection:name` format, e.g. `line-md:home`)
+ * - emoji/text (any other value)
  *
- * Aliases são resolvidos primeiro, então o valor resultante passa pela mesma
- * detecção — um alias pode apontar para qualquer um dos três formatos.
+ * Aliases are resolved first, then the resulting value goes through the same
+ * detection — an alias can point to any of the three formats.
  */
 export function resolveIcon(input: string, aliases: Record<string, string> = {}): ResolvedIcon {
   const value = (aliases[input] ?? input).trim()
@@ -38,9 +38,9 @@ export interface ResolvedThemeIcon {
 }
 
 /**
- * Resolve o ícone de um tema de cor (string legada, sempre emote, ou um
- * `ThemeIconFormats` com variantes) para o formato preferido, caindo para
- * `emote` quando o tema não define o formato escolhido.
+ * Resolves a color theme's icon (a legacy string, always emote, or a
+ * `ThemeIconFormats` with variants) to the preferred format, falling back to
+ * `emote` when the theme doesn't define the chosen format.
  */
 export function resolveThemeIcon(
   icon: string | ThemeIconFormats | undefined,

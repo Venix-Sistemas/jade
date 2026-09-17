@@ -77,11 +77,11 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useVenixTheme } from '../composables/useVenixTheme'
 
-// Strings próprias do componente (rótulo padrão e anúncio para leitores de
-// tela) — traduzidas para os mesmos idiomas já suportados pelas traduções de
-// tema (ver LOCALE_MAP em shared/constants.ts), via o mesmo mecanismo de
-// locale do módulo (`locale.translate`). Um `label` explícito via prop sempre
-// tem prioridade.
+// The component's own strings (default label and screen-reader announcement)
+// — translated into the same languages theme-name translations already
+// support (see LOCALE_MAP in shared/constants.ts), via the module's own
+// locale mechanism (`locale.translate`). An explicit `label` prop always
+// takes priority.
 const LABEL_TRANSLATIONS: Record<string, string> = {
   'pt-BR': 'Tema de cor',
   'en-US': 'Color theme',
@@ -107,9 +107,9 @@ const CHANGED_ANNOUNCEMENT_TRANSLATIONS: Record<string, string> = {
 }
 
 const props = defineProps<{
-  /** Rótulo acessível do botão e do menu. Sem valor, usa uma tradução própria do componente baseada no locale atual. */
+  /** Accessible label for the button and the menu. Without a value, uses the component's own translation based on the current locale. */
   label?: string
-  /** Mostra o nome do tema ativo ao lado do ícone no botão. */
+  /** Shows the active theme's name next to the icon on the button. */
   showLabel?: boolean
 }>()
 
@@ -124,8 +124,8 @@ const rootRef = ref<HTMLElement | null>(null)
 const triggerRef = ref<HTMLButtonElement | null>(null)
 
 const activeIcon = computed(() => theme.data.value?.icon ?? null)
-// Muda a cada troca de tema para forçar o Vue a recriar o <VenixIcon> (em vez
-// de só atualizar props), reiniciando animações CSS/SVG do ícone do tema novo.
+// Changes on every theme switch to force Vue to recreate <VenixIcon> (instead
+// of just updating props), restarting the new theme's icon CSS/SVG animation.
 const activeIconKey = computed(() => `${theme.value.value}:${activeIcon.value?.format ?? ''}:${activeIcon.value?.value ?? ''}`)
 
 const getMenuItems = (): HTMLButtonElement[] => {
@@ -202,8 +202,8 @@ const handleKeydown = (event: KeyboardEvent) => {
 }
 
 onMounted(() => {
-  // Duplo rAF: garante que o navegador pinte o estado inicial (opacity: 0)
-  // antes de ativar a transição para opacity: 1.
+  // Double rAF: makes sure the browser paints the initial state (opacity: 0)
+  // before triggering the transition to opacity: 1.
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       visible.value = true
@@ -277,8 +277,8 @@ onUnmounted(() => {
   padding: 0.375rem;
   list-style: none;
   border-radius: 0.75rem;
-  /* Cores fixas (não vêm do tema ativo): o menu precisa continuar legível
-     independente de qual tema de cor está sendo exibido/escolhido no momento. */
+  /* Fixed colors (not from the active theme): the menu needs to stay legible
+     no matter which color theme is currently applied/being picked. */
   background: #1f2128;
   border: 1px solid #3a3d46;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);

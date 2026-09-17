@@ -1,9 +1,9 @@
 /**
- * Resolve uma opção de módulo no formato `boolean | Partial<Config>` contra uma
- * configuração base. `false` desabilita o recurso, um objeto habilita e mescla
- * customizações, `true` força o recurso habilitado (mesmo que a base venha
- * desligada, ex.: `theme.customCursor.enabled: false`), e `undefined` mantém
- * a configuração base intacta.
+ * Resolves a module option in `boolean | Partial<Config>` form against a base
+ * config. `false` disables the feature, an object enables it and merges in
+ * customizations, `true` forces the feature enabled (even if the base comes
+ * disabled, e.g. `theme.customCursor.enabled: false`), and `undefined` leaves
+ * the base config untouched.
  */
 export function resolveFeatureOption<T extends { enabled: boolean }>(
   option: boolean | Partial<T> | undefined,

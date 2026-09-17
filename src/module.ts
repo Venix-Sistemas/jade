@@ -12,22 +12,21 @@ import { registerThemeVuetify } from './setup/register-vuetify'
 import { registerThemeIcon } from './setup/register-icon'
 
 export interface ModuleOptions {
-  theme?: string
   translation?: boolean | Partial<TranslationConfig>
   color?: boolean | Partial<ColorOptions>
   scrollbar?: boolean | Partial<ScrollbarConfig>
   cursor?: boolean | Partial<CursorConfig>
   typography?: boolean | Partial<TypographyConfig>
   /**
-   * Registra os temas de cor no Vuetify (`vuetify-nuxt-module`), se instalado.
-   * Desligado por padrão — ligue explicitamente em projetos que usam Vuetify.
-   * Precisa vir ANTES do módulo do Vuetify em `modules`.
+   * Registers the color themes with Vuetify (`vuetify-nuxt-module`), if
+   * installed. Off by default — enable explicitly in projects using Vuetify.
+   * Must come BEFORE the Vuetify module in `modules`.
    */
   vuetify?: boolean | Partial<VuetifyOptions>
   /**
-   * Integra `@nuxt/icon` e registra `<VenixIcon>` / `useVenixIcon`, capazes de
-   * renderizar emoji, ícones Iconify (ex.: `line-md:home`, animados) ou SVG
-   * inline a partir de um único valor. Instala `@nuxt/icon` automaticamente.
+   * Integrates `@nuxt/icon` and registers `<VenixIcon>` / `useVenixIcon`,
+   * able to render an emoji, an Iconify icon (e.g. `line-md:home`, animated)
+   * or an inline SVG from a single value. Installs `@nuxt/icon` automatically.
    */
   icon?: boolean | Partial<IconOptions>
 }
@@ -50,27 +49,27 @@ export default defineNuxtModule<ModuleOptions>({
   async setup(options, nuxt) {
     const resolver = createResolver(import.meta.url)
 
-    // 1. Registra assets públicos
+    // 1. Register public assets
     registerPublicAssets(nuxt, resolver)
 
-    // 2. Carrega e customiza o tema
-    const baseTheme = loadTheme(options.theme)
+    // 2. Load and customize the theme
+    const baseTheme = loadTheme()
     const theme = customizeTheme(baseTheme, options)
 
-    // 3. Registra o composable e o componente pronto de seletor de tema
+    // 3. Register the composable and the ready-made theme switcher component
     addImports({
       name: 'useVenixTheme',
       from: resolver.resolve('./runtime/composables/useVenixTheme'),
     })
     registerThemeComponents(resolver)
 
-    // 4. Resolve as opções de cor e tradução
+    // 4. Resolve color and translation options
     const colorOptions = resolveFeatureOption<ColorOptions>(options.color, {
       enabled: theme.colors?.enabled !== false,
       apply: true,
       defaultColor: theme.colors?.defaultColor || 'dark',
       themes: {},
-      iconFormat: 'emote',
+      iconFormat: 'svg',
     })
     const shouldApplyColors = colorOptions.enabled && colorOptions.apply && theme.colors?.defaults !== false
 
@@ -82,19 +81,19 @@ export default defineNuxtModule<ModuleOptions>({
       manageHtmlLang: false,
     })
 
-    // 5. Registra CSS
+    // 5. Register CSS
     registerThemeCSS(nuxt, theme)
 
-    // 6. Registra plugins
+    // 6. Register plugins
     registerThemePlugins(nuxt, resolver, shouldApplyColors)
 
-    // 7. Registra os temas de cor no Vuetify, se habilitado
+    // 7. Register the color themes with Vuetify, if enabled
     const vuetifyOptions = resolveFeatureOption<VuetifyOptions>(options.vuetify, {
       enabled: true,
     })
     registerThemeVuetify(nuxt, resolver, theme, colorOptions.defaultColor, vuetifyOptions.enabled)
 
-    // 8. Registra @nuxt/icon + <VenixIcon> / useVenixIcon
+    // 8. Register @nuxt/icon + <VenixIcon> / useVenixIcon
     const iconOptions = resolveFeatureOption<IconOptions>(options.icon, {
       enabled: true,
       collections: ['line-md'],
@@ -102,7 +101,7 @@ export default defineNuxtModule<ModuleOptions>({
     })
     await registerThemeIcon(nuxt, resolver, iconOptions, theme.colors)
 
-    // 9. Configura runtimeConfig
+    // 9. Configure runtimeConfig
     nuxt.options.runtimeConfig.public.venixTheme = {
       defaultTheme: theme.colors?.defaultColor || 'dark',
       colorThemes: colorOptions.themes,

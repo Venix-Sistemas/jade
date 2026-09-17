@@ -3,11 +3,11 @@ export interface ThemeTranslations {
 }
 
 export interface ThemeIconFormats {
-  /** Emoji, sempre presente — fallback quando o formato preferido não existe. */
+  /** Emoji, always present — fallback when the preferred format doesn't exist. */
   emote: string
-  /** Nome de ícone Iconify (ex.: 'mdi:sun-compass'), sem animação (@nuxt/icon em modo CSS). */
+  /** Iconify icon name (e.g. 'mdi:sun-compass'), no animation (@nuxt/icon in CSS mode). */
   css?: string
-  /** Nome de ícone Iconify (ex.: 'line-md:sunny-filled-loop'), com animação (@nuxt/icon em modo SVG). */
+  /** Iconify icon name (e.g. 'line-md:sunny-filled-loop'), animated (@nuxt/icon in SVG mode). */
   svg?: string
 }
 
@@ -29,7 +29,7 @@ export interface ThemeColors {
   background2?: string
   background3?: string
   translations?: ThemeTranslations
-  /** Emoji simples ('🎨') ou um objeto com variantes por formato — veja `ThemeIconFormats`. */
+  /** A plain emoji ('🎨') or an object with per-format variants — see `ThemeIconFormats`. */
   icon?: string | ThemeIconFormats
 }
 

@@ -9,12 +9,12 @@ export interface VenixRuntimeThemeConfig {
 }
 
 /**
- * Reconstrói o `ThemeConfig` completo em runtime, sobrepondo `theme.json`
- * (empacotado com o módulo, com os temas "base") com as customizações vindas
- * de `runtimeConfig.public.venixTheme` (resolvidas em build-time a partir das
- * opções do módulo em `nuxt.config`, ver `module.ts`). Implementação única —
- * usada pela composable (`useVenixTheme`) e pelos plugins de SSR/Vuetify, que
- * antes reimplementavam este merge cada um a sua maneira.
+ * Rebuilds the full `ThemeConfig` at runtime, layering `theme.json`
+ * (bundled with the module, with the "base" themes) with the customizations
+ * from `runtimeConfig.public.venixTheme` (resolved at build time from the
+ * module options in `nuxt.config`, see `module.ts`). Single implementation —
+ * used by the composable (`useVenixTheme`) and the SSR/Vuetify plugins, which
+ * used to each reimplement this merge their own way.
  */
 export function buildResolvedTheme(runtimeThemeConfig?: VenixRuntimeThemeConfig): ThemeConfig {
   const defaultColors: ThemeConfig['colors'] = {

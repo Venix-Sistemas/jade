@@ -1,7 +1,7 @@
 // runtime/composables/useThemeLocale.ts
 import { watch } from 'vue'
 import type { Ref } from 'vue'
-import { useRequestHeaders, useState } from '#app'
+import { useRequestHeaders, useState, useRoute } from '#app'
 import type { ThemeConfig } from '../../shared/types'
 import { DEFAULT_LOCALE } from '../../shared/constants'
 import { normalizeLocale, extractFirstLocale } from '../../shared/utils/normalize'
@@ -20,11 +20,12 @@ export const useThemeLocale = (
 ) => {
   const { enabled = true, forcedLocale, defaultLocale } = options
   const headers = useRequestHeaders(['accept-language'])
+  const route = useRoute()
   const fallbackLocale = defaultLocale || DEFAULT_LOCALE
 
-  // Detecta locale de forma consistente entre SSR e cliente
+  // Detects the locale consistently between SSR and client
   const detectLocale = (): string => {
-    // Coleta todos os locales disponíveis nas traduções
+    // Collects every locale available in the translations
     const getAvailableLocales = (): string[] => {
       const availableLocales = new Set<string>()
       Object.values(theme.colors.themes).forEach((themeConfig) => {
@@ -37,32 +38,43 @@ export const useThemeLocale = (
       return Array.from(availableLocales)
     }
 
-    // Encontra o melhor locale disponível
-    const findBestLocale = (requestedLocale: string): string => {
+    // Tries to match a locale against what's available in the translations;
+    // `null` (instead of falling back) when nothing matches, so detection
+    // steps can try the next source instead of locking in the fallback.
+    const findLocaleInAvailable = (requestedLocale: string): string | null => {
       const availableLocales = getAvailableLocales()
       const normalized = normalizeLocale(requestedLocale)
 
       if (availableLocales.includes(normalized)) return normalized
 
       const baseLocale = normalized.split('-')[0]
-      const matchingLocale = availableLocales.find(locale =>
-        locale.split('-')[0] === baseLocale,
-      )
-      if (matchingLocale) return matchingLocale
-
-      return fallbackLocale
+      return availableLocales.find(locale => locale.split('-')[0] === baseLocale) || null
     }
 
-    // 1. Locale forçado via config
+    const findBestLocale = (requestedLocale: string): string =>
+      findLocaleInAvailable(requestedLocale) || fallbackLocale
+
+    // 1. Locale forced via config
     if (forcedLocale) return findBestLocale(forcedLocale)
 
-    // Módulo de tradução desabilitado: não detecta nem sincroniza cookie/headers
+    // Translation module disabled: skip detection and cookie/header syncing
     if (!enabled) return fallbackLocale
 
-    // 2. Cookie de idioma
+    // 2. Locale cookie
     if (localeCookie.value) return findBestLocale(localeCookie.value)
 
-    // 3. SSR: usa accept-language header
+    // 3. Locale prefix in the current URL (e.g. '/en/about' -> 'en') — a more
+    // reliable signal than Accept-Language/navigator.language when the route
+    // already indicates the language explicitly (e.g. locale-based routing
+    // from @nuxtjs/i18n): avoids a user visiting `/en/...` with their browser
+    // set to another language landing on the wrong locale for lack of a cookie.
+    const pathSegment = route.path.split('/').find(Boolean)
+    if (pathSegment) {
+      const pathLocale = findLocaleInAvailable(pathSegment)
+      if (pathLocale) return pathLocale
+    }
+
+    // 4. SSR: use the Accept-Language header
     const acceptLanguageHeader = headers['accept-language']
     if (acceptLanguageHeader) {
       const acceptLanguage = Array.isArray(acceptLanguageHeader)
@@ -75,31 +87,30 @@ export const useThemeLocale = (
       }
     }
 
-    // 4. Cliente: usa navigator.language
+    // 5. Client: use navigator.language
     if (import.meta.client && typeof navigator !== 'undefined') {
       return findBestLocale(navigator.language || fallbackLocale)
     }
 
-    // 5. Fallback final
+    // 6. Final fallback
     return fallbackLocale
   }
 
-  // `useState` (não `ref()`) para que múltiplas chamadas de `useThemeLocale`
-  // (via `useVenixTheme()` — ex.: a página e o `<VenixThemeSwitcher>`, ou
-  // após uma navegação client-side) compartilhem a mesma instância reativa
-  // em vez de cada uma ter sua própria cópia desconectada — mesmo motivo e
-  // mesmo padrão de `theme.preference` em `useVenixTheme.ts`. Sem isso,
-  // `setLocale()` chamado numa instância não refletia em outras já montadas.
+  // `useState` (not `ref()`) so multiple calls to `useThemeLocale` (via
+  // `useVenixTheme()` — e.g. the page and `<VenixThemeSwitcher>`, or after a
+  // client-side navigation) share the same reactive instance instead of each
+  // getting its own disconnected copy — same reason and pattern as
+  // `theme.preference` in `useVenixTheme.ts`. Without this, `setLocale()`
+  // called on one instance wouldn't reflect on others already mounted.
   const currentLocale = useState<string>('venix-theme-locale', () => detectLocale())
 
-  // Atualiza o locale quando o cookie mudar
+  // Updates the locale when the cookie changes
   watch(localeCookie, (newLocale) => {
     if (enabled && newLocale && !forcedLocale) {
       currentLocale.value = normalizeLocale(newLocale)
     }
   })
 
-  // Função de tradução
   const translate = (translations?: Record<string, string>, fallback?: string): string => {
     if (!translations) return fallback || ''
 
@@ -122,10 +133,10 @@ export const useThemeLocale = (
 
   const setLocale = (locale: string) => {
     currentLocale.value = normalizeLocale(locale)
-    // Mesma regra de consentimento usada para os cookies de tema (ver
-    // `useThemeCookies.persistIfConsented`) — sem isso, o cookie de locale
-    // era gravado incondicionalmente, inconsistente com a postura de
-    // privacidade do resto do módulo.
+    // Same consent rule used for the theme cookies (see
+    // `useThemeCookies.persistIfConsented`) — without this, the locale cookie
+    // used to be written unconditionally, inconsistent with the rest of the
+    // module's privacy posture.
     if (enabled && !forcedLocale && hasCookieConsent()) {
       localeCookie.value = normalizeLocale(locale)
     }

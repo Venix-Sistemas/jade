@@ -1,7 +1,7 @@
 export interface IconOptions {
   enabled: boolean
-  /** Coleções Iconify empacotadas localmente (offline), ex.: 'line-md'. */
+  /** Iconify collections bundled locally (offline), e.g. 'line-md'. */
   collections: string[]
-  /** Atalhos: nome curto -> emoji, nome de ícone Iconify ('line-md:home') ou SVG inline. */
+  /** Shortcuts: short name -> emoji, Iconify icon name ('line-md:home') or inline SVG. */
   aliases: Record<string, string>
 }

@@ -8,18 +8,18 @@ interface RenderHtmlContext {
   head: string[]
 }
 
-// Serializa `initTheme` (precisa ser 100% autocontida — ver comentário no
-// próprio arquivo) numa IIFE e injeta no `<head>` da resposta HTML, antes do
-// bundle do Vue — é isso que evita o flash de tema/locale errado antes da
-// hidratação (o projeto anterior fazia isso manualmente via
-// `app.head.script` apontando para um arquivo estático público). Calculado
-// uma vez no boot do servidor, não a cada request: `themeData` é estático.
+// Serializes `initTheme` (has to be 100% self-contained — see the comment in
+// that file) into an IIFE and injects it into the HTML response's `<head>`,
+// before the Vue bundle — that's what avoids the wrong-theme/locale flash
+// before hydration (the previous project did this manually via
+// `app.head.script` pointing at a static public file). Computed once at
+// server boot, not per request: `themeData` is static.
 const inlineScript = `<script>(${initTheme.toString()})(${JSON.stringify(themeData as ThemeConfig)})</script>`
 
 export default defineNitroPlugin((nitroApp) => {
-  // `render:html` é adicionado pela integração do Nitro com o Nuxt, não faz
-  // parte do `NitroRuntimeHooks` do nitropack "puro" — cast necessário pelo
-  // mesmo motivo dos hooks opcionais do Vuetify em `runtime/plugins/vuetify-theme.ts`.
+  // `render:html` is added by Nuxt's own Nitro integration, it isn't part of
+  // "plain" nitropack's `NitroRuntimeHooks` — cast needed for the same
+  // reason as Vuetify's optional hooks in `runtime/plugins/vuetify-theme.ts`.
   const hookRenderHtml = nitroApp.hooks.hook as unknown as (
     name: 'render:html',
     fn: (html: RenderHtmlContext) => void,

@@ -4,7 +4,7 @@
     class="venix-icon venix-icon--emoji"
     v-bind="$attrs"
   >{{ resolved.value }}</span>
-  <!-- eslint-disable vue/no-v-html -- SVG vem do config do tema/props do dev consumidor, não de input de usuário final -->
+  <!-- eslint-disable vue/no-v-html -- SVG comes from the theme config/consumer dev's props, not end-user input -->
   <span
     v-else-if="resolved.kind === 'svg'"
     class="venix-icon venix-icon--svg"
@@ -28,13 +28,13 @@ import { useVenixIcon } from '../composables/useVenixIcon'
 defineOptions({ inheritAttrs: false })
 
 const { icon, mode } = defineProps<{
-  /** Emoji ('🎨'), nome de ícone Iconify ('line-md:home') ou SVG inline. */
+  /** An emoji ('🎨'), an Iconify icon name ('line-md:home') or inline SVG. */
   icon: string
   /**
-   * Força o modo de renderização de `@nuxt/icon` para ícones Iconify: `'svg'`
-   * (elemento `<svg>` real — necessário para ícones animados como `line-md`)
-   * ou `'css'` (background/mask, mais leve, sem animação). Sem efeito para
-   * emoji ou SVG inline. Sem valor, usa o modo padrão configurado no módulo.
+   * Forces `@nuxt/icon`'s rendering mode for Iconify icons: `'svg'` (a real
+   * `<svg>` element — needed for animated icons like `line-md`) or `'css'`
+   * (background/mask, lighter, no animation). No effect for emoji or inline
+   * SVG. Without a value, uses the module's configured default mode.
    */
   mode?: 'css' | 'svg'
 }>()
@@ -43,9 +43,9 @@ const resolved = useVenixIcon(computed(() => icon))
 </script>
 
 <style>
-/* SVG inline não tem tamanho intrínseco como emoji (font-size) ou o <Icon> do
-   @nuxt/icon (width/height próprios) — sem isso, alguns navegadores colapsam
-   a largura em layouts flex. */
+/* Inline SVG has no intrinsic size like emoji (font-size) or @nuxt/icon's
+   <Icon> (its own width/height) — without this, some browsers collapse the
+   width in flex layouts. */
 .venix-icon--svg svg {
   width: 1em;
   height: 1em;

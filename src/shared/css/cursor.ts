@@ -19,7 +19,7 @@ export function generateCustomCursorCSS(theme: ThemeConfig): string {
 
   if (cursors.default) {
     const value = cursorValue('default')
-    css += '\n/* 1. Cursor padrão em tudo */\n'
+    css += '\n/* 1. Default cursor on everything */\n'
     css += `body {
   cursor: ${value};
 }\n`
@@ -27,7 +27,7 @@ export function generateCustomCursorCSS(theme: ThemeConfig): string {
 
   if (cursors.pointer) {
     const value = cursorValue('pointer')
-    css += '\n/* 2. Cursor pointer para elementos clicáveis */\n'
+    css += '\n/* 2. Pointer cursor for clickable elements */\n'
     css += `a, a *,
 button, button *,
 [role="button"],
@@ -46,7 +46,7 @@ input[type="button"], input[type="submit"], input[type="reset"],
 
   if (cursors.text) {
     const value = cursorValue('text')
-    css += '\n/* 3. Cursor text (i-beam) apenas para campos editáveis */\n'
+    css += '\n/* 3. Text cursor (i-beam) for editable fields only */\n'
     css += `input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -68,7 +68,7 @@ select,
 
   if (cursors.default) {
     const value = cursorValue('default')
-    css += '\n/* 4. Elementos desabilitados */\n'
+    css += '\n/* 4. Disabled elements */\n'
     css += `.v-btn--disabled,
 [disabled],
 .disabled {

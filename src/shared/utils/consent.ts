@@ -2,11 +2,11 @@
 import { COOKIE_CONSENT_STORAGE_KEY } from '../constants'
 
 /**
- * Lê o consentimento de cookies funcionais gravado em `localStorage` sob
- * `COOKIE_CONSENT_STORAGE_KEY` — nunca escrito por este módulo por conta
- * própria (só via `persistence.grant()/revoke()`), podendo também vir da UI
- * de consentimento de cookies do app consumidor, desde que grave no mesmo
- * formato (`{ functionality: boolean }`).
+ * Reads functional-cookie consent from `localStorage` under
+ * `COOKIE_CONSENT_STORAGE_KEY` — never written by this module on its own
+ * (only via `persistence.grant()/revoke()`), and can also come from the
+ * consumer app's own cookie-consent UI, as long as it writes the same shape
+ * (`{ functionality: boolean }`).
  */
 export function hasCookieConsent(): boolean {
   if (typeof localStorage === 'undefined') return false

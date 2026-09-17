@@ -8,28 +8,28 @@ declare global {
 }
 
 /**
- * Roda como script inline no `<head>`, injetado via o hook `render:html` do
- * Nitro pelo plugin `runtime/nitro/theme-init.ts` (ver
- * `setup/register-plugins.ts`) — ANTES do bundle do Vue, para evitar flash de
- * tema/locale errado antes da hidratação (SSR não sabe a preferência real de
- * claro/escuro do usuário quando a preferência é 'system', nem tem
+ * Runs as an inline script in `<head>`, injected via Nitro's `render:html`
+ * hook by the `runtime/nitro/theme-init.ts` plugin (see
+ * `setup/register-plugins.ts`) — BEFORE the Vue bundle, to avoid a
+ * wrong-theme flash before hydration (SSR doesn't know the user's real
+ * light/dark preference when the preference is 'system', nor does it have
  * `matchMedia`).
  *
- * Por rodar assim, esta função (só ela — o resto do arquivo, incluindo os
- * imports de tipo, é apagado pelo TypeScript e nunca chega no navegador)
- * precisa ser 100% autocontida: `initTheme.toString()` é serializado e
- * executado como uma IIFE isolada, então qualquer import de outro módulo
- * viraria `ReferenceError` no cliente. Por isso os nomes de cookies abaixo e
- * a regra de resolução de tema (`resolveThemePreference`/
- * `getActiveSeasonalTheme`) são duplicados de propósito — a implementação
- * canônica, compartilhada entre a composable e o plugin de SSR, vive em
- * `shared/constants.ts` e `shared/utils/theme-resolve.ts`. Mantenha os dois
- * lados em sincronia ao alterar um deles.
+ * Because it runs this way, this function (only this function — the rest of
+ * the file, including the type imports, is erased by TypeScript and never
+ * reaches the browser) has to be 100% self-contained: `initTheme.toString()`
+ * gets serialized and executed as a standalone IIFE, so any import from
+ * another module would become a `ReferenceError` on the client. That's why
+ * the cookie names below and the theme-resolution rule
+ * (`resolveThemePreference`/`getActiveSeasonalTheme`) are deliberately
+ * duplicated — the canonical implementation, shared between the composable
+ * and the SSR plugin, lives in `shared/constants.ts` and
+ * `shared/utils/theme-resolve.ts`. Keep the two sides in sync when changing
+ * either one.
  */
 export default function initTheme(themeData: ThemeConfig): void {
   const THEME_PREFERENCE_COOKIE = 'venix-theme-preference'
   const THEME_RESOLVED_COOKIE = 'venix-theme-resolved'
-  const THEME_LOCALE_COOKIE = 'venix-theme-locale'
   const COOKIE_CONSENT_STORAGE_KEY = 'venix-cookie-consent'
 
   function hasCookieConsent(): boolean {
@@ -127,18 +127,7 @@ export default function initTheme(themeData: ThemeConfig): void {
     return resolved
   }
 
-  function detectLocale(): string {
-    if (typeof navigator !== 'undefined') return navigator.language || 'en-US'
-    return 'en-US'
-  }
-
   const html = document.documentElement
-
-  // Detecta e salva o locale — só grava cookie se tiver consentimento e não
-  // existir cookie ainda.
-  const savedLocale = getCookie(THEME_LOCALE_COOKIE)
-  const locale = savedLocale || detectLocale()
-  if (!savedLocale) setCookieIfConsented(THEME_LOCALE_COOKIE, locale)
 
   const themes = themeData.colors?.themes || {}
   const defaultTheme = themeData.colors?.defaultColor || 'dark'

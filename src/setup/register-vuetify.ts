@@ -22,15 +22,15 @@ interface VuetifyRegisterModuleConfig {
 type RegisterModuleFn = (config: VuetifyRegisterModuleConfig) => void
 
 /**
- * Converte os temas de cor do módulo (hex reais, não CSS vars) para o formato
- * que o Vuetify espera, já que o Vuetify calcula contraste/on-colors em JS e
- * precisa dos valores concretos, não de `var(--color-x)`.
+ * Converts the module's color themes (real hex values, not CSS vars) to the
+ * format Vuetify expects, since Vuetify computes contrast/on-colors in JS and
+ * needs the concrete values, not `var(--color-x)`.
  */
 function buildVuetifyThemes(colors: ColorsConfig): Record<string, VuetifyThemeDefinition> {
   const themes: Record<string, VuetifyThemeDefinition> = {}
 
   for (const [name, themeColors] of Object.entries(colors.themes)) {
-    if (!themeColors.primary && !themeColors.background) continue // ex.: placeholder 'system', sem cores reais
+    if (!themeColors.primary && !themeColors.background) continue // e.g. the 'system' placeholder, no real colors
 
     const isDark = themeColors.dark === true
     const vuetifyColors: Record<string, string> = {}
@@ -41,8 +41,8 @@ function buildVuetifyThemes(colors: ColorsConfig): Record<string, VuetifyThemeDe
       vuetifyColors[key] = value
     }
 
-    // 'surface' é o slot semântico do Vuetify para cards/toolbars/etc;
-    // usamos background2 como o equivalente mais próximo do nosso sistema.
+    // 'surface' is Vuetify's semantic slot for cards/toolbars/etc; we use
+    // background2 as the closest equivalent in our color system.
     if (themeColors.background2) vuetifyColors.surface = themeColors.background2
     vuetifyColors.inverse = isDark ? '#FFFFFF' : '#000000'
 
@@ -53,14 +53,14 @@ function buildVuetifyThemes(colors: ColorsConfig): Record<string, VuetifyThemeDe
 }
 
 /**
- * Registra os temas de cor no Vuetify (`vuetify-nuxt-module`) via o hook de build
- * `vuetify:registerModule`, e adiciona um plugin de runtime que resolve o tema
- * ativo (cookie) para manter o Vuetify em sincronia com o resto do módulo.
- * É um no-op seguro se o vuetify-nuxt-module não estiver instalado.
+ * Registers the color themes with Vuetify (`vuetify-nuxt-module`) via the
+ * `vuetify:registerModule` build hook, and adds a runtime plugin that
+ * resolves the active theme (cookie) to keep Vuetify in sync with the rest
+ * of the module. A safe no-op if vuetify-nuxt-module isn't installed.
  *
- * Requer que `@venix-sistemas/nuxt-theme` apareça ANTES do módulo do Vuetify
- * em `modules`, já que o registro precisa acontecer antes do Vuetify resolver
- * sua configuração de tema.
+ * Requires `@venix-sistemas/nuxt-theme` to appear BEFORE the Vuetify module
+ * in `modules`, since the registration needs to happen before Vuetify
+ * resolves its theme configuration.
  */
 export function registerThemeVuetify(nuxt: Nuxt, resolver: Resolver, theme: ThemeConfig, defaultColor: string, enabled: boolean) {
   if (!enabled || theme.colors?.enabled === false) return

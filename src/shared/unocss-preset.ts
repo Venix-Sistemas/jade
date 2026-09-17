@@ -1,10 +1,10 @@
 // src/shared/unocss-preset.ts
 import { COLOR_PROPERTIES } from './constants'
 
-// Tipo estrutural mínimo de `Preset` do UnoCSS — não importamos de `unocss`/
-// `@unocss/core` porque são peers opcionais (o pacote nem sempre está
-// instalado no consumidor, e não é dependência deste módulo); a tipagem
-// estrutural do TS já é compatível com o `Preset<Theme>` real deles.
+// Minimal structural type for UnoCSS's `Preset` — we don't import from
+// `unocss`/`@unocss/core` because they're optional peers (the package isn't
+// always installed in the consumer, and isn't a dependency of this module);
+// TS's structural typing is already compatible with their real `Preset<Theme>`.
 export interface VenixUnoPreset {
   name: string
   theme: {
@@ -13,12 +13,12 @@ export interface VenixUnoPreset {
 }
 
 /**
- * Preset UnoCSS que expõe as cores do tema como `theme.colors` (`primary`,
- * `secondary`, `background2`, ...), todas apontando para as CSS vars geradas
- * por este módulo (`--color-primary`, ...) — habilita utilities como
- * `text-primary`, `bg-background2/80` ou `border-accent`.
+ * UnoCSS preset that exposes the theme's colors as `theme.colors` (`primary`,
+ * `secondary`, `background2`, ...), all pointing at the CSS vars this module
+ * generates (`--color-primary`, ...) — enables utilities like `text-primary`,
+ * `bg-background2/80` or `border-accent`.
  *
- * Precisa ser adicionado manualmente ao seu `uno.config.ts`:
+ * Must be added manually to your `uno.config.ts`:
  *
  * ```ts
  * import { defineConfig } from 'unocss'
@@ -29,13 +29,13 @@ export interface VenixUnoPreset {
  * })
  * ```
  *
- * Não é injetado automaticamente: o `@unocss/nuxt` recarrega `uno.config.ts`
- * do disco por conta própria (para suportar HMR) e faz um merge raso entre
- * esse arquivo e qualquer config injetada via hook — isso descarta
- * silenciosamente um `theme` injetado por hook sempre que o `uno.config.ts`
- * do consumidor já declara sua própria chave `theme` (mesmo sem nenhuma cor).
- * Como preset dentro do próprio array `presets`, essas cores passam a fazer
- * parte do que é lido do arquivo e sobrevivem a esse merge.
+ * Not injected automatically: `@unocss/nuxt` reloads `uno.config.ts` from
+ * disk on its own (to support HMR) and shallow-merges that file against any
+ * config injected via hook — that silently discards a hook-injected `theme`
+ * whenever the consumer's `uno.config.ts` already declares its own `theme`
+ * key (even one without any colors). As a preset inside the `presets` array
+ * itself, these colors become part of what's actually read from the file and
+ * survive that merge.
  */
 export function venixUnoPreset(): VenixUnoPreset {
   const colors: Record<string, string> = {

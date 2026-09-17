@@ -6,9 +6,10 @@ export interface ColorOptions {
   defaultColor: string
   themes: Record<string, Partial<ThemeColors>>
   /**
-   * Formato preferido para o ícone de cada tema quando `icon` é um objeto
-   * (`ThemeIconFormats`). Cai para `'emote'` quando o tema não define o
-   * formato escolhido, ou quando `icon` é só uma string (formato legado).
+   * Preferred variant for each theme's icon when `icon` is an object
+   * (`ThemeIconFormats`). Default: `'svg'`. Falls back to `'emote'` when the
+   * theme doesn't define the chosen format, or when `icon` is just a string
+   * (legacy format).
    */
   iconFormat: 'emote' | 'css' | 'svg'
 }

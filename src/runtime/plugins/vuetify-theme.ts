@@ -1,9 +1,7 @@
 // runtime/plugins/vuetify-theme.ts
-import { watch } from 'vue'
-import { defineNuxtPlugin, useRuntimeConfig, useCookie, useState } from '#app'
-import { THEME_PREFERENCE_COOKIE, THEME_RESOLVED_COOKIE, DEFAULT_THEME } from '../../shared/constants'
+import { defineNuxtPlugin, useRuntimeConfig, useCookie } from '#app'
+import { THEME_PREFERENCE_COOKIE, THEME_RESOLVED_COOKIE, THEME_APPLIED_EVENT, DEFAULT_THEME } from '../../shared/constants'
 import { buildResolvedTheme } from '../../shared/utils/theme-config'
-import { resolveThemePreference } from '../../shared/utils/theme-resolve'
 
 interface VuetifyBeforeCreateContext {
   vuetifyOptions?: {
@@ -16,9 +14,9 @@ interface VuetifyBeforeCreateContext {
 
 interface VuetifyInstance {
   theme: {
-    // `change()` é a API atual (versões recentes do Vuetify deprecaram a
-    // atribuição direta a `global.name.value`); mantido opcional porque
-    // versões mais antigas do Vuetify não têm esse método — ver `applyVuetifyTheme`.
+    // `change()` is the current API (recent Vuetify versions deprecated
+    // directly assigning to `global.name.value`); kept optional because
+    // older Vuetify versions don't have this method — see `applyVuetifyTheme`.
     change?: (name: string) => void
     global: {
       name: { value: string }
@@ -27,10 +25,10 @@ interface VuetifyInstance {
 }
 
 /**
- * Aplica o tema na instância do Vuetify preferindo `theme.change()` (API
- * atual, evita o aviso de depreciação "use theme.change() instead") e caindo
- * para a atribuição direta em `global.name.value` só em versões do Vuetify
- * antigas o suficiente para não ter `change()`.
+ * Applies the theme on the Vuetify instance, preferring `theme.change()`
+ * (the current API, avoids the "use theme.change() instead" deprecation
+ * warning) and falling back to directly assigning `global.name.value` only
+ * on Vuetify versions old enough not to have `change()`.
  */
 function applyVuetifyTheme(vuetify: VuetifyInstance, name: string): void {
   if (typeof vuetify.theme.change === 'function') {
@@ -54,8 +52,9 @@ export default defineNuxtPlugin({
     const theme = buildResolvedTheme(themeConfig)
     const defaultTheme = theme.colors.defaultColor || DEFAULT_THEME
 
-    // 'vuetify:before-create' só existe quando vuetify-nuxt-module está instalado
-    // (peer opcional); o cast é seguro porque o hook nunca dispara sem o módulo presente.
+    // 'vuetify:before-create' only exists when vuetify-nuxt-module is
+    // installed (optional peer); the cast is safe because the hook never
+    // fires without the module present.
     const hookBeforeCreate = nuxtApp.hook as unknown as (
       name: 'vuetify:before-create',
       fn: (ctx: VuetifyBeforeCreateContext) => void,
@@ -76,14 +75,24 @@ export default defineNuxtPlugin({
       vuetifyOptions.theme.defaultTheme = resolved
     })
 
-    // 'vuetify:before-create' só decide o tema da primeira renderização — sem
-    // isso, trocar de tema via `useVenixTheme().theme.preference` depois não
-    // refletia nos componentes do Vuetify (`color="primary"` etc.) até um
-    // reload completo. 'vuetify:ready' dá acesso à instância viva do Vuetify
-    // (`theme.global.name` é reativo — ver docs do vuetify-nuxt-module), então
-    // observamos o mesmo estado compartilhado que `useVenixTheme()` usa para
-    // `theme.preference` (`useState('venix-theme-preference')`) para manter
-    // os dois em sincronia em tempo real.
+    // 'vuetify:before-create' only decides the theme for the first render —
+    // without this, switching themes later via
+    // `useVenixTheme().theme.preference` wouldn't reflect on Vuetify
+    // components (`color="primary"` etc.) until a full reload. 'vuetify:ready'
+    // gives access to the live Vuetify instance (`theme.global.name` is
+    // reactive — see the vuetify-nuxt-module docs).
+    //
+    // We listen for THEME_APPLIED_EVENT instead of watching `theme.preference`
+    // with our own `watch()`: a separate `watch()` runs asynchronously,
+    // decoupled from the View Transition that `useVenixTheme.ts` uses to
+    // animate the switch, so the Vuetify update (which recomputes CSS vars
+    // for the whole component tree) ended up competing with the
+    // transition's snapshot capture for the same frame — causing a real,
+    // noticeable freeze. Reacting to the event (dispatched synchronously
+    // inside the transition's own callback) guarantees both mutations are
+    // part of the same transition instead of two competing updates. No
+    // initial sync needed here: the theme already arrives correct on the
+    // first render via 'vuetify:before-create'.
     if (import.meta.client) {
       const hookReady = nuxtApp.hook as unknown as (
         name: 'vuetify:ready',
@@ -91,14 +100,9 @@ export default defineNuxtPlugin({
       ) => void
 
       hookReady('vuetify:ready', (vuetify) => {
-        const preference = useState<string | undefined>('venix-theme-preference')
-
-        watch(preference, (pref) => {
-          if (!pref) return
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-          const resolved = resolveThemePreference(pref, theme.colors.themes, defaultTheme, prefersDark)
-          applyVuetifyTheme(vuetify, resolved)
-        }, { immediate: true })
+        window.addEventListener(THEME_APPLIED_EVENT, ((event: CustomEvent<string>) => {
+          applyVuetifyTheme(vuetify, event.detail)
+        }) as EventListener)
       })
     }
   },
