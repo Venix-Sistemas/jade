@@ -5,13 +5,13 @@
         <VenixThemeSwitcher class="header__switcher" />
       </client-only>
       <h1>🎨 Nuxt Theme Playground</h1>
-      <p>Teste interativo do módulo de temas</p>
+      <p>{{ $t('app.subtitle') }}</p>
     </header>
 
     <main class="content">
-      <!-- Seletor de Temas (manual, para comparação com o VenixThemeSwitcher) -->
+      <!-- Theme selector (manual, for comparison with VenixThemeSwitcher) -->
       <section class="section">
-        <h2>Seletor de Temas</h2>
+        <h2>{{ $t('themeSelector.heading') }}</h2>
         <client-only>
           <div class="theme-buttons">
             <button
@@ -32,13 +32,13 @@
         </client-only>
       </section>
 
-      <!-- Idiomas + Consentimento de Cookies (lado a lado, logo acima) -->
+      <!-- Languages + Cookie consent (side by side, right above) -->
       <div class="row">
         <section class="section row__cell">
-          <h2>Idiomas</h2>
+          <h2>{{ $t('languages.heading') }}</h2>
           <p class="lang-info">
-            Idioma (@nuxtjs/i18n): <strong>{{ i18nLocale }}</strong>
-            — Locale do tema: <strong>{{ locale.current.value }}</strong>
+            {{ $t('languages.appLocaleLabel', { pkg: '@nuxtjs/i18n' }) }} <strong>{{ i18nLocale }}</strong>
+            — {{ $t('languages.themeLocaleLabel') }} <strong>{{ locale.current.value }}</strong>
           </p>
           <div class="lang-buttons">
             <button
@@ -47,7 +47,7 @@
               type="button"
               class="lang-button"
               :class="{ active: loc.code === i18nLocale }"
-              @click="setI18nLocale(loc.code)"
+              @click="changeLocale(loc.code)"
             >
               {{ loc.name }}
             </button>
@@ -55,11 +55,13 @@
         </section>
 
         <section class="section row__cell">
-          <h2>Consentimento de Cookies</h2>
+          <h2>{{ $t('cookieConsent.heading') }}</h2>
           <client-only>
             <p class="consent-info">
-              Consentimento: <strong>{{ persistence.hasConsent.value ? 'Concedido' : 'Não concedido' }}</strong>
-              — Cookies: <strong>{{ cookiesPresent ? 'Gravados' : 'Ausentes' }}</strong>
+              {{ $t('cookieConsent.consentLabel') }}
+              <strong>{{ persistence.hasConsent.value ? $t('cookieConsent.granted') : $t('cookieConsent.notGranted') }}</strong>
+              — {{ $t('cookieConsent.cookiesLabel') }}
+              <strong>{{ cookiesPresent ? $t('cookieConsent.written') : $t('cookieConsent.absent') }}</strong>
             </p>
             <div class="consent-buttons">
               <button
@@ -67,26 +69,26 @@
                 class="consent-button consent-button--grant"
                 @click="grantConsent"
               >
-                Permitir cookies
+                {{ $t('cookieConsent.grant') }}
               </button>
               <button
                 type="button"
                 class="consent-button consent-button--revoke"
                 @click="revokeConsent"
               >
-                Revogar cookies
+                {{ $t('cookieConsent.revoke') }}
               </button>
             </div>
             <p class="consent-hint">
-              Sem consentimento a troca de tema ainda funciona, só não é lembrada na próxima visita.
+              {{ $t('cookieConsent.hint') }}
             </p>
           </client-only>
         </section>
       </div>
 
-      <!-- Paleta de Cores -->
+      <!-- Color palette -->
       <section class="section">
-        <h2>Paleta de Cores - {{ currentThemeName }}</h2>
+        <h2>{{ $t('colorPalette.heading', { theme: currentThemeName }) }}</h2>
         <client-only>
           <div class="color-grid">
             <div
@@ -105,9 +107,9 @@
         </client-only>
       </section>
 
-      <!-- Ícones -->
+      <!-- Icons -->
       <section class="section">
-        <h2>Ícones (VenixIcon)</h2>
+        <h2>{{ $t('icons.heading') }}</h2>
         <div class="icon-row">
           <div
             v-for="item in iconSamples"
@@ -123,44 +125,44 @@
         </div>
       </section>
 
-      <!-- Teste de Scroll Vertical -->
+      <!-- Vertical scroll test -->
       <section class="section">
-        <h2>Scroll Vertical</h2>
+        <h2>{{ $t('scroll.verticalHeading') }}</h2>
         <div class="scroll-vertical">
           <div
             v-for="i in 20"
             :key="`vertical-${i}`"
             class="scroll-item"
           >
-            Item vertical {{ i }}
+            {{ $t('scroll.verticalItem', { n: i }) }}
           </div>
         </div>
       </section>
 
-      <!-- Teste de Scroll Horizontal -->
+      <!-- Horizontal scroll test -->
       <section class="section">
-        <h2>Scroll Horizontal</h2>
+        <h2>{{ $t('scroll.horizontalHeading') }}</h2>
         <div class="scroll-horizontal">
           <div
             v-for="i in 20"
             :key="`horizontal-${i}`"
             class="scroll-item-horizontal"
           >
-            Item {{ i }}
+            {{ $t('scroll.horizontalItem', { n: i }) }}
           </div>
         </div>
       </section>
 
-      <!-- Botões de Ação -->
+      <!-- Action buttons -->
       <section class="section">
-        <h2>Ações</h2>
+        <h2>{{ $t('actions.heading') }}</h2>
         <client-only>
           <div class="actions">
             <button
               class="action-button"
               @click="toggleTheme"
             >
-              Alternar Light/Dark
+              {{ $t('actions.toggle') }}
             </button>
           </div>
         </client-only>
@@ -175,7 +177,20 @@ import themeData from '../src/shared/theme.json' with { type: 'json' }
 
 const { theme, themes, locale, persistence } = useVenixTheme()
 
-const { locale: i18nLocale, locales: availableLocales, setLocale: setI18nLocale } = useI18n()
+const { t, locale: i18nLocale, locales: availableLocales, setLocale: setI18nLocale } = useI18n()
+
+// Bridges the playground's own @nuxtjs/i18n language switcher to the theme
+// module's locale (theme-name translations) — normally they follow each
+// other automatically via the shared `i18n_redirected` cookie
+// (`translation.cookieSync`), but this playground disables i18n's browser
+// auto-detection (`detectBrowserLanguage: false` in nuxt.config.ts, so the
+// homepage always renders in English for screenshots), which also turns off
+// its cookie persistence. Calling `locale.set()` explicitly keeps both in
+// sync regardless.
+const changeLocale = async (code: Parameters<typeof setI18nLocale>[0]) => {
+  await setI18nLocale(code)
+  locale.set(code)
+}
 
 const cookiesPresent = ref(false)
 
@@ -183,8 +198,8 @@ const checkCookies = () => {
   cookiesPresent.value = document.cookie.includes('venix-theme-preference=')
 }
 
-// `useCookie()` grava em `document.cookie` de forma assíncrona (via watcher),
-// então esperamos o próximo tick antes de reler os cookies no navegador.
+// `useCookie()` writes to `document.cookie` asynchronously (via a watcher),
+// so we wait for the next tick before re-reading cookies in the browser.
 const grantConsent = async () => {
   persistence.grant()
   await nextTick()
@@ -220,13 +235,13 @@ const currentThemeName = computed(() => {
 
 const customSvg = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor" /></svg>'
 
-const iconSamples = [
-  { label: 'Iconify (line-md, animado)', icon: 'line-md:loading-loop' },
-  { label: 'Emoji', icon: '🎨' },
-  { label: 'SVG inline', icon: customSvg },
-  { label: 'Alias -> \'home\'', icon: 'home' },
-  { label: 'Alias -> \'star\' (emoji)', icon: 'star' },
-]
+const iconSamples = computed(() => [
+  { label: t('icons.iconify'), icon: 'line-md:loading-loop' },
+  { label: t('icons.emoji'), icon: '🎨' },
+  { label: t('icons.svg'), icon: customSvg },
+  { label: t('icons.aliasHome'), icon: 'home' },
+  { label: t('icons.aliasStar'), icon: 'star' },
+])
 
 const formatColorName = (name: string): string => {
   return name

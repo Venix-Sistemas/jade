@@ -3,9 +3,9 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   compatibilityDate: 'latest',
 
-  // Instalado só para testar a compatibilidade do módulo de tema com um
-  // sistema de i18n de verdade rodando ao lado (rotas localizadas, `$t()`,
-  // `useI18n()`, troca de idioma) — ver seção "Idiomas" no app.vue.
+  // Installed just to test the theme module's compatibility with a real
+  // i18n system running alongside it (localized routes, `$t()`,
+  // `useI18n()`, language switching) — see the "Languages" section in app.vue.
   i18n: {
     locales: [
       { code: 'en', iso: 'en-US', name: 'English' },
@@ -14,25 +14,29 @@ export default defineNuxtConfig({
     ],
     defaultLocale: 'en',
     strategy: 'prefix_except_default',
+    // Off so the root path always renders English regardless of the
+    // visitor's browser language — this is a showcase page, not a
+    // multi-market app; the language buttons below still switch manually.
+    detectBrowserLanguage: false,
   },
 
   venixTheme: {
 
-    // Tradução / locale
+    // Translation / locale
     translation: {
       // locale: 'pt-BR',
       // defaultLocale: 'en-US',
       // cookieSync: 'i18n_redirected',
     },
 
-    // Tipografia customizada
+    // Custom typography
     typography: {
       // defaultFonts: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       // fontSize: "16px",
 
     },
 
-    // Cursor customizado
+    // Custom cursor
     cursor: {
       enabled: true,
 
@@ -55,7 +59,7 @@ export default defineNuxtConfig({
 
     },
 
-    // Scrollbar customizada
+    // Custom scrollbar
     scrollbar: {
       // width: "10px",
       // borderRadius: "8px",
@@ -68,7 +72,7 @@ export default defineNuxtConfig({
       // }
     },
 
-    // Cores customizadas
+    // Custom colors
     color: {
       // defaultColor: 'dark',
       themes: {
@@ -76,19 +80,27 @@ export default defineNuxtConfig({
         //  primary: '#FF0000',
         //  secondary: '#00FF00',
         // }
+        pascoa: {
+          dark: false,
+          seasonal: true,
+          dateRange: { start: '03-25', end: '04-05' },
+          primary: '#F7C6D9',
+          background: '#FFFDF5',
+          translations: { 'en-US': 'Easter', 'pt-BR': 'Páscoa' },
+        },
       },
-      // Formato preferido do ícone de cada tema quando ele define `icon` como
-      // objeto (`{ emote, css, svg }`) em vez de emoji simples — 'svg' usa
-      // @nuxt/icon em modo SVG (necessário pra ícones animados como line-md).
-      // Cai pra 'emote' automaticamente nos temas que só têm emoji.
+      // Preferred icon variant for themes that define `icon` as an object
+      // (`{ emote, css, svg }`) instead of a plain emoji — 'svg' uses
+      // @nuxt/icon in SVG mode (needed for animated icons like line-md).
+      // Falls back to 'emote' automatically for themes that only have an emoji.
       iconFormat: 'svg',
     },
 
-    // Vuetify: ative com `vuetify: true` em projetos que usam vuetify-nuxt-module
-    // (deve vir antes dele em `modules`). Veja a seção "Vuetify integration" no README.
+    // Vuetify: enable with `vuetify: true` in projects using vuetify-nuxt-module
+    // (must come before it in `modules`). See the "Vuetify integration" section in the README.
 
-    // Ícones: <VenixIcon icon="..." /> aceita emoji, nome Iconify (ex.: 'line-md:home',
-    // animado) ou SVG inline. `aliases` cria atalhos para qualquer um dos três formatos.
+    // Icons: <VenixIcon icon="..." /> accepts an emoji, an Iconify name (e.g.
+    // 'line-md:home', animated) or inline SVG. `aliases` creates shortcuts for any of the three formats.
     icon: {
       aliases: {
         home: 'line-md:home',
