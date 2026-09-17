@@ -63,6 +63,17 @@ export function generateRootVars(theme: ThemeConfig): string {
   const fontFamily = buildFontFamily(theme)
   if (fontFamily) {
     vars += `  --font-family-base: ${fontFamily};\n`
+
+    // Vuetify's own component styles (buttons, list items, app bar, ...)
+    // read `--v-font-body`/`--v-font-heading` directly — they don't inherit
+    // `font-family` from `html`/`body` — falling back to "Roboto" when these
+    // are unset. Without this, every Vuetify component silently ignores the
+    // theme's custom font (and any font marked `preload: true` for it goes
+    // unused, since Vuetify never renders a glyph with it), regardless of
+    // `--font-family-base` being set correctly. Harmless to emit even when
+    // the consumer doesn't use Vuetify: an unused CSS custom property.
+    vars += `  --v-font-body: ${fontFamily};\n`
+    vars += `  --v-font-heading: ${fontFamily};\n`
   }
 
   if (theme.typography?.fontSize) {
