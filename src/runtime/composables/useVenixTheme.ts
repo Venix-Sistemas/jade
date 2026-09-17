@@ -142,6 +142,17 @@ export const useVenixTheme = () => {
   }
 
   if (typeof document !== 'undefined' && shouldApplyColors) {
+    // `preference` (`useState`) can hydrate from a stale payload: on a page
+    // that was prerendered/cached (e.g. a static host serving the same HTML
+    // to every visitor), the value baked in at build time was computed with
+    // no request cookie available and never reflects this visitor's actual
+    // choice. `useCookie`, unlike `useState`, always re-reads `document.cookie`
+    // on the client (see Nuxt's `useCookie` internals) — it's never poisoned
+    // by that stale payload, so it's the one to trust whenever the two disagree.
+    if (cookies.preferenceCookie.value && cookies.preferenceCookie.value !== preference.value) {
+      preference.value = cookies.preferenceCookie.value
+    }
+
     const currentTheme = document.documentElement.getAttribute('data-theme')
     if (currentTheme) {
       if (!cookies.preferenceCookie.value) {

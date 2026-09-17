@@ -104,6 +104,21 @@ export const useThemeLocale = (
   // called on one instance wouldn't reflect on others already mounted.
   const currentLocale = useState<string>('venix-theme-locale', () => detectLocale())
 
+  // `currentLocale` can hydrate from a stale payload: on a page that was
+  // prerendered/cached (e.g. a static host serving the same HTML to every
+  // visitor), `detectLocale()` ran at build time with no request cookie
+  // available and its result never reflects this visitor's actual cookie.
+  // `localeCookie` (`useCookie`), unlike `useState`, always re-reads
+  // `document.cookie` on the client, so it's never poisoned by that stale
+  // payload — resync immediately whenever the two disagree, same rule as the
+  // `watch` below, just applied once up front instead of only on the next change.
+  if (enabled && !forcedLocale && localeCookie.value) {
+    const cookieLocale = normalizeLocale(localeCookie.value)
+    if (cookieLocale !== currentLocale.value) {
+      currentLocale.value = cookieLocale
+    }
+  }
+
   // Updates the locale when the cookie changes
   watch(localeCookie, (newLocale) => {
     if (enabled && newLocale && !forcedLocale) {
