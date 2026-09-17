@@ -1,6 +1,32 @@
 # Changelog
 
 
+## v1.0.0-alpha.4
+
+[compare changes](https://github.com/Venix-Sistemas/nuxt-theme/compare/v1.0.0-alpha.2...v1.0.0-alpha.4)
+
+### 🚀 Enhancements
+
+- **playground:** Add real i18n content translations (en/pt/es) ([705ec5b](https://github.com/Venix-Sistemas/nuxt-theme/commit/705ec5b))
+- **playground:** Flesh out the Easter seasonal theme, add a dark variant ([21900fc](https://github.com/Venix-Sistemas/nuxt-theme/commit/21900fc))
+
+### 🩹 Fixes
+
+- Locale detection, Vuetify transition freeze, and stale locale cookie ([14ff085](https://github.com/Venix-Sistemas/nuxt-theme/commit/14ff085))
+- Anti-FOUC script ignored custom themes, reverting them on reload ([4529c9e](https://github.com/Venix-Sistemas/nuxt-theme/commit/4529c9e))
+- Reconcile theme preference and locale from the live cookie on hydration ([2273b76](https://github.com/Venix-Sistemas/nuxt-theme/commit/2273b76))
+- Wire the theme's custom font into Vuetify's own CSS variables ([5056262](https://github.com/Venix-Sistemas/nuxt-theme/commit/5056262))
+
+### 📖 Documentation
+
+- Overhaul README for production, add LICENSE ([d46340f](https://github.com/Venix-Sistemas/nuxt-theme/commit/d46340f))
+- V1.0.0-alpha.3 ([3cf563e](https://github.com/Venix-Sistemas/nuxt-theme/commit/3cf563e))
+- Alpha releases ([63937d3](https://github.com/Venix-Sistemas/nuxt-theme/commit/63937d3))
+
+### ❤️ Contributors
+
+- VBviniciusVB ([@VBviniciusVB](https://github.com/VBviniciusVB))
+
 ## v1.0.0-alpha.2
 
 [compare changes](https://github.com/Venix-Sistemas/nuxt-theme/compare/v1.0.0-alpha.1...v1.0.0-alpha.2)
