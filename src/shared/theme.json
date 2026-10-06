@@ -71,9 +71,9 @@
                 "info": "#2196F3",
                 "success": "#4CAF50",
                 "warning": "#FCCF3D",
-                "background": "#0F0F0F",
+                "background": "#0C0C0C",
                 "background2": "#191919",
-                "background3": "#232323",
+                "background3": "#282828",
                 "translations": {
                     "pt-BR": "Escuro",
                     "en-US": "Dark"
@@ -147,9 +147,9 @@
                 "info": "#2979FF",
                 "success": "#00E676",
                 "warning": "#FFAB00",
-                "background": "#0A0A0A",
-                "background2": "#1A1A1A",
-                "background3": "#2A2A2A",
+                "background": "#0F0F0F",
+                "background2": "#191919",
+                "background3": "#282828",
                 "translations": {
                     "pt-BR": "Natal",
                     "en-US": "Christmas"
