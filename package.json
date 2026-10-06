@@ -15,7 +15,10 @@
   "license": "MIT",
   "type": "module",
   "author": "Vinicius da Silva Viana <contato@venixsistemas.com>",
-  "repository": "Venix-Sistemas/nuxt-theme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Venix-Sistemas/nuxt-theme.git"
+  },
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -52,7 +55,7 @@
     "dev:build": "nuxt build playground",
     "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxt prepare playground",
     "release": "npm run lint && npm run test && npm run prepack && changelogen --release && npm publish && git push --follow-tags",
-    "release:alpha": "npm run lint && npm run test && npm run prepack && changelogen --release --prerelease alpha && npm publish && git push --follow-tags",
+    "release:alpha": "npm run lint && npm run test && npm run prepack && changelogen --release --prerelease alpha && npm publish --tag alpha && git push --follow-tags",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest watch",
