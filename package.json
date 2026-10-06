@@ -1,6 +1,6 @@
 {
   "name": "@venix-sistemas/jade",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0",
   "description": "Complete color system for Nuxt: seasonal colors, automatic theme, SSR, Cookie Policy, cursor, scrollbar, etc...",
   "keywords": [
     "nuxt",

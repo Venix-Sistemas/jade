@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v1.0.0
+
+[compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.0.0-alpha.5...v1.0.0)
+
+### 💅 Refactors
+
+- Project renamed to Jade ([edcad2f](https://github.com/Venix-Sistemas/jade/commit/edcad2f))
+
+### 🏡 Chore
+
+- Update npm publish metadata and alpha tag ([d24793e](https://github.com/Venix-Sistemas/jade/commit/d24793e))
+
+### ❤️ Contributors
+
+- Vinicius ([@VBviniciusVB](https://github.com/VBviniciusVB))
+
 ## v1.0.0-alpha.5
 
 [compare changes](https://github.com/Venix-Sistemas/nuxt-theme/compare/v1.0.0-alpha.4...v1.0.0-alpha.5)
