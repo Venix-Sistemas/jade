@@ -22,7 +22,7 @@ export interface VenixUnoPreset {
  *
  * ```ts
  * import { defineConfig } from 'unocss'
- * import { venixUnoPreset } from '@venix-sistemas/nuxt-theme/unocss'
+ * import { venixUnoPreset } from '@venix-sistemas/jade/unocss'
  *
  * export default defineConfig({
  *   presets: [venixUnoPreset()],

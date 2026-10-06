@@ -1,48 +1,58 @@
-# @venix-sistemas/nuxt-theme
+<p align="center">
+  <img src="./docs/images/jade-transparent.png" alt="Jade logo" width="200">
+</p>
 
-[![npm version](https://badge.fury.io/js/@venix-sistemas%2Fnuxt-theme.svg)](https://badge.fury.io/js/@venix-sistemas%2Fnuxt-theme)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<h1 align="center">Jade</h1>
 
-A complete, centralized theming system for Nuxt applications: colors, typography, cursor, scrollbar, internationalization and seasonal themes, with UnoCSS, Vuetify and Iconify integrations.
+<p align="center">
+  <code>@venix-sistemas/jade</code>
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@venix-sistemas/jade"><img src="https://badge.fury.io/js/@venix-sistemas%2Fjade.svg" alt="npm version"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+</p>
+
+A complete centralized theming system for Nuxt applications: colors, typography, cursor, scrollbar, internationalization and seasonal themes, with UnoCSS, Vuetify and Iconify integrations.
 
 ## Features
 
-* 📝 **Custom typography and font faces**
-* 🖱️ **Custom cursor**
-* 📜 **Custom scrollbar**
-* 🎨 **Dark and light themes**, with custom color themes on top
+* 📝 **Typography and font faces customization**
+* 🖱️ **Cursor customization**
+* 📜 **Scrollbar customization**
+* 🎨 **Color customization**, with dark and light themes included
 * 🖥️ **System theme preference detection**, including seasonal overrides
-* 🎃 **Seasonal themes** — Carnival, Halloween, Christmas and more
-* 💾 **Cookie-based persistence that respects cookie consent** — nothing is written until the user opts in
-* 🌐 **Internationalization and locale detection** for theme names and your own strings
+* 🎃 **Seasonal themes**: Carnival, Halloween, Christmas and more
+* 💾 **Cookie-consent-aware persistence**: nothing is written until the user opts in
+* 🌐 **i18n**: internationalization and locale detection for theme names and your own strings
 * ⚡ **Nuxt-native integration**
 * 🎯 **UnoCSS preset** for the theme's color variables
-* 🎭 **Vuetify 4 theme auto-configuration**, kept in sync with live theme changes
-* ✨ **Unified icons** — emoji, Iconify (animated `line-md`, `mdi`, both bundled and tree-shaken offline) or inline SVG through one component
+* 🎭 **Vuetify 4** theme auto-configuration, kept in sync with live theme changes
+* ✨ **Unified icons**: emoji, Iconify (animated `line-md`, `mdi`, both bundled and tree-shaken offline) or inline SVG through one component
 
 ## Installation
 
 Install the package using your preferred package manager:
 
 ```bash
-npm install @venix-sistemas/nuxt-theme
+npm install @venix-sistemas/jade
 ```
 
 Or with pnpm:
 
 ```bash
-pnpm add @venix-sistemas/nuxt-theme
+pnpm add @venix-sistemas/jade
 ```
 
 ## Quick Setup
 
 ### 1. Add the module
 
-Add `@venix-sistemas/nuxt-theme` to the `modules` section of your `nuxt.config.ts`:
+Add `@venix-sistemas/jade` to the `modules` section of your `nuxt.config.ts`:
 
 ```typescript
 export default defineNuxtConfig({
-  modules: ['@venix-sistemas/nuxt-theme'],
+  modules: ['@venix-sistemas/jade'],
 
   venixTheme: {
     color: {
@@ -159,12 +169,12 @@ Setting `translation: false` fully disables locale detection and stops `locale.s
 
 ## UnoCSS integration
 
-`nuxt-theme` ships a UnoCSS preset that exposes the theme's color variables under `theme.colors` — add it to your own `uno.config.ts`:
+`jade` ships a UnoCSS preset that exposes the theme's color variables under `theme.colors` — add it to your own `uno.config.ts`:
 
 ```typescript
 // uno.config.ts
 import { defineConfig } from 'unocss'
-import { venixUnoPreset } from '@venix-sistemas/nuxt-theme/unocss'
+import { venixUnoPreset } from '@venix-sistemas/jade/unocss'
 
 export default defineConfig({
   presets: [
@@ -205,7 +215,7 @@ If [`vuetify-nuxt-module`](https://nuxt.vuetifyjs.com) is installed, enabling `v
 ```typescript
 export default defineNuxtConfig({
   modules: [
-    '@venix-sistemas/nuxt-theme', // must come before the Vuetify module
+    '@venix-sistemas/jade', // must come before the Vuetify module
     'vuetify-nuxt-module',
   ],
   venixTheme: {
@@ -224,7 +234,7 @@ Unlike the UnoCSS integration (which points at CSS variables), Vuetify computes 
 
 ## Icons
 
-`nuxt-theme` installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon) automatically and registers `<VenixIcon>` (and the equivalent `useVenixIcon()` composable), which accept **one single `icon` value** in any of three formats:
+`jade` installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon) automatically and registers `<VenixIcon>` (and the equivalent `useVenixIcon()` composable), which accept **one single `icon` value** in any of three formats:
 
 ```vue
 <template>
@@ -457,6 +467,14 @@ Clone the repository, then:
 | `pnpm prepack` | Build the package |
 
 See the [Configuration](#configuration) section above for the full options reference, and the [Playground](./playground) for a working example.
+
+## Brand
+
+The Jade logo, in the variants shipped with the repository (`docs/images`):
+
+| Transparent | Dark background | Emblem (1254 px) |
+| :---------: | :-------------: | :--------------: |
+| <img src="./docs/images/jade-transparent.png" alt="Jade, transparent background" width="200"> | <img src="./docs/images/jade.png" alt="Jade, dark background" width="200"> | <img src="./docs/images/jade-emblem.png" alt="Jade emblem" width="200"> |
 
 ## License
 

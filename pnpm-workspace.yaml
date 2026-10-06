@@ -5,4 +5,4 @@ allowBuilds:
   esbuild: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
-  - '@venix-sistemas/nuxt-theme@0.1.3'
+  - '@venix-sistemas/jade@0.1.3'

@@ -4,7 +4,7 @@ import { setup, $fetch } from '@nuxt/test-utils/e2e'
 import { loadTheme } from '../src/shared/utils/load'
 import { processTheme } from '../src/shared/css'
 
-describe('nuxt-theme module', () => {
+describe('jade module', () => {
   // Teste E2E
   describe('ssr', async () => {
     await setup({

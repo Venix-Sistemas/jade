@@ -1,23 +1,36 @@
 {
-  "name": "@venix-sistemas/nuxt-theme",
+  "name": "@venix-sistemas/jade",
   "version": "1.0.0-alpha.5",
   "description": "Complete color system for Nuxt: seasonal colors, automatic theme, SSR, Cookie Policy, cursor, scrollbar, etc...",
   "keywords": [
     "nuxt",
-    "module",
+    "nuxt-module",
+    "nuxt-theme",
+    "jade",
+    "jade-theme",
     "theme",
+    "theming",
     "colors",
     "dark-mode",
+    "seasonal-theme",
     "typography",
     "scrollbar",
-    "cursor"
+    "cursor",
+    "unocss",
+    "vuetify",
+    "iconify",
+    "i18n"
   ],
   "license": "MIT",
   "type": "module",
   "author": "Vinicius da Silva Viana <contato@venixsistemas.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Venix-Sistemas/nuxt-theme.git"
+    "url": "git+https://github.com/Venix-Sistemas/jade.git"
+  },
+  "homepage": "https://github.com/Venix-Sistemas/jade#readme",
+  "bugs": {
+    "url": "https://github.com/Venix-Sistemas/jade/issues"
   },
   "private": false,
   "publishConfig": {

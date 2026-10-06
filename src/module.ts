@@ -33,7 +33,7 @@ export interface ModuleOptions {
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
-    name: '@venix-sistemas/nuxt-theme',
+    name: '@venix-sistemas/jade',
     configKey: 'venixTheme',
   },
   defaults: {

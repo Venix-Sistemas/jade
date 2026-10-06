@@ -1,4 +1,4 @@
-// Playground's own content translations — separate from `@venix-sistemas/nuxt-theme`'s
+// Playground's own content translations — separate from `@venix-sistemas/jade`'s
 // built-in theme-name translations, which follow the same locale automatically
 // via `translation.cookieSync` (see the "Languages" section in app.vue).
 export default defineI18nConfig(() => ({

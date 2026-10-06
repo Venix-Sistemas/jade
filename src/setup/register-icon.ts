@@ -20,7 +20,7 @@ type IconifyJSON = Parameters<typeof getIcons>[0]
 
 // `realpathSync` is essential here: when this package is installed via pnpm
 // (no hoisting), Node loads this file through a symlink under
-// node_modules/@venix-sistemas/nuxt-theme/, and `createRequire` resolved from
+// node_modules/@venix-sistemas/jade/, and `createRequire` resolved from
 // the symlinked path does NOT see this dependency's own node_modules/ (it
 // ends up "outside" the package's real tree) — only works from the real
 // physical path.
@@ -29,7 +29,7 @@ const nodeRequire = createRequire(realpathSync(fileURLToPath(import.meta.url)))
 /**
  * Loads the raw JSON of an `@iconify-json/*` collection, trying first from
  * this package's own location (collections that are a dependency of
- * nuxt-theme, e.g. `line-md`, `mdi`) and then from the consumer project's
+ * jade, e.g. `line-md`, `mdi`) and then from the consumer project's
  * root (collections the consumer installed themselves for their custom
  * themes). See the `nodeRequire` comment for why resolution relative to this
  * package needs the real physical path.

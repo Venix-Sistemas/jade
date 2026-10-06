@@ -58,7 +58,7 @@ function buildVuetifyThemes(colors: ColorsConfig): Record<string, VuetifyThemeDe
  * resolves the active theme (cookie) to keep Vuetify in sync with the rest
  * of the module. A safe no-op if vuetify-nuxt-module isn't installed.
  *
- * Requires `@venix-sistemas/nuxt-theme` to appear BEFORE the Vuetify module
+ * Requires `@venix-sistemas/jade` to appear BEFORE the Vuetify module
  * in `modules`, since the registration needs to happen before Vuetify
  * resolves its theme configuration.
  */
