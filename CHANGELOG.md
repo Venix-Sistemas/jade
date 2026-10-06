@@ -1,6 +1,27 @@
 # Changelog
 
 
+## v1.0.0-alpha.5
+
+[compare changes](https://github.com/Venix-Sistemas/nuxt-theme/compare/v1.0.0-alpha.4...v1.0.0-alpha.5)
+
+### 💅 Refactors
+
+- Dark and natal background adjust ([b9e63a3](https://github.com/Venix-Sistemas/nuxt-theme/commit/b9e63a3))
+
+### 📦 Build
+
+- **deps:** Updated dependencies ([28801f1](https://github.com/Venix-Sistemas/nuxt-theme/commit/28801f1))
+
+### 🏡 Chore
+
+- **release:** V1.0.0-alpha.4 ([58304ec](https://github.com/Venix-Sistemas/nuxt-theme/commit/58304ec))
+
+### ❤️ Contributors
+
+- Vinicius ([@VBviniciusVB](https://github.com/VBviniciusVB))
+- VBviniciusVB <viniciusvianalaguna@hotmail.com>
+
 ## v1.0.0-alpha.4
 
 [compare changes](https://github.com/Venix-Sistemas/nuxt-theme/compare/v1.0.0-alpha.2...v1.0.0-alpha.4)
