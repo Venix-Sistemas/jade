@@ -14,6 +14,8 @@
   "devDependencies": {
     "@nuxtjs/i18n": "^10.6.0",
     "@unocss/nuxt": "^66.10.0",
-    "unocss": "^66.10.0"
+    "unocss": "^66.10.0",
+    "vuetify": "^4.2.4",
+    "vuetify-nuxt-module": "1.0.0-rc.6"
   }
 }

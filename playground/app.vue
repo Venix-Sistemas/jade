@@ -167,6 +167,31 @@
           </div>
         </client-only>
       </section>
+
+      <!-- Vuetify integration (`vuetify: true`) -->
+      <section class="section">
+        <h2>Vuetify</h2>
+        <v-card
+          color="surface"
+          class="pa-4"
+        >
+          <v-card-title>v-card (surface)</v-card-title>
+          <v-card-actions>
+            <v-btn color="primary">
+              primary
+            </v-btn>
+            <v-btn color="secondary">
+              secondary
+            </v-btn>
+            <v-btn
+              color="accent"
+              variant="outlined"
+            >
+              accent
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </section>
     </main>
   </div>
 </template>

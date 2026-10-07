@@ -1,5 +1,6 @@
 // runtime/plugins/vuetify-theme.ts
 import { defineNuxtPlugin, useRuntimeConfig, useCookie } from '#app'
+import type { NuxtApp } from '#app'
 import { THEME_PREFERENCE_COOKIE, THEME_RESOLVED_COOKIE, THEME_APPLIED_EVENT, DEFAULT_THEME } from '../../shared/constants'
 import { buildResolvedTheme } from '../../shared/utils/theme-config'
 
@@ -21,8 +22,32 @@ interface VuetifyInstance {
     global: {
       name: { value: string }
     }
+    /** The theme stylesheet (`--v-theme-*` variables + utility classes) Vuetify hands to unhead. */
+    styles: { value: string }
   }
 }
+
+/**
+ * Runtime hooks fired by `vuetify-nuxt-module`. Typed locally rather than by
+ * augmenting `RuntimeNuxtHooks` in `#app`: the Vuetify module augments that
+ * same interface with its own signatures when installed, and two declarations
+ * of the same hook with different types would break type-checking in the
+ * consumer app.
+ */
+interface VuetifyRuntimeHooks {
+  'vuetify:before-create': (ctx: VuetifyBeforeCreateContext) => void
+  'vuetify:ready': (vuetify: VuetifyInstance) => void
+}
+
+type VuetifyHook = <K extends keyof VuetifyRuntimeHooks>(name: K, fn: VuetifyRuntimeHooks[K]) => void
+
+interface HeadHooks {
+  hook: (name: 'dom:rendered', fn: () => void) => () => void
+}
+
+/** Id of the `<style>` Vuetify's theme pushes through unhead (`lib/composables/theme.js`). */
+const VUETIFY_THEME_STYLESHEET_ID = 'vuetify-theme-stylesheet'
+const EARLY_THEME_STYLESHEET_ID = 'venix-vuetify-theme-early'
 
 /**
  * Applies the theme on the Vuetify instance, preferring `theme.change()`
@@ -39,6 +64,38 @@ function applyVuetifyTheme(vuetify: VuetifyInstance, name: string): void {
   }
 }
 
+/**
+ * SPA mode (`ssr: false`) only. With unhead present, Vuetify hands its theme
+ * stylesheet to `head.push()`, and unhead only writes it to the DOM after the
+ * first render — so the page showed for a moment without any `--v-theme-*`
+ * color. With SSR the stylesheet already comes in the HTML, so this never
+ * happens there.
+ *
+ * Writes the same stylesheet into `<head>` right away (before mount), and
+ * removes it as soon as unhead's own copy reaches the DOM.
+ */
+function writeEarlyThemeStylesheet(nuxtApp: NuxtApp, vuetify: VuetifyInstance): void {
+  const css = vuetify.theme.styles.value
+  // Nothing to bridge: Vuetify's theme is disabled, or Vuetify already wrote
+  // its own `<style>` directly (no unhead in the app).
+  if (!css || document.getElementById(VUETIFY_THEME_STYLESHEET_ID)) return
+
+  // Without unhead's hooks there'd be no signal to remove the early copy.
+  const headHooks = (nuxtApp.vueApp._context.provides.usehead as { hooks?: HeadHooks } | undefined)?.hooks
+  if (!headHooks) return
+
+  const style = document.createElement('style')
+  style.id = EARLY_THEME_STYLESHEET_ID
+  style.textContent = css
+  document.head.appendChild(style)
+
+  const unhook = headHooks.hook('dom:rendered', () => {
+    if (!document.getElementById(VUETIFY_THEME_STYLESHEET_ID)) return
+    style.remove()
+    unhook()
+  })
+}
+
 export default defineNuxtPlugin({
   name: 'venix-theme-vuetify-sync',
   enforce: 'pre',
@@ -52,15 +109,12 @@ export default defineNuxtPlugin({
     const theme = buildResolvedTheme(themeConfig)
     const defaultTheme = theme.colors.defaultColor || DEFAULT_THEME
 
-    // 'vuetify:before-create' only exists when vuetify-nuxt-module is
-    // installed (optional peer); the cast is safe because the hook never
-    // fires without the module present.
-    const hookBeforeCreate = nuxtApp.hook as unknown as (
-      name: 'vuetify:before-create',
-      fn: (ctx: VuetifyBeforeCreateContext) => void,
-    ) => void
+    // The 'vuetify:*' hooks only exist when vuetify-nuxt-module is installed
+    // (optional peer); the cast is safe because they never fire without the
+    // module present.
+    const hookVuetify = nuxtApp.hook as unknown as VuetifyHook
 
-    hookBeforeCreate('vuetify:before-create', ({ vuetifyOptions }) => {
+    hookVuetify('vuetify:before-create', ({ vuetifyOptions }) => {
       const themes = vuetifyOptions?.theme?.themes
       if (!vuetifyOptions?.theme || !themes) return
 
@@ -94,12 +148,9 @@ export default defineNuxtPlugin({
     // initial sync needed here: the theme already arrives correct on the
     // first render via 'vuetify:before-create'.
     if (import.meta.client) {
-      const hookReady = nuxtApp.hook as unknown as (
-        name: 'vuetify:ready',
-        fn: (vuetify: VuetifyInstance) => void,
-      ) => void
+      hookVuetify('vuetify:ready', (vuetify) => {
+        if (!nuxtApp.payload.serverRendered) writeEarlyThemeStylesheet(nuxtApp, vuetify)
 
-      hookReady('vuetify:ready', (vuetify) => {
         window.addEventListener(THEME_APPLIED_EVENT, ((event: CustomEvent<string>) => {
           applyVuetifyTheme(vuetify, event.detail)
         }) as EventListener)

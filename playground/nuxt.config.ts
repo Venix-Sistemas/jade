@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
-  modules: ['@venix-sistemas/jade', '@unocss/nuxt', '@nuxtjs/i18n'],
+  modules: ['@venix-sistemas/jade', '@unocss/nuxt', '@nuxtjs/i18n', 'vuetify-nuxt-module'],
   devtools: { enabled: true },
   compatibilityDate: 'latest',
 
@@ -138,6 +138,7 @@ export default defineNuxtConfig({
 
     // Vuetify: enable with `vuetify: true` in projects using vuetify-nuxt-module
     // (must come before it in `modules`). See the "Vuetify integration" section in the README.
+    vuetify: true,
 
     // Icons: <VenixIcon icon="..." /> accepts an emoji, an Iconify name (e.g.
     // 'line-md:home', animated) or inline SVG. `aliases` creates shortcuts for any of the three formats.
