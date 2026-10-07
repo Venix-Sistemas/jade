@@ -1,6 +1,27 @@
 # Changelog
 
 
+## v1.0.1
+
+[compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.0.0...v1.0.1)
+
+### 🩹 Fixes
+
+- **vuetify:** Write the theme stylesheet before mount in SPA mode ([5a923e3](https://github.com/Venix-Sistemas/jade/commit/5a923e3))
+
+### 📖 Documentation
+
+- Update CHANGELOG commit hashes after history rewrite ([3b910d2](https://github.com/Venix-Sistemas/jade/commit/3b910d2))
+
+### 🏡 Chore
+
+- Use pnpm instead of npm in package scripts ([b7b08ec](https://github.com/Venix-Sistemas/jade/commit/b7b08ec))
+- Ignore .claude directory ([2f0dfed](https://github.com/Venix-Sistemas/jade/commit/2f0dfed))
+
+### ❤️ Contributors
+
+- Vinicius ([@VBviniciusVB](https://github.com/VBviniciusVB))
+
 ## v1.0.0
 
 [compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.0.0-alpha.5...v1.0.0)
