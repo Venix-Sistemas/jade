@@ -7,11 +7,11 @@
 
 ### 💅 Refactors
 
-- Project renamed to Jade ([edcad2f](https://github.com/Venix-Sistemas/jade/commit/edcad2f))
+- Project renamed to Jade ([203d542](https://github.com/Venix-Sistemas/jade/commit/203d542))
 
 ### 🏡 Chore
 
-- Update npm publish metadata and alpha tag ([d24793e](https://github.com/Venix-Sistemas/jade/commit/d24793e))
+- Update npm publish metadata and alpha tag ([7a1585e](https://github.com/Venix-Sistemas/jade/commit/7a1585e))
 
 ### ❤️ Contributors
 
@@ -23,15 +23,15 @@
 
 ### 💅 Refactors
 
-- Dark and natal background adjust ([b9e63a3](https://github.com/Venix-Sistemas/nuxt-theme/commit/b9e63a3))
+- Dark and natal background adjust ([423afe5](https://github.com/Venix-Sistemas/nuxt-theme/commit/423afe5))
 
 ### 📦 Build
 
-- **deps:** Updated dependencies ([28801f1](https://github.com/Venix-Sistemas/nuxt-theme/commit/28801f1))
+- **deps:** Updated dependencies ([aa83e63](https://github.com/Venix-Sistemas/nuxt-theme/commit/aa83e63))
 
 ### 🏡 Chore
 
-- **release:** V1.0.0-alpha.4 ([58304ec](https://github.com/Venix-Sistemas/nuxt-theme/commit/58304ec))
+- **release:** V1.0.0-alpha.4 ([846798e](https://github.com/Venix-Sistemas/nuxt-theme/commit/846798e))
 
 ### ❤️ Contributors
 
@@ -44,21 +44,21 @@
 
 ### 🚀 Enhancements
 
-- **playground:** Add real i18n content translations (en/pt/es) ([705ec5b](https://github.com/Venix-Sistemas/nuxt-theme/commit/705ec5b))
-- **playground:** Flesh out the Easter seasonal theme, add a dark variant ([21900fc](https://github.com/Venix-Sistemas/nuxt-theme/commit/21900fc))
+- **playground:** Add real i18n content translations (en/pt/es) ([87f9b07](https://github.com/Venix-Sistemas/nuxt-theme/commit/87f9b07))
+- **playground:** Flesh out the Easter seasonal theme, add a dark variant ([e236a50](https://github.com/Venix-Sistemas/nuxt-theme/commit/e236a50))
 
 ### 🩹 Fixes
 
-- Locale detection, Vuetify transition freeze, and stale locale cookie ([14ff085](https://github.com/Venix-Sistemas/nuxt-theme/commit/14ff085))
-- Anti-FOUC script ignored custom themes, reverting them on reload ([4529c9e](https://github.com/Venix-Sistemas/nuxt-theme/commit/4529c9e))
-- Reconcile theme preference and locale from the live cookie on hydration ([2273b76](https://github.com/Venix-Sistemas/nuxt-theme/commit/2273b76))
-- Wire the theme's custom font into Vuetify's own CSS variables ([5056262](https://github.com/Venix-Sistemas/nuxt-theme/commit/5056262))
+- Locale detection, Vuetify transition freeze, and stale locale cookie ([c0f31d8](https://github.com/Venix-Sistemas/nuxt-theme/commit/c0f31d8))
+- Anti-FOUC script ignored custom themes, reverting them on reload ([9af53aa](https://github.com/Venix-Sistemas/nuxt-theme/commit/9af53aa))
+- Reconcile theme preference and locale from the live cookie on hydration ([a034486](https://github.com/Venix-Sistemas/nuxt-theme/commit/a034486))
+- Wire the theme's custom font into Vuetify's own CSS variables ([ece769a](https://github.com/Venix-Sistemas/nuxt-theme/commit/ece769a))
 
 ### 📖 Documentation
 
-- Overhaul README for production, add LICENSE ([d46340f](https://github.com/Venix-Sistemas/nuxt-theme/commit/d46340f))
-- V1.0.0-alpha.3 ([3cf563e](https://github.com/Venix-Sistemas/nuxt-theme/commit/3cf563e))
-- Alpha releases ([63937d3](https://github.com/Venix-Sistemas/nuxt-theme/commit/63937d3))
+- Overhaul README for production, add LICENSE ([d0afd41](https://github.com/Venix-Sistemas/nuxt-theme/commit/d0afd41))
+- V1.0.0-alpha.3 ([d6eff93](https://github.com/Venix-Sistemas/nuxt-theme/commit/d6eff93))
+- Alpha releases ([c42d591](https://github.com/Venix-Sistemas/nuxt-theme/commit/c42d591))
 
 ### ❤️ Contributors
 
