@@ -456,7 +456,7 @@ color: {
 }
 ```
 
-Each `dateRange` bound is either a fixed `MM-DD` date or, for movable holidays, a number of days relative to Easter Sunday: `easter`, `easter-47` (Carnival Tuesday), `easter+1`. The built-in Carnival theme uses `{ start: 'easter-62', end: 'easter-46' }` — from about two weeks before Carnival up to Ash Wednesday, in the right place every year.
+Each `dateRange` bound is either a fixed `MM-DD` date or, for movable holidays, a number of days relative to Easter Sunday: `easter`, `easter-47` (Carnival Tuesday), `easter+1`. The built-in Carnival theme uses `{ start: 'easter-65', end: 'easter-46' }` — 20 days, from the pre-Carnival weeks up to Ash Wednesday, in the right place every year.
 
 ```typescript
 color: {

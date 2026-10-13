@@ -110,7 +110,7 @@
                 "dark": true,
                 "seasonal": true,
                 "dateRange": {
-                    "start": "easter-62",
+                    "start": "easter-65",
                     "end": "easter-46"
                 },
                 "primary": "#FF1493",
