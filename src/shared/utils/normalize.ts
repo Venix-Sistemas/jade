@@ -46,8 +46,9 @@ export function extractFirstLocale(acceptLanguage: string): string | null {
 }
 
 /**
- * Normalizes a hex color.
- * E.g.: "fff" -> "#FFF", "ffffff" -> "#FFFFFF", "#fff" -> "#FFF"
+ * Normalizes a hex color: trims it and adds the leading `#` when missing
+ * (case is preserved).
+ * E.g.: "fff" -> "#fff", " #FFFFFF " -> "#FFFFFF"
  */
 export function normalizeColor(color: string): string {
   if (!color) return color

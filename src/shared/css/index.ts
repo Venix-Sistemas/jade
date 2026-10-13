@@ -4,6 +4,7 @@ import { generateThemeVars } from './colors'
 import { generateCustomScrollbarCSS } from './scrollbar'
 import { generateCustomCursorCSS } from './cursor'
 import { generateThemeTransitionCSS } from './transition'
+import { isColorTheme } from '../utils/theme-resolve'
 
 export interface ProcessOptions {
   typography?: boolean
@@ -25,11 +26,10 @@ export function processTheme(theme: ThemeConfig, options: ProcessOptions = {}): 
   if (options.colors !== false && theme.colors?.enabled !== false) {
     if (theme.colors?.themes) {
       output.push(generateThemeTransitionCSS())
-      Object.entries(theme.colors.themes).forEach(([themeName, themeColors]) => {
-        if (themeName === 'system') return
-        if (!themeColors.primary && !themeColors.background) return
+      for (const [themeName, themeColors] of Object.entries(theme.colors.themes)) {
+        if (themeName === 'system' || !isColorTheme(themeColors)) continue
         output.push(generateThemeVars(themeName, themeColors))
-      })
+      }
     }
   }
 

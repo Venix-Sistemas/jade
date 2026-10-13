@@ -1,11 +1,9 @@
 // src/shared/css/colors.ts
 import type { ThemeColors } from '../types'
-import { NON_COLOR_PROPERTIES } from '../constants'
+import { getThemeHexColors } from '../utils/theme-resolve'
 
 export function generateThemeVars(mode: string, colors: ThemeColors): string {
-  const colorVars = Object.entries(colors)
-    .filter(([key]) => !NON_COLOR_PROPERTIES.includes(key as typeof NON_COLOR_PROPERTIES[number]))
-    .filter(([, value]) => typeof value === 'string' && value.startsWith('#'))
+  const colorVars = getThemeHexColors(colors)
     .map(([key, value]) => `  --color-${key}: ${value};`)
     .join('\n')
 

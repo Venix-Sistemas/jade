@@ -1,5 +1,6 @@
 // src/shared/utils/theme-resolve.ts
 import type { ThemeColors } from '../types'
+import { NON_COLOR_PROPERTIES } from '../constants'
 
 /**
  * A theme only really counts as a "color" theme if it has at least one real
@@ -10,6 +11,20 @@ import type { ThemeColors } from '../types'
 export function isColorTheme(themeConfig: ThemeColors | undefined): boolean {
   if (!themeConfig) return false
   return !!themeConfig.primary || !!themeConfig.background
+}
+
+/**
+ * The theme's actual color entries (hex values only) — skips metadata like
+ * `dark`/`translations`/`icon`. Shared by the CSS generator and the Vuetify
+ * theme registration, so both always agree on what counts as a color.
+ */
+export function getThemeHexColors(themeConfig: ThemeColors): Array<[string, string]> {
+  const result: Array<[string, string]> = []
+  for (const [key, value] of Object.entries(themeConfig)) {
+    if (NON_COLOR_PROPERTIES.includes(key as typeof NON_COLOR_PROPERTIES[number])) continue
+    if (typeof value === 'string' && value.startsWith('#')) result.push([key, value])
+  }
+  return result
 }
 
 function parseDatePart(value: string): [number, number] | null {
