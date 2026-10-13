@@ -11,5 +11,6 @@ export type { IconKind, ResolvedIcon, ThemeIconFormat, ResolvedThemeIcon } from 
 export { extractIconRefs } from './icon-refs'
 export { hasCookieConsent } from './consent'
 export { isColorTheme, getActiveSeasonalTheme, resolveThemePreference } from './theme-resolve'
+export { mergeColorThemes } from './merge-themes'
 export { buildResolvedTheme } from './theme-config'
 export type { VenixRuntimeThemeConfig } from './theme-config'

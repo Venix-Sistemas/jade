@@ -2,6 +2,7 @@
 import themeData from '../theme.json' with { type: 'json' }
 import type { ThemeConfig, ThemeColors } from '../types'
 import { DEFAULT_THEME } from '../constants'
+import { mergeColorThemes } from './merge-themes'
 
 export interface VenixRuntimeThemeConfig {
   defaultTheme?: string
@@ -31,10 +32,11 @@ export function buildResolvedTheme(runtimeThemeConfig?: VenixRuntimeThemeConfig)
     colors: {
       ...baseColors,
       defaultColor: runtimeThemeConfig?.defaultTheme || baseColors.defaultColor || DEFAULT_THEME,
-      themes: {
-        ...baseColors.themes,
-        ...(runtimeThemeConfig?.colorThemes || {}),
-      },
+      // `colorThemes` holds the raw overrides from `nuxt.config` (only the
+      // keys the user set), so they have to be merged theme by theme — a
+      // shallow spread would replace e.g. the whole built-in `dark` theme,
+      // dropping its `translations`, `icon` and untouched colors.
+      themes: mergeColorThemes(baseColors.themes, runtimeThemeConfig?.colorThemes),
     },
   }
 }
