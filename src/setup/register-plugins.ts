@@ -10,8 +10,8 @@ export function registerThemePlugins(_nuxt: Nuxt, resolver: Resolver, shouldAppl
       mode: 'server',
     })
 
-    // Injeta o script anti-FOUC (`runtime/scripts/theme-init.ts`) inline no
-    // `<head>` via o hook `render:html` do Nitro — ver `runtime/nitro/theme-init.ts`.
+    // Injects the anti-FOUC script (`runtime/scripts/theme-init.ts`) inline into
+    // `<head>` through Nitro's `render:html` hook — see `runtime/nitro/theme-init.ts`.
     addServerPlugin(resolver.resolve('./runtime/nitro/theme-init'))
   }
 

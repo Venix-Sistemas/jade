@@ -1,5 +1,6 @@
 // src/shared/utils/theme-resolve.ts
 import type { ThemeColors } from '../types'
+import { NON_COLOR_PROPERTIES } from '../constants'
 
 /**
  * A theme only really counts as a "color" theme if it has at least one real
@@ -12,26 +13,74 @@ export function isColorTheme(themeConfig: ThemeColors | undefined): boolean {
   return !!themeConfig.primary || !!themeConfig.background
 }
 
-function parseDatePart(value: string): [number, number] | null {
+/**
+ * The theme's actual color entries (hex values only) — skips metadata like
+ * `dark`/`translations`/`icon`. Shared by the CSS generator and the Vuetify
+ * theme registration, so both always agree on what counts as a color.
+ */
+export function getThemeHexColors(themeConfig: ThemeColors): Array<[string, string]> {
+  const result: Array<[string, string]> = []
+  for (const [key, value] of Object.entries(themeConfig)) {
+    if (NON_COLOR_PROPERTIES.includes(key as typeof NON_COLOR_PROPERTIES[number])) continue
+    if (typeof value === 'string' && value.startsWith('#')) result.push([key, value])
+  }
+  return result
+}
+
+/** `easter`, `easter-47`, `easter+1` — days relative to Easter Sunday. */
+const EASTER_RELATIVE = /^easter([+-]\d+)?$/
+
+/** Easter Sunday (Gregorian calendar) — anonymous Gregorian algorithm (Meeus/Jones/Butcher). */
+export function getEasterSunday(year: number): Date {
+  const a = year % 19
+  const b = Math.floor(year / 100)
+  const c = year % 100
+  const d = Math.floor(b / 4)
+  const e = b % 4
+  const f = Math.floor((b + 8) / 25)
+  const g = Math.floor((b - f + 1) / 3)
+  const h = (19 * a + b - d - g + 15) % 30
+  const i = Math.floor(c / 4)
+  const k = c % 4
+  const l = (32 + 2 * e + 2 * i - h - k) % 7
+  const m = Math.floor((a + 11 * h + 22 * l) / 451)
+  const month = Math.floor((h + l - 7 * m + 114) / 31)
+  const day = ((h + l - 7 * m + 114) % 31) + 1
+
+  return new Date(year, month - 1, day)
+}
+
+/**
+ * Parses a `dateRange` bound into a comparable `MMDD` number for `year`.
+ * Accepts a fixed `MM-DD` date or a movable one relative to Easter
+ * (`easter±N`, e.g. Carnival Tuesday is `easter-47`).
+ */
+function parseDatePart(value: string, year: number): number | null {
+  const easter = EASTER_RELATIVE.exec(value.trim())
+  if (easter) {
+    const date = getEasterSunday(year)
+    date.setDate(date.getDate() + Number(easter[1] ?? 0))
+    return (date.getMonth() + 1) * 100 + date.getDate()
+  }
+
   const parts = value.split('-').map(Number)
   if (parts.length !== 2) return null
 
   const [month, day] = parts
   if (month === undefined || day === undefined) return null
 
-  return [month, day]
+  return month * 100 + day
 }
 
 function isDateInSeasonalRange(themeConfig: ThemeColors, now: Date): boolean {
   if (themeConfig.seasonal !== true || !themeConfig.dateRange) return false
 
-  const start = parseDatePart(themeConfig.dateRange.start)
-  const end = parseDatePart(themeConfig.dateRange.end)
-  if (!start || !end) return false
+  const year = now.getFullYear()
+  const startNum = parseDatePart(themeConfig.dateRange.start, year)
+  const endNum = parseDatePart(themeConfig.dateRange.end, year)
+  if (startNum === null || endNum === null) return false
 
   const current = (now.getMonth() + 1) * 100 + now.getDate()
-  const startNum = start[0] * 100 + start[1]
-  const endNum = end[0] * 100 + end[1]
 
   return startNum <= endNum
     ? current >= startNum && current <= endNum

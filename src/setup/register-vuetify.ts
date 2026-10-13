@@ -3,7 +3,7 @@ import { addPlugin } from '@nuxt/kit'
 import type { Resolver } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
 import type { ThemeConfig, ColorsConfig } from '../shared/types'
-import { NON_COLOR_PROPERTIES } from '../shared/constants'
+import { isColorTheme, getThemeHexColors } from '../shared/utils/theme-resolve'
 
 interface VuetifyThemeDefinition {
   dark: boolean
@@ -30,16 +30,10 @@ function buildVuetifyThemes(colors: ColorsConfig): Record<string, VuetifyThemeDe
   const themes: Record<string, VuetifyThemeDefinition> = {}
 
   for (const [name, themeColors] of Object.entries(colors.themes)) {
-    if (!themeColors.primary && !themeColors.background) continue // e.g. the 'system' placeholder, no real colors
+    if (!isColorTheme(themeColors)) continue // e.g. the 'system' placeholder, no real colors
 
     const isDark = themeColors.dark === true
-    const vuetifyColors: Record<string, string> = {}
-
-    for (const [key, value] of Object.entries(themeColors)) {
-      if (NON_COLOR_PROPERTIES.includes(key as typeof NON_COLOR_PROPERTIES[number])) continue
-      if (typeof value !== 'string' || !value.startsWith('#')) continue
-      vuetifyColors[key] = value
-    }
+    const vuetifyColors: Record<string, string> = Object.fromEntries(getThemeHexColors(themeColors))
 
     // 'surface' is Vuetify's semantic slot for cards/toolbars/etc; we use
     // background2 as the closest equivalent in our color system.

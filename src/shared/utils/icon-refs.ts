@@ -1,6 +1,5 @@
 import type { ThemeColors } from '../types/colors'
-
-const ICONIFY_NAME = /^([\w-]+):([\w-]+)$/
+import { ICONIFY_NAME } from './icon'
 
 function addRef(refs: Map<string, Set<string>>, value: string | undefined) {
   const match = value ? ICONIFY_NAME.exec(value.trim()) : null

@@ -1,5 +1,5 @@
 // runtime/composables/useVenixTheme.ts
-import { computed, watch, onMounted, onUnmounted, getCurrentInstance } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, getCurrentInstance } from 'vue'
 import { useRuntimeConfig, useState } from '#app'
 import { DEFAULT_THEME, DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT } from '../../shared/constants'
 import { useThemeCookies } from './useThemeCookies'
@@ -64,6 +64,11 @@ export const useVenixTheme = () => {
   // instead of each getting its own disconnected copy.
   const initialPreference = cookies.preferenceCookie.value || defaultTheme
   const preference = useState<string>('venix-theme-preference', () => initialPreference || 'system')
+
+  // Bumped whenever something theme resolution depends on changes outside
+  // Vue's reactivity (OS color scheme, the date rolling over to a new day),
+  // so the computeds below don't stay stuck on a stale result.
+  const environmentVersion = ref(0)
 
   const getResolvedTheme = (pref: string): string => {
     const prefersDark = typeof window !== 'undefined'
@@ -185,19 +190,15 @@ export const useVenixTheme = () => {
   // apps without their own CMP. An existing CMP can write to
   // COOKIE_CONSENT_STORAGE_KEY and dispatch COOKIE_PREFERENCES_UPDATED_EVENT
   // directly, without needing to call this.
-  const grantPersistence = () => {
+  const setConsent = (granted: boolean) => {
     if (typeof localStorage === 'undefined') return
-    localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify({ functionality: true }))
+    localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify({ functionality: granted }))
     syncPersistence()
     window.dispatchEvent(new Event(COOKIE_PREFERENCES_UPDATED_EVENT))
   }
 
-  const revokePersistence = () => {
-    if (typeof localStorage === 'undefined') return
-    localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify({ functionality: false }))
-    syncPersistence()
-    window.dispatchEvent(new Event(COOKIE_PREFERENCES_UPDATED_EVENT))
-  }
+  const grantPersistence = () => setConsent(true)
+  const revokePersistence = () => setConsent(false)
 
   // `onMounted` requires an active component instance — if `useVenixTheme()`
   // is called outside a normal synchronous `setup()` (e.g. context lost
@@ -228,21 +229,27 @@ export const useVenixTheme = () => {
 
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const handleSystemThemeChange = () => {
+      environmentVersion.value++
       if (preference.value === 'system') applyWithTransition('system')
     }
     mq.addEventListener('change', handleSystemThemeChange)
 
-    const checkSeasonalChange = () => {
+    // Re-arms itself every midnight — `midnightTimeout` always holds the
+    // *latest* timer id, so the cleanup below cancels the pending one (not
+    // just the first, already-fired timer).
+    let midnightTimeout: ReturnType<typeof setTimeout>
+    const scheduleSeasonalCheck = () => {
       const now = new Date()
       const msToMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime()
 
-      return setTimeout(() => {
+      midnightTimeout = setTimeout(() => {
+        environmentVersion.value++
         if (preference.value === 'system') applyWithTransition('system')
-        checkSeasonalChange()
+        scheduleSeasonalCheck()
       }, msToMidnight + 1000)
     }
 
-    const midnightTimeout = checkSeasonalChange()
+    scheduleSeasonalCheck()
 
     window.addEventListener(COOKIE_PREFERENCES_UPDATED_EVENT, syncPersistence)
 
@@ -272,19 +279,24 @@ export const useVenixTheme = () => {
     colors.themes.value.find(t => t.value === preference.value) ?? colors.themes.value[0],
   )
 
-  const isSeasonalActive = computed(() => {
-    if (preference.value !== 'system') return false
-    return seasonal.getActiveSeasonalTheme() !== null
+  // Both depend on the OS color scheme / today's date — reading
+  // `environmentVersion` re-evaluates them when either changes.
+  const resolvedTheme = computed(() => {
+    void environmentVersion.value
+    return getResolvedTheme(preference.value)
   })
 
   const activeSeasonalTheme = computed(() => {
+    void environmentVersion.value
     if (preference.value !== 'system') return null
     return seasonal.getActiveSeasonalTheme()
   })
 
+  const isSeasonalActive = computed(() => activeSeasonalTheme.value !== null)
+
   return {
     theme: {
-      value: computed(() => getResolvedTheme(preference.value)),
+      value: resolvedTheme,
       preference,
       data,
       toggle,

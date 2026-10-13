@@ -15,13 +15,11 @@ export function loadTheme(_path?: string): ThemeConfig {
 export function extractLocales(theme: ThemeConfig): string[] {
   const locales = new Set<string>()
 
-  Object.values(theme.colors?.themes || {}).forEach((themeConfig) => {
-    if (themeConfig.translations) {
-      Object.keys(themeConfig.translations).forEach((locale) => {
-        locales.add(normalizeLocale(locale))
-      })
+  for (const themeConfig of Object.values(theme.colors?.themes || {})) {
+    for (const locale of Object.keys(themeConfig.translations ?? {})) {
+      locales.add(normalizeLocale(locale))
     }
-  })
+  }
 
   return Array.from(locales)
 }

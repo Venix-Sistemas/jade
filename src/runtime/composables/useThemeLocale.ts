@@ -5,6 +5,7 @@ import { useRequestHeaders, useState, useRoute } from '#app'
 import type { ThemeConfig } from '../../shared/types'
 import { DEFAULT_LOCALE } from '../../shared/constants'
 import { normalizeLocale, extractFirstLocale } from '../../shared/utils/normalize'
+import { extractLocales } from '../../shared/utils/load'
 import { hasCookieConsent } from '../../shared/utils/consent'
 
 export interface UseThemeLocaleOptions {
@@ -25,30 +26,23 @@ export const useThemeLocale = (
 
   // Detects the locale consistently between SSR and client
   const detectLocale = (): string => {
-    // Collects every locale available in the translations
-    const getAvailableLocales = (): string[] => {
-      const availableLocales = new Set<string>()
-      Object.values(theme.colors.themes).forEach((themeConfig) => {
-        if (themeConfig.translations) {
-          Object.keys(themeConfig.translations).forEach((locale) => {
-            availableLocales.add(normalizeLocale(locale))
-          })
-        }
-      })
-      return Array.from(availableLocales)
-    }
+    // Every locale available in the translations — `theme` is static, so
+    // this is collected once per detection instead of once per lookup.
+    const availableLocales = new Set(extractLocales(theme))
 
     // Tries to match a locale against what's available in the translations;
     // `null` (instead of falling back) when nothing matches, so detection
     // steps can try the next source instead of locking in the fallback.
     const findLocaleInAvailable = (requestedLocale: string): string | null => {
-      const availableLocales = getAvailableLocales()
       const normalized = normalizeLocale(requestedLocale)
 
-      if (availableLocales.includes(normalized)) return normalized
+      if (availableLocales.has(normalized)) return normalized
 
       const baseLocale = normalized.split('-')[0]
-      return availableLocales.find(locale => locale.split('-')[0] === baseLocale) || null
+      for (const locale of availableLocales) {
+        if (locale.split('-')[0] === baseLocale) return locale
+      }
+      return null
     }
 
     const findBestLocale = (requestedLocale: string): string =>
@@ -147,13 +141,14 @@ export const useThemeLocale = (
   }
 
   const setLocale = (locale: string) => {
-    currentLocale.value = normalizeLocale(locale)
+    const normalized = normalizeLocale(locale)
+    currentLocale.value = normalized
     // Same consent rule used for the theme cookies (see
     // `useThemeCookies.persistIfConsented`) — without this, the locale cookie
     // used to be written unconditionally, inconsistent with the rest of the
     // module's privacy posture.
     if (enabled && !forcedLocale && hasCookieConsent()) {
-      localeCookie.value = normalizeLocale(locale)
+      localeCookie.value = normalized
     }
   }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isColorTheme, getActiveSeasonalTheme, resolveThemePreference } from '../../src/shared/utils/theme-resolve'
+import { isColorTheme, getActiveSeasonalTheme, getEasterSunday, resolveThemePreference } from '../../src/shared/utils/theme-resolve'
 import type { ThemeColors } from '../../src/shared/types'
 
 const themes: Record<string, ThemeColors> = {
@@ -87,5 +87,57 @@ describe('resolveThemePreference', () => {
 
   it('deve cair em "dark" quando até o tema padrão é inválido', () => {
     expect(resolveThemePreference('nonexistent', themes, 'also-nonexistent', true)).toBe('dark')
+  })
+})
+
+describe('getEasterSunday', () => {
+  it.each([
+    [2024, '2024-03-31'],
+    [2025, '2025-04-20'],
+    [2026, '2026-04-05'],
+    [2027, '2027-03-28'],
+    [2029, '2029-04-01'],
+    [2038, '2038-04-25'],
+  ])('%i → %s', (year, expected) => {
+    const easter = getEasterSunday(year)
+    const iso = `${easter.getFullYear()}-${String(easter.getMonth() + 1).padStart(2, '0')}-${String(easter.getDate()).padStart(2, '0')}`
+    expect(iso).toBe(expected)
+  })
+})
+
+describe('dateRange relativo à Páscoa', () => {
+  // Carnaval: ~2 semanas antes até a Quarta-feira de Cinzas (`easter-46`)
+  const carnavalThemes: Record<string, ThemeColors> = {
+    ...themes,
+    carnaval: {
+      dark: true,
+      primary: '#ff00ff',
+      seasonal: true,
+      dateRange: { start: 'easter-62', end: 'easter-46' },
+    },
+  }
+
+  it.each([
+    // 2026: Carnaval 14–17/02, Cinzas 18/02
+    ['2026-02-02', 'carnaval'],
+    ['2026-02-17', 'carnaval'],
+    ['2026-02-18', 'carnaval'],
+    ['2026-02-19', null],
+    ['2026-02-01', null],
+    // 2027: Carnaval 06–09/02 — fora do antigo intervalo fixo 14/02–05/03
+    ['2027-02-09', 'carnaval'],
+    ['2027-02-11', null],
+    ['2027-01-25', 'carnaval'],
+  ])('%s → %s', (date, expected) => {
+    expect(getActiveSeasonalTheme(carnavalThemes, true, new Date(`${date}T12:00:00`))).toBe(expected)
+  })
+
+  it('aceita `easter` e `easter+N` sem deslocamento negativo', () => {
+    const pascoa: Record<string, ThemeColors> = {
+      pascoa: { dark: false, primary: '#eeeeee', seasonal: true, dateRange: { start: 'easter', end: 'easter+1' } },
+    }
+    expect(getActiveSeasonalTheme(pascoa, false, new Date('2026-04-05T12:00:00'))).toBe('pascoa')
+    expect(getActiveSeasonalTheme(pascoa, false, new Date('2026-04-06T12:00:00'))).toBe('pascoa')
+    expect(getActiveSeasonalTheme(pascoa, false, new Date('2026-04-07T12:00:00'))).toBeNull()
   })
 })
