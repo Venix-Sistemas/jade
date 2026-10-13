@@ -1,7 +1,7 @@
 import { defineNuxtModule, createResolver, addImports } from '@nuxt/kit'
 import { loadTheme } from './shared/utils/load'
 import type { TypographyConfig, ScrollbarConfig, CursorConfig, ColorOptions, TranslationConfig, VuetifyOptions, IconOptions } from './shared/types'
-import { DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME } from './shared/constants'
+import { DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_THEME } from './shared/constants'
 import { resolveFeatureOption } from './shared/utils/options'
 import { customizeTheme } from './setup/customize-theme'
 import { registerPublicAssets } from './setup/register-assets'
@@ -67,7 +67,7 @@ export default defineNuxtModule<ModuleOptions>({
     const colorOptions = resolveFeatureOption<ColorOptions>(options.color, {
       enabled: theme.colors?.enabled !== false,
       apply: true,
-      defaultColor: theme.colors?.defaultColor || 'dark',
+      defaultColor: theme.colors?.defaultColor || DEFAULT_THEME,
       themes: {},
       iconFormat: 'svg',
     })
@@ -103,7 +103,7 @@ export default defineNuxtModule<ModuleOptions>({
 
     // 9. Configure runtimeConfig
     nuxt.options.runtimeConfig.public.venixTheme = {
-      defaultTheme: theme.colors?.defaultColor || 'dark',
+      defaultTheme: theme.colors?.defaultColor || DEFAULT_THEME,
       colorThemes: colorOptions.themes,
       applyColors: shouldApplyColors,
       localeCookie: translationOptions.cookieSync,

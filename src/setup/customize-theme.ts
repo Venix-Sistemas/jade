@@ -4,7 +4,7 @@ import type { ModuleOptions } from '../module'
 import { resolveFeatureOption } from '../shared/utils/options'
 
 export function customizeTheme(baseTheme: ThemeConfig, options: ModuleOptions): ThemeConfig {
-  const customized = JSON.parse(JSON.stringify(baseTheme)) as ThemeConfig
+  const customized = structuredClone(baseTheme)
 
   // ===== TIPOGRAFIA / SCROLLBAR / CURSOR =====
   customized.typography = resolveFeatureOption(options.typography, customized.typography)
@@ -26,21 +26,12 @@ export function customizeTheme(baseTheme: ThemeConfig, options: ModuleOptions): 
       customized.colors.defaultColor = colorOption.defaultColor
     }
 
-    if (colorOption.themes) {
-      Object.entries(colorOption.themes).forEach(([themeName, customColors]) => {
-        if (customized.colors.themes[themeName]) {
-          customized.colors.themes[themeName] = {
-            ...customized.colors.themes[themeName],
-            ...customColors,
-          }
-        }
-        else {
-          customized.colors.themes[themeName] = {
-            dark: true,
-            ...customColors,
-          } as ThemeColors
-        }
-      })
+    // Overrides an existing theme, or adds a new one (dark by default)
+    for (const [themeName, customColors] of Object.entries(colorOption.themes ?? {})) {
+      customized.colors.themes[themeName] = {
+        ...(customized.colors.themes[themeName] ?? { dark: true }),
+        ...customColors,
+      } as ThemeColors
     }
   }
 

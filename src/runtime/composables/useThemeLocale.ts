@@ -5,6 +5,7 @@ import { useRequestHeaders, useState, useRoute } from '#app'
 import type { ThemeConfig } from '../../shared/types'
 import { DEFAULT_LOCALE } from '../../shared/constants'
 import { normalizeLocale, extractFirstLocale } from '../../shared/utils/normalize'
+import { extractLocales } from '../../shared/utils/load'
 import { hasCookieConsent } from '../../shared/utils/consent'
 
 export interface UseThemeLocaleOptions {
@@ -27,12 +28,7 @@ export const useThemeLocale = (
   const detectLocale = (): string => {
     // Every locale available in the translations — `theme` is static, so
     // this is collected once per detection instead of once per lookup.
-    const availableLocales = new Set<string>()
-    for (const themeConfig of Object.values(theme.colors.themes)) {
-      for (const locale of Object.keys(themeConfig.translations ?? {})) {
-        availableLocales.add(normalizeLocale(locale))
-      }
-    }
+    const availableLocales = new Set(extractLocales(theme))
 
     // Tries to match a locale against what's available in the translations;
     // `null` (instead of falling back) when nothing matches, so detection
