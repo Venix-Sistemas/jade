@@ -110,8 +110,8 @@
                 "dark": true,
                 "seasonal": true,
                 "dateRange": {
-                    "start": "02-14",
-                    "end": "03-05"
+                    "start": "easter-62",
+                    "end": "easter-46"
                 },
                 "primary": "#FF1493",
                 "secondary": "#FFD000",

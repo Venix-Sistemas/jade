@@ -65,23 +65,51 @@ export default function initTheme(themeData: ThemeConfig): void {
     return !!themeConfig.primary || !!themeConfig.background
   }
 
+  function getEasterSunday(year: number): Date {
+    const a = year % 19
+    const b = Math.floor(year / 100)
+    const c = year % 100
+    const d = Math.floor(b / 4)
+    const e = b % 4
+    const f = Math.floor((b + 8) / 25)
+    const g = Math.floor((b - f + 1) / 3)
+    const h = (19 * a + b - d - g + 15) % 30
+    const i = Math.floor(c / 4)
+    const k = c % 4
+    const l = (32 + 2 * e + 2 * i - h - k) % 7
+    const m = Math.floor((a + 11 * h + 22 * l) / 451)
+    const month = Math.floor((h + l - 7 * m + 114) / 31)
+    const day = ((h + l - 7 * m + 114) % 31) + 1
+
+    return new Date(year, month - 1, day)
+  }
+
+  function parseDatePart(value: string, year: number): number | null {
+    const easter = /^easter([+-]\d+)?$/.exec(value.trim())
+    if (easter) {
+      const date = getEasterSunday(year)
+      date.setDate(date.getDate() + Number(easter[1] ?? 0))
+      return (date.getMonth() + 1) * 100 + date.getDate()
+    }
+
+    const parts = value.split('-').map(Number)
+    if (parts.length !== 2) return null
+
+    const [month, day] = parts
+    if (month === undefined || day === undefined) return null
+
+    return month * 100 + day
+  }
+
   function isDateInSeasonalRange(themeConfig: ThemeColors, now: Date): boolean {
     if (themeConfig.seasonal !== true || !themeConfig.dateRange) return false
 
-    const startParts = themeConfig.dateRange.start.split('-').map(Number)
-    const endParts = themeConfig.dateRange.end.split('-').map(Number)
-
-    if (startParts.length !== 2 || endParts.length !== 2) return false
-
-    const [startMonth, startDay] = startParts
-    const [endMonth, endDay] = endParts
-
-    if (startMonth === undefined || startDay === undefined
-      || endMonth === undefined || endDay === undefined) return false
+    const year = now.getFullYear()
+    const startNum = parseDatePart(themeConfig.dateRange.start, year)
+    const endNum = parseDatePart(themeConfig.dateRange.end, year)
+    if (startNum === null || endNum === null) return false
 
     const current = (now.getMonth() + 1) * 100 + now.getDate()
-    const startNum = startMonth * 100 + startDay
-    const endNum = endMonth * 100 + endDay
 
     return startNum <= endNum
       ? current >= startNum && current <= endNum

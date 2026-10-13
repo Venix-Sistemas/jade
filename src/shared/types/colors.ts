@@ -14,6 +14,11 @@ export interface ThemeIconFormats {
 export interface ThemeColors {
   dark?: boolean
   seasonal?: boolean
+  /**
+   * Inclusive range, wrapping across year-end when `end` < `start`. Each bound
+   * is a fixed `MM-DD` date or a movable one relative to Easter Sunday
+   * (`easter`, `easter-47`, `easter+1`).
+   */
   dateRange?: {
     start: string
     end: string

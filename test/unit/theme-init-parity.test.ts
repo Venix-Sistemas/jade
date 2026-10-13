@@ -59,7 +59,7 @@ afterEach(() => {
 })
 
 const preferences = [undefined, 'system', ...Object.keys(themes), 'inexistente']
-const dates = ['2026-01-01', '2026-02-05', '2026-06-15', '2026-10-31', '2026-12-25', '2026-12-30']
+const dates = ['2026-01-01', '2026-02-05', '2026-02-18', '2026-02-19', '2027-01-25', '2027-02-09', '2027-02-20', '2026-06-15', '2026-10-31', '2026-12-25', '2026-12-30']
 
 describe('initTheme × resolveThemePreference (paridade)', () => {
   for (const date of dates) {

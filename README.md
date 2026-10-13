@@ -440,7 +440,7 @@ Leave it off (the default) if you use `@nuxtjs/i18n` or a similar module: that m
 
 Built in: 🎭 Carnival, 🎃 Halloween, 🎄 Christmas — applied automatically, in place of `dark`/`light`, when the `'system'` preference is active and today falls inside their date range.
 
-Add your own through `color.themes`, the same as any other custom theme — `seasonal: true` and `dateRange` (`MM-DD`, inclusive, wraps across year-end if `end` < `start`) opt it into this rotation instead of making it directly selectable. `dark` still matters here: it decides which system mode (light/dark) the theme pairs with.
+Add your own through `color.themes`, the same as any other custom theme — `seasonal: true` and `dateRange` (inclusive, wraps across year-end if `end` < `start`) opt it into this rotation instead of making it directly selectable. `dark` still matters here: it decides which system mode (light/dark) the theme pairs with.
 
 ```typescript
 color: {
@@ -451,6 +451,22 @@ color: {
       dateRange: { start: '11-24', end: '11-30' },
       primary: '#111111',
       background: '#000000',
+    },
+  },
+}
+```
+
+Each `dateRange` bound is either a fixed `MM-DD` date or, for movable holidays, a number of days relative to Easter Sunday: `easter`, `easter-47` (Carnival Tuesday), `easter+1`. The built-in Carnival theme uses `{ start: 'easter-62', end: 'easter-46' }` — from about two weeks before Carnival up to Ash Wednesday, in the right place every year.
+
+```typescript
+color: {
+  themes: {
+    pascoa: {
+      dark: false,
+      seasonal: true,
+      dateRange: { start: 'easter-6', end: 'easter' },
+      primary: '#F4A6C0',
+      background: '#FFF8F0',
     },
   },
 }
