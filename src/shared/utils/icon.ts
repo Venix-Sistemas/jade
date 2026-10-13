@@ -1,5 +1,8 @@
 import type { ThemeIconFormats } from '../types/colors'
 
+/** Iconify icon name: `collection:name` (e.g. `line-md:home`). */
+export const ICONIFY_NAME = /^([\w-]+):([\w-]+)$/
+
 export type IconKind = 'emoji' | 'icon' | 'svg'
 
 export interface ResolvedIcon {
@@ -23,7 +26,7 @@ export function resolveIcon(input: string, aliases: Record<string, string> = {})
     return { kind: 'svg', value }
   }
 
-  if (/^[\w-]+:[\w-]+$/.test(value)) {
+  if (ICONIFY_NAME.test(value)) {
     return { kind: 'icon', value }
   }
 

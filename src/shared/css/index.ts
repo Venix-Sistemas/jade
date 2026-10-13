@@ -16,13 +16,13 @@ export interface ProcessOptions {
 export function processTheme(theme: ThemeConfig, options: ProcessOptions = {}): string {
   const output: string[] = []
 
-  // Tipografia
+  // Typography
   if (options.typography !== false && theme.typography?.enabled !== false) {
     output.push(generateFontFaces(theme))
     output.push(generateRootVars(theme))
   }
 
-  // Cores
+  // Colors
   if (options.colors !== false && theme.colors?.enabled !== false) {
     if (theme.colors?.themes) {
       output.push(generateThemeTransitionCSS())

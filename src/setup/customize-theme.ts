@@ -6,12 +6,12 @@ import { resolveFeatureOption } from '../shared/utils/options'
 export function customizeTheme(baseTheme: ThemeConfig, options: ModuleOptions): ThemeConfig {
   const customized = structuredClone(baseTheme)
 
-  // ===== TIPOGRAFIA / SCROLLBAR / CURSOR =====
+  // ===== TYPOGRAPHY / SCROLLBAR / CURSOR =====
   customized.typography = resolveFeatureOption(options.typography, customized.typography)
   customized.customScrollbar = resolveFeatureOption(options.scrollbar, customized.customScrollbar)
   customized.customCursor = resolveFeatureOption(options.cursor, customized.customCursor)
 
-  // ===== CORES =====
+  // ===== COLORS =====
   const colorOption = options.color
 
   if (colorOption === false) {
