@@ -185,19 +185,15 @@ export const useVenixTheme = () => {
   // apps without their own CMP. An existing CMP can write to
   // COOKIE_CONSENT_STORAGE_KEY and dispatch COOKIE_PREFERENCES_UPDATED_EVENT
   // directly, without needing to call this.
-  const grantPersistence = () => {
+  const setConsent = (granted: boolean) => {
     if (typeof localStorage === 'undefined') return
-    localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify({ functionality: true }))
+    localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify({ functionality: granted }))
     syncPersistence()
     window.dispatchEvent(new Event(COOKIE_PREFERENCES_UPDATED_EVENT))
   }
 
-  const revokePersistence = () => {
-    if (typeof localStorage === 'undefined') return
-    localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify({ functionality: false }))
-    syncPersistence()
-    window.dispatchEvent(new Event(COOKIE_PREFERENCES_UPDATED_EVENT))
-  }
+  const grantPersistence = () => setConsent(true)
+  const revokePersistence = () => setConsent(false)
 
   // `onMounted` requires an active component instance — if `useVenixTheme()`
   // is called outside a normal synchronous `setup()` (e.g. context lost
@@ -232,17 +228,21 @@ export const useVenixTheme = () => {
     }
     mq.addEventListener('change', handleSystemThemeChange)
 
-    const checkSeasonalChange = () => {
+    // Re-arms itself every midnight — `midnightTimeout` always holds the
+    // *latest* timer id, so the cleanup below cancels the pending one (not
+    // just the first, already-fired timer).
+    let midnightTimeout: ReturnType<typeof setTimeout>
+    const scheduleSeasonalCheck = () => {
       const now = new Date()
       const msToMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime()
 
-      return setTimeout(() => {
+      midnightTimeout = setTimeout(() => {
         if (preference.value === 'system') applyWithTransition('system')
-        checkSeasonalChange()
+        scheduleSeasonalCheck()
       }, msToMidnight + 1000)
     }
 
-    const midnightTimeout = checkSeasonalChange()
+    scheduleSeasonalCheck()
 
     window.addEventListener(COOKIE_PREFERENCES_UPDATED_EVENT, syncPersistence)
 
@@ -272,15 +272,12 @@ export const useVenixTheme = () => {
     colors.themes.value.find(t => t.value === preference.value) ?? colors.themes.value[0],
   )
 
-  const isSeasonalActive = computed(() => {
-    if (preference.value !== 'system') return false
-    return seasonal.getActiveSeasonalTheme() !== null
-  })
-
   const activeSeasonalTheme = computed(() => {
     if (preference.value !== 'system') return null
     return seasonal.getActiveSeasonalTheme()
   })
+
+  const isSeasonalActive = computed(() => activeSeasonalTheme.value !== null)
 
   return {
     theme: {
