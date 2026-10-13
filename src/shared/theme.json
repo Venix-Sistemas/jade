@@ -164,7 +164,7 @@
                 "dark": true,
                 "seasonal": true,
                 "dateRange": {
-                    "start": "10-15",
+                    "start": "10-01",
                     "end": "10-31"
                 },
                 "primary": "#FF6F00",
