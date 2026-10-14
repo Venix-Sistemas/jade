@@ -1,6 +1,36 @@
 # Changelog
 
 
+## v1.1.0
+
+[compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.0.1...v1.1.0)
+
+### 🚀 Enhancements
+
+- **theme:** Start the Halloween seasonal theme on October 1st ([13cbb57](https://github.com/Venix-Sistemas/jade/commit/13cbb57))
+- **theme:** Easter-relative seasonal date ranges, movable Carnival ([06b3473](https://github.com/Venix-Sistemas/jade/commit/06b3473))
+- **theme:** Widen the Carnival seasonal window to 20 days ([2bd5be4](https://github.com/Venix-Sistemas/jade/commit/2bd5be4))
+
+### 🩹 Fixes
+
+- **theme:** Keep theme.value and activeSeasonalTheme in sync with OS scheme and date ([e41a1ec](https://github.com/Venix-Sistemas/jade/commit/e41a1ec))
+- **theme:** Merge color.themes overrides theme by theme at runtime ([8090948](https://github.com/Venix-Sistemas/jade/commit/8090948))
+
+### 💅 Refactors
+
+- Fix midnight timer cleanup, dedupe consent and locale lookups ([ac64d00](https://github.com/Venix-Sistemas/jade/commit/ac64d00))
+- Reuse extractLocales, simplify theme customization ([c18614d](https://github.com/Venix-Sistemas/jade/commit/c18614d))
+- Share color-theme detection and hex color extraction ([03b2815](https://github.com/Venix-Sistemas/jade/commit/03b2815))
+- Single Iconify name regex, English-only comments ([c2ede95](https://github.com/Venix-Sistemas/jade/commit/c2ede95))
+
+### 📖 Documentation
+
+- Rewrite README from Installation down for clarity and length ([c40eec8](https://github.com/Venix-Sistemas/jade/commit/c40eec8))
+
+### ❤️ Contributors
+
+- Vinicius ([@VBviniciusVB](https://github.com/VBviniciusVB))
+
 ## v1.0.1
 
 [compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.0.0...v1.0.1)
