@@ -13,7 +13,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
 </p>
 
-A complete centralized theming system for Nuxt applications: colors, typography, cursor, scrollbar, internationalization and seasonal themes, with UnoCSS, Vuetify and Iconify integrations.
+The UI foundation for Nuxt applications, in a single module: color themes (including seasonal ones), typography, scrollbar, cursor, icons and interface translations, with UnoCSS and Vuetify integrations.
 
 ## Features
 
@@ -59,7 +59,7 @@ export default defineNuxtConfig({
 })
 ```
 
-Every feature except Vuetify is on by default with built-in values, so you only configure what you want to change — the example above just swaps the dark theme's primary color. See [Configuration](#configuration) for every option.
+Every module except Vuetify is on by default with built-in values, so you only configure what you want to change — the example above just swaps the dark theme's primary color. See [Modules](#modules) for what each one does.
 
 ### 2. Use the theme
 
@@ -86,8 +86,8 @@ It returns four groups:
   - `isSeasonalActive`, `activeSeasonalTheme`: whether a [seasonal theme](#seasonal-themes) is currently in effect, and which one
   - `shouldApplyColors`, `colors`: whether the module applies colors, and the raw color config
 - `themes` — every selectable theme, ready to render a picker (see [Theme icons](#theme-icons)).
-- `locale` — `current`, `set()` and `translate()` (see [Internationalization](#internationalization)).
-- `persistence` — cookie consent controls (see [Cookie Consent](#cookie-consent)).
+- `locale` — `current`, `set()` and `translate()` (see [Translation](#translation)).
+- `persistence` — cookie consent controls (see [Saving the theme](#saving-the-theme-cookie-consent)).
 
 The state is shared app-wide (via Nuxt's `useState`): every component calling `useVenixTheme()` reads and writes the same theme, so they never go out of sync.
 
@@ -112,79 +112,31 @@ The state is shared app-wide (via Nuxt's `useState`): every component calling `u
 
 It ships with minimal CSS of its own. To restyle it, target `.venix-theme-switcher`, `.venix-theme-switcher__trigger`, `.venix-theme-switcher__menu` and `.venix-theme-switcher__item` (see [`VenixThemeSwitcher.vue`](./src/runtime/components/VenixThemeSwitcher.vue)).
 
-### Theme transition
+## Modules
 
-Every theme switch — manual, through the switcher, or an automatic system/seasonal change — cross-fades using the browser's native [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API), with no setup. Browsers without support switch instantly, and the animation is skipped for users with `prefers-reduced-motion: reduce`.
+Jade is a set of independent modules, each configured under its own key in `venixTheme`. Every key accepts `false` (disable), `true` (enable with defaults) or an object (enable and customize):
 
-## Configuration
+| Module                      | Key           | Default | What it does                                                          |
+| --------------------------- | ------------- | ------- | --------------------------------------------------------------------- |
+| [Colors](#colors)           | `color`       | `true`  | Color themes (dark, light, seasonal, custom), saved per user, as CSS variables and a UnoCSS preset |
+| [Translation](#translation) | `translation` | `true`  | Detects the user's locale and translates theme names and your own strings |
+| [Icons](#icons)             | `icon`        | `true`  | `<VenixIcon>`: emoji, Iconify (bundled offline) or inline SVG through one component |
+| [Typography](#typography)   | `typography`  | `true`  | Base font family, font size and `@font-face` rules                    |
+| [Scrollbar](#scrollbar)     | `scrollbar`   | `true`  | A custom scrollbar that follows the active theme                      |
+| [Cursor](#cursor)           | `cursor`      | `true`  | Custom cursor images                                                  |
+| [Vuetify](#vuetify)         | `vuetify`     | `false` | Registers the color themes with Vuetify and keeps it in sync          |
 
-### Module Options
+## Colors
 
-Each option accepts `false` (disable), `true` (enable with defaults) or an object (enable and customize):
+| Option           | Type                        | Default  | Description                                                   |
+| ---------------- | --------------------------- | -------- | ------------------------------------------------------------- |
+| `apply`          | `boolean`                   | `true`   | Apply the resolved theme to `<html>` (`data-theme` and class) |
+| `defaultColor`   | `string`                    | `'dark'` | Theme used when there's no preference yet                     |
+| `themes`         | `object`                    | `{}`     | Override or add themes — see [Themes](#themes)                |
+| `iconFormat`     | `'emote' \| 'css' \| 'svg'` | `'svg'`  | Preferred theme icon variant — see [Theme icons](#theme-icons) |
+| `requireConsent` | `boolean`                   | `true`   | Only save the chosen theme after cookie consent — see [Saving the theme](#saving-the-theme-cookie-consent) |
 
-| Option        | Default | Description                                                                 |
-| ------------- | ------- | --------------------------------------------------------------------------- |
-| `translation` | `true`  | Locale detection for theme names — see [`translation`](#translation-object) |
-| `color`       | `true`  | Color themes — see [`color`](#color-object) and [Themes](#themes)           |
-| `scrollbar`   | `true`  | Custom scrollbar — see [`scrollbar`, `cursor`, `typography`](#scrollbar-cursor-and-typography) |
-| `cursor`      | `true`  | Custom cursor images                                                        |
-| `typography`  | `true`  | Base font family, font size and `@font-face` rules                          |
-| `icon`        | `true`  | Installs `@nuxt/icon` and registers `<VenixIcon>` — see [Icons](#icons)     |
-| `vuetify`     | `false` | Vuetify theme auto-configuration — see [Vuetify](#vuetify-integration)      |
-
-#### `translation` object
-
-| Property         | Type      | Default             | Description                                              |
-| ---------------- | --------- | ------------------- | -------------------------------------------------------- |
-| `locale`         | `string`  | —                   | Force a locale, skipping detection                       |
-| `defaultLocale`  | `string`  | `'en-US'`           | Fallback when no locale can be detected                  |
-| `cookieSync`     | `string`  | `'i18n_redirected'` | Cookie the locale is read from (and written by `locale.set()`) |
-| `manageHtmlLang` | `boolean` | `false`             | Keep `<html lang>` in sync — see [Internationalization](#internationalization) |
-
-With `translation: false`, detection is off: theme names and the switcher's strings always use `defaultLocale`, and `locale.set()` never writes the cookie.
-
-#### `color` object
-
-| Property       | Type                        | Default  | Description                                                   |
-| -------------- | --------------------------- | -------- | ------------------------------------------------------------- |
-| `apply`        | `boolean`                   | `true`   | Apply the resolved theme to `<html>` (`data-theme` and class) |
-| `defaultColor` | `string`                    | `'dark'` | Theme used when there's no preference yet                     |
-| `themes`       | `object`                    | `{}`     | Override or add themes — see [Themes](#themes)                |
-| `iconFormat`   | `'emote' \| 'css' \| 'svg'` | `'svg'`  | Preferred theme icon variant — see [Theme icons](#theme-icons) |
-| `requireConsent` | `boolean`                 | `true`   | Only save the chosen theme after cookie consent — see [Cookie Consent](#cookie-consent) |
-
-#### `scrollbar`, `cursor` and `typography`
-
-```typescript
-venixTheme: {
-  scrollbar: {
-    width: 'auto',
-    borderRadius: '8px',
-    borderWidth: '3px',
-    // A theme color name (follows the active theme) or any CSS color
-    colors: { thumb: 'primary', thumbHover: 'secondary', track: 'background2', border: 'background3' },
-  },
-  cursor: {
-    // Images served from `public/`; `hotspot` is the click point ("x y")
-    cursors: {
-      default: { path: '/cursors/default.png', hotspot: '0 0' },
-      pointer: { path: '/cursors/pointer.png', hotspot: '0 0' },
-      text: { path: '/cursors/text.png', hotspot: '0 0' },
-    },
-  },
-  typography: {
-    defaultFonts: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    fontSize: '16px',
-    customFonts: [
-      { name: 'MyFont', sources: { woff2: '/fonts/MyFont.woff2' }, weight: 'normal', style: 'normal' },
-    ],
-  },
-}
-```
-
-The values shown for `scrollbar` and `typography.defaultFonts`/`fontSize` are the defaults. Custom fonts come first in `--font-family-base` (also applied to Vuetify's `--v-font-body`/`--v-font-heading`), with `defaultFonts` as the fallback.
-
-## Themes
+### Themes
 
 The module ships with `dark`, `light` and the [seasonal themes](#seasonal-themes). `color.themes` extends that set:
 
@@ -211,7 +163,7 @@ color: {
 
 Available colors: `primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`, `background`, `background2`, `background3`. Each becomes a `--color-<name>` CSS variable, plus `--color-inverse` (white on dark themes, black on light ones).
 
-### Seasonal Themes
+### Seasonal themes
 
 Built in: 🎭 Carnival, 🎃 Halloween and 🎄 Christmas. While the preference is `'system'` and today is inside a seasonal theme's `dateRange`, it replaces `dark` or `light` — whichever matches its own `dark` flag and the user's system mode.
 
@@ -240,89 +192,11 @@ color: {
 
 The built-in Carnival theme uses `easter-65` to `easter-46`: 20 days, from the pre-Carnival weeks up to Ash Wednesday.
 
-## Icons
+### Theme transition
 
-`jade` installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon) and registers `<VenixIcon>` (and the matching `useVenixIcon()` composable). A single `icon` value accepts three formats:
+Every theme switch — manual, through the switcher, or an automatic system/seasonal change — cross-fades using the browser's native [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API), with no setup. Browsers without support switch instantly, and the animation is skipped for users with `prefers-reduced-motion: reduce`.
 
-```vue
-<template>
-  <VenixIcon icon="line-md:home" />
-  <VenixIcon icon="<svg viewBox=&quot;0 0 24 24&quot;>...</svg>" />
-  <VenixIcon icon="🎨" />
-</template>
-```
-
-- **Iconify name** — `collection:name` (e.g. `line-md:home`, `mdi:home`), including [`line-md`](https://icon-sets.iconify.design/line-md/)'s animated icons.
-- **Inline SVG** — a string starting with `<svg`, rendered with `v-html`. It isn't sanitized, so only pass SVGs you control, never user input.
-- **Emoji or text** — anything else.
-
-### Aliases
-
-`icon.aliases` gives short names to any of the three formats:
-
-```typescript
-venixTheme: {
-  icon: {
-    aliases: {
-      home: 'line-md:home',
-      favorite: 'line-md:heart-filled',
-      brand: '🎨',
-    },
-  },
-}
-```
-
-```vue
-<VenixIcon icon="home" />
-```
-
-### Offline icon collections
-
-Icons are bundled at build time, so they work offline instead of being fetched from the Iconify API:
-
-- **`line-md`** is bundled whole by default.
-- **Icons used in theme `icon`s or in `icon.aliases`** are detected automatically, and only those icons are bundled, not their whole collection. That's how the built-in themes' `mdi` icons are included. The collection is looked up in this module's dependencies first, then in your project's `node_modules`.
-- **To use any icon of a collection anywhere in your app**, install its `@iconify-json/<collection>` package and list it in `icon.collections` to bundle it whole. Keep `line-md` in the list if you still want it:
-
-```typescript
-venixTheme: {
-  icon: {
-    collections: ['line-md', 'tabler'],
-  },
-}
-```
-
-If a referenced collection can't be found, `@nuxt/icon` fetches it from the Iconify API at runtime, which needs internet. Set `icon: false` to skip `@nuxt/icon` entirely, e.g. if your project already configures it.
-
-### Theme icons
-
-A theme's `icon` (shown by pickers such as `<VenixThemeSwitcher>`) is either a plain emoji, like `"icon": "🌙"`, or an object with up to three variants:
-
-```json
-"light": {
-  "icon": {
-    "emote": "☀️",
-    "css": "mdi:sun-compass",
-    "svg": "line-md:sunny-filled-loop"
-  }
-}
-```
-
-- `emote` — an emoji. Required, it's the fallback.
-- `css` — an Iconify name rendered in CSS mode: lighter, but never animated.
-- `svg` — an Iconify name rendered as a real `<svg>`, needed for animated icons like `line-md`'s.
-
-`color.iconFormat` picks the variant for every theme (default `'svg'`), falling back to `emote` when a theme doesn't define it. `useVenixTheme().themes` already resolves it to `{ format, value }`, ready for `<VenixIcon>`:
-
-```vue
-<VenixIcon
-  v-if="item.icon"
-  :icon="item.icon.value"
-  :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
-/>
-```
-
-## Cookie Consent
+### Saving the theme (cookie consent)
 
 Two cookies remember the user's choice between visits:
 
@@ -331,19 +205,7 @@ Two cookies remember the user's choice between visits:
 | `venix-theme-preference` | The user's raw choice (`'dark'`, `'system'`, a custom theme…)                       |
 | `venix-theme-resolved`   | The theme actually applied (e.g. `'dark'` for `'system'`), so SSR renders it with no flash |
 
-Neither is written without consent. Switching themes always works; without consent it just isn't remembered on the next visit. In development, the first unsaved theme change logs a `[jade]` warning in the console, so a missing consent setup doesn't go unnoticed. (The locale cookie is covered in [Integrating with a routing-based i18n module](#integrating-with-a-routing-based-i18n-module-eg-nuxtjsi18n).)
-
-For apps without a consent banner — e.g. an internal tool — turn the requirement off, and the theme is always saved:
-
-```typescript
-venixTheme: {
-  color: {
-    requireConsent: false,
-  },
-}
-```
-
-Consent is then ignored for the theme cookies: `persistence.revoke()` no longer deletes them. Whether that's acceptable is a decision for each app; the locale cookie written by `locale.set()` still follows consent.
+By default, neither is written without consent. Switching themes always works; without consent it just isn't remembered on the next visit. In development, the first unsaved theme change logs a `[jade]` warning in the console, so a missing consent setup doesn't go unnoticed.
 
 Consent is read from `localStorage['venix-cookie-consent']`, a JSON object with a `functionality: boolean` field — the "functional cookies" category most consent banners already use. The module never writes this key by itself. For a minimal banner, use the built-in helpers:
 
@@ -371,15 +233,59 @@ localStorage.setItem('venix-cookie-consent', JSON.stringify({ functionality: tru
 window.dispatchEvent(new Event('venix-cookie-preferences-updated'))
 ```
 
-## Internationalization
+For apps without a consent banner — e.g. an internal tool — turn the requirement off, and the theme is always saved:
 
-The resolved locale translates the theme names (each theme's `translations`) and `<VenixThemeSwitcher>`'s own strings. It's detected in this order:
+```typescript
+venixTheme: {
+  color: {
+    requireConsent: false,
+  },
+}
+```
+
+Consent is then ignored for the theme cookies: `persistence.revoke()` no longer deletes them. Whether that's acceptable is a decision for each app; the locale cookie written by `locale.set()` still follows consent (see [Translation](#translation)).
+
+### UnoCSS preset
+
+Add the preset to your `uno.config.ts` to use the theme colors as utilities (`text-primary`, `bg-background2`, `border-accent`, …):
+
+```typescript
+// uno.config.ts
+import { defineConfig } from 'unocss'
+import { venixUnoPreset } from '@venix-sistemas/jade/unocss'
+
+export default defineConfig({
+  presets: [
+    venixUnoPreset(),
+    // ...your other presets
+  ],
+})
+```
+
+It maps every [theme color](#themes), plus `inverse`, to its CSS variable (`primary: 'var(--color-primary)'`, …), so utilities follow the active theme. Colors you define yourself in `uno.config.ts` take precedence.
+
+The preset has to be added by hand: `@unocss/nuxt` re-reads `uno.config.ts` from disk and discards a `theme` injected by other modules whenever your file declares its own `theme` key. As a preset in your own file, the colors survive that.
+
+## Translation
+
+Detects the user's locale to translate the theme names (each theme's `translations`), `<VenixThemeSwitcher>`'s own strings and, optionally, your own strings.
+
+| Option           | Type      | Default             | Description                                              |
+| ---------------- | --------- | ------------------- | -------------------------------------------------------- |
+| `locale`         | `string`  | —                   | Force a locale, skipping detection                       |
+| `defaultLocale`  | `string`  | `'en-US'`           | Fallback when no locale can be detected                  |
+| `cookieSync`     | `string`  | `'i18n_redirected'` | Cookie the locale is read from (and written by `locale.set()`) |
+| `manageHtmlLang` | `boolean` | `false`             | Keep `<html lang>` in sync — see [below](#integrating-with-a-routing-based-i18n-module-eg-nuxtjsi18n) |
+
+The locale is detected in this order:
 
 1. `translation.locale`, if set (skips every other step)
 2. The locale cookie (`translation.cookieSync`)
 3. The URL's locale prefix (e.g. `/en/...`), if a theme has a translation for it
 4. The `Accept-Language` header (SSR) or `navigator.language` (client)
 5. `translation.defaultLocale`
+
+With `translation: false`, detection is off: theme names and the switcher's strings always use `defaultLocale`, and `locale.set()` never writes the cookie. When it's on, `locale.set()` only writes the cookie after [cookie consent](#saving-the-theme-cookie-consent).
 
 ### Using your own translations
 
@@ -407,28 +313,147 @@ venixTheme: {
 
 Keep it off with `@nuxtjs/i18n` or similar: that module follows the current route and should own `lang`, while this module's detection can briefly disagree with it (e.g. right after navigating to a localized route) and the two would fight over the attribute.
 
-## UnoCSS integration
+## Icons
 
-Add the preset to your `uno.config.ts` to use the theme colors as utilities (`text-primary`, `bg-background2`, `border-accent`, …):
+Installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon) and registers `<VenixIcon>` (and the matching `useVenixIcon()` composable). A single `icon` value accepts three formats:
 
-```typescript
-// uno.config.ts
-import { defineConfig } from 'unocss'
-import { venixUnoPreset } from '@venix-sistemas/jade/unocss'
-
-export default defineConfig({
-  presets: [
-    venixUnoPreset(),
-    // ...your other presets
-  ],
-})
+```vue
+<template>
+  <VenixIcon icon="line-md:home" />
+  <VenixIcon icon="<svg viewBox=&quot;0 0 24 24&quot;>...</svg>" />
+  <VenixIcon icon="🎨" />
+</template>
 ```
 
-It maps every [theme color](#themes), plus `inverse`, to its CSS variable (`primary: 'var(--color-primary)'`, …), so utilities follow the active theme. Colors you define yourself in `uno.config.ts` take precedence.
+- **Iconify name** — `collection:name` (e.g. `line-md:home`, `mdi:home`), including [`line-md`](https://icon-sets.iconify.design/line-md/)'s animated icons. Rendered in `@nuxt/icon`'s default mode (CSS: lighter, but never animated); pass `mode="svg"` for a real `<svg>`, needed for animations.
+- **Inline SVG** — a string starting with `<svg`, rendered with `v-html`. It isn't sanitized, so only pass SVGs you control, never user input.
+- **Emoji or text** — anything else.
 
-The preset has to be added by hand: `@unocss/nuxt` re-reads `uno.config.ts` from disk and discards a `theme` injected by other modules whenever your file declares its own `theme` key. As a preset in your own file, the colors survive that.
+| Option        | Type                     | Default       | Description                                        |
+| ------------- | ------------------------ | ------------- | -------------------------------------------------- |
+| `collections` | `string[]`               | `['line-md']` | Iconify collections bundled whole — see [below](#offline-icon-collections) |
+| `aliases`     | `Record<string, string>` | `{}`          | Short names for any icon value — see [below](#aliases) |
 
-## Vuetify integration
+Set `icon: false` to skip `@nuxt/icon` entirely, e.g. if your project already configures it.
+
+### Aliases
+
+`icon.aliases` gives short names to any of the three formats:
+
+```typescript
+venixTheme: {
+  icon: {
+    aliases: {
+      home: 'line-md:home',
+      favorite: 'line-md:heart-filled',
+      brand: '🎨',
+    },
+  },
+}
+```
+
+```vue
+<VenixIcon icon="home" />
+```
+
+### Offline icon collections
+
+Icons are bundled at build time, so they work offline instead of being fetched from the Iconify API:
+
+- **`line-md`** is bundled whole by default.
+- **Icons used in theme `icon`s or in `icon.aliases`** are detected automatically, and only those icons are bundled, not their whole collection. That's how the built-in themes' `mdi` icons are included. The collection is looked up in this module's dependencies first, then in your project's `node_modules`.
+- **To use any icon of a collection anywhere in your app**, install its `@iconify-json/<collection>` package and list it in `icon.collections` to bundle it whole. The list replaces the default, so keep `line-md` in it if you still want it:
+
+```typescript
+venixTheme: {
+  icon: {
+    collections: ['line-md', 'tabler'],
+  },
+}
+```
+
+If a referenced collection can't be found, `@nuxt/icon` fetches it from the Iconify API at runtime, which needs internet.
+
+### Theme icons
+
+A theme's `icon` (shown by pickers such as `<VenixThemeSwitcher>`) is either a plain emoji, like `"icon": "🌙"`, or an object with up to three variants:
+
+```json
+"light": {
+  "icon": {
+    "emote": "☀️",
+    "css": "mdi:white-balance-sunny",
+    "svg": "line-md:sunny-filled-loop"
+  }
+}
+```
+
+- `emote` — an emoji. Required, it's the fallback.
+- `css` — an Iconify name rendered in CSS mode: lighter, but never animated.
+- `svg` — an Iconify name rendered as a real `<svg>`, needed for animated icons like `line-md`'s.
+
+`color.iconFormat` picks the variant for every theme (default `'svg'`), falling back to `emote` when a theme doesn't define it. `useVenixTheme().themes` already resolves it to `{ format, value }`, ready for `<VenixIcon>`:
+
+```vue
+<VenixIcon
+  v-if="item.icon"
+  :icon="item.icon.value"
+  :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
+/>
+```
+
+## Typography
+
+Sets the base font for the whole app: `--font-family-base` and `--font-size-base` on `:root`, plus an `@font-face` rule for each custom font.
+
+```typescript
+venixTheme: {
+  typography: {
+    defaultFonts: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", // default
+    fontSize: '16px', // default
+    customFonts: [
+      { name: 'MyFont', sources: { woff2: '/fonts/MyFont.woff2' }, weight: 'normal', style: 'normal' },
+    ],
+  },
+}
+```
+
+Custom fonts come first in `--font-family-base`, with `defaultFonts` as the fallback. The same font list also goes to Vuetify's `--v-font-body`/`--v-font-heading`, since Vuetify components don't inherit `font-family` from the page.
+
+## Scrollbar
+
+A custom scrollbar whose colors follow the active theme. The values below are the defaults:
+
+```typescript
+venixTheme: {
+  scrollbar: {
+    width: 'auto',
+    borderRadius: '8px',
+    borderWidth: '3px',
+    // A theme color name (follows the active theme) or any CSS color
+    colors: { thumb: 'primary', thumbHover: 'secondary', track: 'background2', border: 'background3' },
+  },
+}
+```
+
+## Cursor
+
+Replaces the default, pointer and text cursors with images. On by default, using the module's own cursor images; point it at yours to customize, or set `cursor: false` to keep the browser's cursors:
+
+```typescript
+venixTheme: {
+  cursor: {
+    // Images served from `public/`; `hotspot` is the click point ("x y")
+    cursors: {
+      default: { path: '/cursors/default.png', hotspot: '0 0' },
+      pointer: { path: '/cursors/pointer.png', hotspot: '0 0' },
+      text: { path: '/cursors/text.png', hotspot: '0 0' },
+    },
+  },
+}
+```
+
+## Vuetify
 
 With [`vuetify-nuxt-module`](https://nuxt.vuetifyjs.com) installed, `vuetify: true` registers every color theme with Vuetify and keeps its active theme in sync — no hand-written `theme.themes` mapping:
 

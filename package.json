@@ -1,10 +1,12 @@
 {
   "name": "@venix-sistemas/jade",
   "version": "1.1.0",
-  "description": "Complete color system for Nuxt: seasonal colors, automatic theme, SSR, Cookie Policy, cursor, scrollbar, etc...",
+  "description": "UI foundation for Nuxt in a single module: color themes (seasonal, SSR, cookie consent), typography, scrollbar, cursor, icons, i18n, plus UnoCSS and Vuetify integrations.",
   "keywords": [
     "nuxt",
     "nuxt-module",
+    "ui",
+    "design-system",
     "nuxt-theme",
     "jade",
     "jade-theme",
