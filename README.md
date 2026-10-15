@@ -315,7 +315,18 @@ Keep it off with `@nuxtjs/i18n` or similar: that module follows the current rout
 
 ## Icons
 
-Installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon) and registers `<VenixIcon>` (and the matching `useVenixIcon()` composable). A single `icon` value accepts three formats:
+Installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon), so every [Iconify](https://icon-sets.iconify.design/) icon is available in your app.
+
+**For regular icons, use `@nuxt/icon`'s own `<Icon>`** — Jade doesn't replace it, and the Iconify aliases from `icon.aliases` work there too:
+
+```vue
+<template>
+  <Icon name="mdi:home" />
+  <Icon name="line-md:home" mode="svg" /> <!-- `mode="svg"` is needed for line-md's animations -->
+</template>
+```
+
+**For special cases, use `<VenixIcon>`** (or the matching `useVenixIcon()` composable): when the same value may be an Iconify name, an emoji or an inline SVG — for example an icon that comes from configuration or data, like the [theme icons](#theme-icons):
 
 ```vue
 <template>
@@ -325,7 +336,7 @@ Installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon) and registe
 </template>
 ```
 
-- **Iconify name** — `collection:name` (e.g. `line-md:home`, `mdi:home`), including [`line-md`](https://icon-sets.iconify.design/line-md/)'s animated icons. Rendered in `@nuxt/icon`'s default mode (CSS: lighter, but never animated); pass `mode="svg"` for a real `<svg>`, needed for animations.
+- **Iconify name** — `collection:name` (e.g. `line-md:home`, `mdi:home`), rendered with `<Icon>` in CSS mode by default (lighter, but never animated); pass `mode="svg"` for a real `<svg>`, needed for animations.
 - **Inline SVG** — a string starting with `<svg`, rendered with `v-html`. It isn't sanitized, so only pass SVGs you control, never user input.
 - **Emoji or text** — anything else.
 
@@ -334,7 +345,7 @@ Installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon) and registe
 | `collections` | `string[]`               | `['line-md']` | Iconify collections bundled whole — see [below](#offline-icon-collections) |
 | `aliases`     | `Record<string, string>` | `{}`          | Short names for any icon value — see [below](#aliases) |
 
-Set `icon: false` to skip `@nuxt/icon` entirely, e.g. if your project already configures it.
+Set `icon: false` to skip `@nuxt/icon` entirely, e.g. if your project already configures it. `<VenixIcon>` isn't registered then, and theme icons always use their emoji (`emote`), so `<VenixThemeSwitcher>` keeps working.
 
 ### Aliases
 
@@ -392,7 +403,7 @@ A theme's `icon` (shown by pickers such as `<VenixThemeSwitcher>`) is either a p
 - `css` — an Iconify name rendered in CSS mode: lighter, but never animated.
 - `svg` — an Iconify name rendered as a real `<svg>`, needed for animated icons like `line-md`'s.
 
-`color.iconFormat` picks the variant for every theme (default `'svg'`), falling back to `emote` when a theme doesn't define it. `useVenixTheme().themes` already resolves it to `{ format, value }`, ready for `<VenixIcon>`:
+`color.iconFormat` picks the variant for every theme (default `'svg'`, so the built-in `line-md` icons animate). When a theme doesn't define it, the other Iconify variant is tried before the emoji: `svg` → `css` → `emote` (or `css` → `svg` → `emote`). `useVenixTheme().themes` already resolves it to `{ format, value }`, ready for `<VenixIcon>`:
 
 ```vue
 <VenixIcon

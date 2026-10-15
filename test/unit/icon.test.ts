@@ -54,6 +54,14 @@ describe('resolveThemeIcon', () => {
     expect(resolveThemeIcon({ emote: '🎨' }, 'svg')).toEqual({ format: 'emote', value: '🎨' })
   })
 
+  it('preferência "svg" sem svg definido tenta "css" antes do emote', () => {
+    expect(resolveThemeIcon({ emote: '🎨', css: 'mdi:palette' }, 'svg')).toEqual({ format: 'css', value: 'mdi:palette' })
+  })
+
+  it('preferência "css" sem css definido tenta "svg" antes do emote', () => {
+    expect(resolveThemeIcon({ emote: '🎨', svg: 'line-md:light-dark' }, 'css')).toEqual({ format: 'svg', value: 'line-md:light-dark' })
+  })
+
   it('preferência "emote" sempre usa o emote, mesmo com css/svg definidos', () => {
     expect(resolveThemeIcon(formats, 'emote')).toEqual({ format: 'emote', value: '☀️' })
   })

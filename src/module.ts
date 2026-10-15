@@ -110,7 +110,8 @@ export default defineNuxtModule<ModuleOptions>({
       localeCookie: translationOptions.cookieSync,
       defaultLocale: translationOptions.defaultLocale,
       locale: translationOptions.locale,
-      iconFormat: colorOptions.iconFormat,
+      // Without the icon module, @nuxt/icon isn't installed — only emoji can render
+      iconFormat: iconOptions.enabled ? colorOptions.iconFormat : 'emote',
       requireConsent: colorOptions.requireConsent,
       icon: {
         aliases: iconOptions.aliases,

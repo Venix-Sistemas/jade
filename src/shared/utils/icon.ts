@@ -42,8 +42,10 @@ export interface ResolvedThemeIcon {
 
 /**
  * Resolves a color theme's icon (a legacy string, always emote, or a
- * `ThemeIconFormats` with variants) to the preferred format, falling back to
- * `emote` when the theme doesn't define the chosen format.
+ * `ThemeIconFormats` with variants) to the preferred format. When the theme
+ * doesn't define it, tries the other Iconify variant before `emote`
+ * (`svg` → `css` → `emote`, or `css` → `svg` → `emote`), so a theme with only
+ * one Iconify variant still shows an icon instead of dropping to the emoji.
  */
 export function resolveThemeIcon(
   icon: string | ThemeIconFormats | undefined,
@@ -55,8 +57,12 @@ export function resolveThemeIcon(
     return { format: 'emote', value: icon }
   }
 
-  if (preferred !== 'emote' && icon[preferred]) {
-    return { format: preferred, value: icon[preferred] }
+  if (preferred !== 'emote') {
+    const order: Array<'css' | 'svg'> = preferred === 'svg' ? ['svg', 'css'] : ['css', 'svg']
+    for (const format of order) {
+      const value = icon[format]
+      if (value) return { format, value }
+    }
   }
 
   return { format: 'emote', value: icon.emote }

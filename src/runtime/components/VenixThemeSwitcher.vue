@@ -20,13 +20,21 @@
       aria-haspopup="menu"
       @click="toggleOpen"
     >
-      <VenixIcon
-        v-if="activeIcon"
-        :key="activeIconKey"
-        :icon="activeIcon.value"
-        :mode="activeIcon.format === 'emote' ? undefined : activeIcon.format"
-        aria-hidden="true"
-      />
+      <template v-if="activeIcon">
+        <span
+          v-if="activeIcon.format === 'emote'"
+          :key="activeIconKey"
+          class="venix-icon venix-icon--emoji"
+          aria-hidden="true"
+        >{{ activeIcon.value }}</span>
+        <VenixIcon
+          v-else
+          :key="activeIconKey"
+          :icon="activeIcon.value"
+          :mode="activeIcon.format"
+          aria-hidden="true"
+        />
+      </template>
       <span
         v-if="showLabel"
         class="venix-theme-switcher__trigger-label"
@@ -59,11 +67,16 @@
           :aria-checked="item.value === theme.preference.value"
           @click="select(item.value)"
         >
+          <span
+            v-if="item.icon?.format === 'emote'"
+            class="venix-icon venix-icon--emoji venix-theme-switcher__item-icon"
+            aria-hidden="true"
+          >{{ item.icon.value }}</span>
           <VenixIcon
-            v-if="item.icon"
+            v-else-if="item.icon"
             class="venix-theme-switcher__item-icon"
             :icon="item.icon.value"
-            :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
+            :mode="item.icon.format"
             aria-hidden="true"
           />
           <span>{{ item.name }}</span>
@@ -76,6 +89,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useVenixTheme } from '../composables/useVenixTheme'
+// Imported directly (not auto-imported) so the switcher still works with
+// `icon: false`: <VenixIcon> isn't registered then, and theme icons all
+// resolve to emoji, which render as plain text above without needing it.
+import VenixIcon from './VenixIcon.vue'
 
 // The component's own strings (default label and screen-reader announcement)
 // — translated into the same languages theme-name translations already
