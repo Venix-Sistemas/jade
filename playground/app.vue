@@ -4,173 +4,358 @@
       <client-only>
         <VenixThemeSwitcher class="header__switcher" />
       </client-only>
-      <h1>🎨 Nuxt Theme Playground</h1>
-      <p>{{ $t('app.subtitle') }}</p>
+      <h1 class="header__title">
+        <img
+          src="/images/jade-logo.png"
+          alt=""
+          class="header__logo"
+          width="44"
+          height="44"
+        >
+        Jade Playground
+      </h1>
+      <p class="header__subtitle">
+        {{ $t('app.subtitle') }}
+      </p>
     </header>
 
+    <nav
+      class="module-nav"
+      :aria-label="$t('app.modules')"
+    >
+      <a
+        v-for="item in modules"
+        :key="item.id"
+        :href="`#${item.id}`"
+        class="module-nav__link"
+      >
+        <span aria-hidden="true">{{ item.emoji }}</span>
+        {{ $t(`modules.${item.id}.title`) }}
+      </a>
+    </nav>
+
     <main class="content">
-      <!-- Theme selector (manual, for comparison with VenixThemeSwitcher) -->
-      <section class="section">
-        <h2>{{ $t('themeSelector.heading') }}</h2>
+      <!-- ===== Colors ===== -->
+      <section
+        id="color"
+        class="module"
+      >
+        <ModuleHeader
+          id="color"
+          emoji="🎨"
+        />
+
         <client-only>
-          <div class="theme-buttons">
-            <button
-              v-for="item in themes"
-              :key="item.value"
-              :class="{ active: isActive(item) }"
-              class="theme-button"
-              @click="theme.toggle(item.value)"
-            >
-              <VenixIcon
-                v-if="item.icon"
-                :icon="item.icon.value"
-                :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
-              />
-              <span>{{ item.name }}</span>
-            </button>
+          <div class="demo">
+            <h3 class="demo__title">
+              {{ $t('color.selectorHeading') }}
+            </h3>
+            <p class="demo__hint">
+              {{ $t('color.selectorHint') }}
+            </p>
+
+            <h4 class="demo__label">
+              {{ $t('color.mode') }}
+            </h4>
+            <div class="chips">
+              <button
+                v-for="item in modes"
+                :key="item.value"
+                type="button"
+                class="chip"
+                :class="{ 'chip--active': mode.preference.value === item.value }"
+                @click="mode.set(item.value)"
+              >
+                <VenixIcon
+                  v-if="item.icon"
+                  :icon="item.icon.value"
+                  :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
+                />
+                <span>{{ item.name }}</span>
+              </button>
+              <button
+                type="button"
+                class="chip chip--outline"
+                @click="mode.toggle()"
+              >
+                {{ $t('color.toggle') }}
+              </button>
+            </div>
+
+            <h4 class="demo__label">
+              {{ $t('color.theme') }}
+            </h4>
+            <div class="chips">
+              <button
+                v-for="item in themes"
+                :key="item.value"
+                type="button"
+                class="chip"
+                :class="{ 'chip--active': theme.preference.value === item.value }"
+                @click="theme.set(item.value)"
+              >
+                <VenixIcon
+                  v-if="item.icon"
+                  :icon="item.icon.value"
+                  :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
+                />
+                <span>{{ item.name }}</span>
+              </button>
+            </div>
+
+            <p class="demo__status">
+              {{ $t('color.applied') }} <code>data-theme="{{ theme.value.value }}"</code>
+            </p>
+          </div>
+
+          <div class="demo">
+            <h3 class="demo__title">
+              {{ $t('color.paletteHeading', { theme: currentThemeName }) }}
+            </h3>
+            <div class="color-grid">
+              <div
+                v-for="color in colorList"
+                :key="color.name"
+                class="color-card"
+              >
+                <div
+                  class="color-card__swatch"
+                  :style="{ backgroundColor: color.value }"
+                />
+                <span class="color-card__name">{{ formatColorName(color.name) }}</span>
+                <code class="color-card__value">{{ color.value }}</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="demo">
+            <h3 class="demo__title">
+              {{ $t('color.consentHeading') }}
+            </h3>
+            <p class="demo__status">
+              {{ $t('color.consentLabel') }}
+              <strong>{{ persistence.hasConsent.value ? $t('color.granted') : $t('color.notGranted') }}</strong>
+              · {{ $t('color.cookiesLabel') }}
+              <strong>{{ cookiesPresent ? $t('color.written') : $t('color.absent') }}</strong>
+            </p>
+            <div class="chips">
+              <button
+                type="button"
+                class="chip chip--success"
+                @click="grantConsent"
+              >
+                {{ $t('color.grant') }}
+              </button>
+              <button
+                type="button"
+                class="chip chip--error"
+                @click="revokeConsent"
+              >
+                {{ $t('color.revoke') }}
+              </button>
+            </div>
+            <p class="demo__hint">
+              {{ $t('color.consentHint') }}
+            </p>
           </div>
         </client-only>
       </section>
 
-      <!-- Languages + Cookie consent (side by side, right above) -->
-      <div class="row">
-        <section class="section row__cell">
-          <h2>{{ $t('languages.heading') }}</h2>
-          <p class="lang-info">
-            {{ $t('languages.appLocaleLabel', { pkg: '@nuxtjs/i18n' }) }} <strong>{{ i18nLocale }}</strong>
-            — {{ $t('languages.themeLocaleLabel') }} <strong>{{ locale.current.value }}</strong>
-          </p>
-          <div class="lang-buttons">
+      <!-- ===== Translation ===== -->
+      <section
+        id="translation"
+        class="module"
+      >
+        <ModuleHeader
+          id="translation"
+          emoji="🌐"
+        />
+
+        <div class="demo">
+          <h3 class="demo__title">
+            {{ $t('translation.languageHeading') }}
+          </h3>
+          <div class="chips">
             <button
               v-for="loc in availableLocales"
               :key="loc.code"
               type="button"
-              class="lang-button"
-              :class="{ active: loc.code === i18nLocale }"
+              class="chip"
+              :class="{ 'chip--active': loc.code === i18nLocale }"
               @click="changeLocale(loc.code)"
             >
               {{ loc.name }}
             </button>
           </div>
-        </section>
+          <p class="demo__status">
+            {{ $t('translation.appLocale', { pkg: '@nuxtjs/i18n' }) }} <strong>{{ i18nLocale }}</strong>
+            · {{ $t('translation.themeLocale') }} <strong>{{ locale.current.value }}</strong>
+          </p>
+        </div>
 
-        <section class="section row__cell">
-          <h2>{{ $t('cookieConsent.heading') }}</h2>
-          <client-only>
-            <p class="consent-info">
-              {{ $t('cookieConsent.consentLabel') }}
-              <strong>{{ persistence.hasConsent.value ? $t('cookieConsent.granted') : $t('cookieConsent.notGranted') }}</strong>
-              — {{ $t('cookieConsent.cookiesLabel') }}
-              <strong>{{ cookiesPresent ? $t('cookieConsent.written') : $t('cookieConsent.absent') }}</strong>
-            </p>
-            <div class="consent-buttons">
-              <button
-                type="button"
-                class="consent-button consent-button--grant"
-                @click="grantConsent"
-              >
-                {{ $t('cookieConsent.grant') }}
-              </button>
-              <button
-                type="button"
-                class="consent-button consent-button--revoke"
-                @click="revokeConsent"
-              >
-                {{ $t('cookieConsent.revoke') }}
-              </button>
-            </div>
-            <p class="consent-hint">
-              {{ $t('cookieConsent.hint') }}
-            </p>
-          </client-only>
-        </section>
-      </div>
-
-      <!-- Color palette -->
-      <section class="section">
-        <h2>{{ $t('colorPalette.heading', { theme: currentThemeName }) }}</h2>
         <client-only>
-          <div class="color-grid">
+          <div class="demo">
+            <h3 class="demo__title">
+              {{ $t('translation.namesHeading') }}
+            </h3>
+            <p class="demo__hint">
+              {{ $t('translation.namesHint') }}
+            </p>
+            <div class="chips">
+              <span
+                v-for="item in [...modes, ...themes]"
+                :key="item.value"
+                class="tag"
+              >{{ item.name }}</span>
+            </div>
+          </div>
+        </client-only>
+      </section>
+
+      <!-- ===== Icons ===== -->
+      <section
+        id="icon"
+        class="module"
+      >
+        <ModuleHeader
+          id="icon"
+          emoji="✨"
+        />
+
+        <div class="demo">
+          <div class="icon-row">
             <div
-              v-for="color in colorList"
-              :key="color.name"
-              class="color-card"
+              v-for="item in iconSamples"
+              :key="item.label"
+              class="icon-sample"
             >
-              <div
-                class="color-preview"
-                :style="{ backgroundColor: color.value }"
+              <VenixIcon
+                :icon="item.icon"
+                class="icon-sample__icon"
               />
-              <span class="color-name">{{ formatColorName(color.name) }}</span>
-              <code class="color-value">{{ color.value }}</code>
+              <span class="icon-sample__label">{{ item.label }}</span>
             </div>
           </div>
-        </client-only>
-      </section>
-
-      <!-- Icons -->
-      <section class="section">
-        <h2>{{ $t('icons.heading') }}</h2>
-        <div class="icon-row">
-          <div
-            v-for="item in iconSamples"
-            :key="item.label"
-            class="icon-sample"
-          >
-            <VenixIcon
-              :icon="item.icon"
-              class="icon-sample__icon"
-            />
-            <span class="icon-sample__label">{{ item.label }}</span>
-          </div>
         </div>
       </section>
 
-      <!-- Vertical scroll test -->
-      <section class="section">
-        <h2>{{ $t('scroll.verticalHeading') }}</h2>
-        <div class="scroll-vertical">
-          <div
-            v-for="i in 20"
-            :key="`vertical-${i}`"
-            class="scroll-item"
-          >
-            {{ $t('scroll.verticalItem', { n: i }) }}
-          </div>
-        </div>
-      </section>
+      <!-- ===== Typography ===== -->
+      <section
+        id="typography"
+        class="module"
+      >
+        <ModuleHeader
+          id="typography"
+          emoji="🔤"
+        />
 
-      <!-- Horizontal scroll test -->
-      <section class="section">
-        <h2>{{ $t('scroll.horizontalHeading') }}</h2>
-        <div class="scroll-horizontal">
-          <div
-            v-for="i in 20"
-            :key="`horizontal-${i}`"
-            class="scroll-item-horizontal"
-          >
-            {{ $t('scroll.horizontalItem', { n: i }) }}
-          </div>
-        </div>
-      </section>
-
-      <!-- Action buttons -->
-      <section class="section">
-        <h2>{{ $t('actions.heading') }}</h2>
-        <client-only>
-          <div class="actions">
-            <button
-              class="action-button"
-              @click="toggleTheme"
+        <div class="demo">
+          <client-only>
+            <dl class="specs">
+              <dt><code>--font-family-base</code></dt>
+              <dd>{{ typography.family }}</dd>
+              <dt><code>--font-size-base</code></dt>
+              <dd>{{ typography.size }}</dd>
+            </dl>
+          </client-only>
+          <div class="specimen">
+            <p
+              v-for="size in [2, 1.5, 1.125, 1, 0.875]"
+              :key="size"
+              :style="{ fontSize: `${size}rem` }"
             >
-              {{ $t('actions.toggle') }}
-            </button>
+              <span class="specimen__size">{{ size }}rem</span>
+              {{ $t('typography.sample') }}
+            </p>
           </div>
-        </client-only>
+        </div>
       </section>
 
-      <!-- Vuetify integration (`vuetify: true`) -->
-      <section class="section">
-        <h2>Vuetify</h2>
+      <!-- ===== Scrollbar ===== -->
+      <section
+        id="scrollbar"
+        class="module"
+      >
+        <ModuleHeader
+          id="scrollbar"
+          emoji="📜"
+        />
+
+        <div class="demo-grid">
+          <div class="demo">
+            <h3 class="demo__title">
+              {{ $t('scrollbar.vertical') }}
+            </h3>
+            <div class="scroll-vertical">
+              <div
+                v-for="i in 20"
+                :key="`vertical-${i}`"
+                class="scroll-item"
+              >
+                {{ $t('scrollbar.item', { n: i }) }}
+              </div>
+            </div>
+          </div>
+          <div class="demo">
+            <h3 class="demo__title">
+              {{ $t('scrollbar.horizontal') }}
+            </h3>
+            <div class="scroll-horizontal">
+              <div
+                v-for="i in 20"
+                :key="`horizontal-${i}`"
+                class="scroll-item scroll-item--horizontal"
+              >
+                {{ $t('scrollbar.item', { n: i }) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Cursor ===== -->
+      <section
+        id="cursor"
+        class="module"
+      >
+        <ModuleHeader
+          id="cursor"
+          emoji="🖱️"
+        />
+
+        <div class="demo-grid demo-grid--three">
+          <div class="demo cursor-area">
+            <strong>default</strong>
+            <span class="demo__hint">{{ $t('cursor.default') }}</span>
+          </div>
+          <button
+            type="button"
+            class="demo cursor-area"
+          >
+            <strong>pointer</strong>
+            <span class="demo__hint">{{ $t('cursor.pointer') }}</span>
+          </button>
+          <label class="demo cursor-area">
+            <strong>text</strong>
+            <input
+              type="text"
+              class="cursor-area__input"
+              :placeholder="$t('cursor.text')"
+            >
+          </label>
+        </div>
+      </section>
+
+      <!-- ===== Vuetify ===== -->
+      <section
+        id="vuetify"
+        class="module"
+      >
+        <ModuleHeader
+          id="vuetify"
+          emoji="🧩"
+        />
+
         <v-card
           color="surface"
           class="pa-4"
@@ -197,12 +382,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
-import themeData from '../src/shared/theme.json' with { type: 'json' }
+import { ref, computed, onMounted, watch, nextTick, h, defineComponent } from 'vue'
 
-const { theme, themes, locale, persistence } = useVenixTheme()
+const { theme, themes, mode, modes, locale, persistence } = useVenixTheme()
 
 const { t, locale: i18nLocale, locales: availableLocales, setLocale: setI18nLocale } = useI18n()
+
+useHead({
+  title: 'Jade Playground',
+  meta: [{ name: 'description', content: () => t('app.subtitle') }],
+  link: [{ rel: 'icon', type: 'image/png', href: '/favicon.png' }],
+})
+
+// Same order as the README's module table.
+const modules = [
+  { id: 'color', emoji: '🎨' },
+  { id: 'translation', emoji: '🌐' },
+  { id: 'icon', emoji: '✨' },
+  { id: 'typography', emoji: '🔤' },
+  { id: 'scrollbar', emoji: '📜' },
+  { id: 'cursor', emoji: '🖱️' },
+  { id: 'vuetify', emoji: '🧩' },
+]
+
+// Title, `venixTheme.<key>` badge and one-line description of a module section.
+const ModuleHeader = defineComponent({
+  props: {
+    id: { type: String, required: true },
+    emoji: { type: String, required: true },
+  },
+  setup(props) {
+    return () => h('header', { class: 'module__header' }, [
+      h('h2', { class: 'module__title' }, [
+        h('span', { 'aria-hidden': 'true' }, props.emoji),
+        ` ${t(`modules.${props.id}.title`)}`,
+        h('code', { class: 'module__key' }, `venixTheme.${props.id}`),
+      ]),
+      h('p', { class: 'module__description' }, t(`modules.${props.id}.description`)),
+    ])
+  },
+})
 
 // Bridges the playground's own @nuxtjs/i18n language switcher to the theme
 // module's locale (theme-name translations) — normally they follow each
@@ -237,35 +456,38 @@ const revokeConsent = async () => {
   checkCookies()
 }
 
-const isActive = (item: { value: string }): boolean => {
-  return theme.preference.value === item.value
-}
-
-const activeTheme = ref('')
+// Read from the generated CSS variables, so this shows what the typography
+// module actually produced (including custom fonts like Iceberg).
+const typography = ref({ family: '', size: '' })
 
 onMounted(() => {
-  activeTheme.value = theme.preference.value || 'dark'
   checkCookies()
+
+  const rootStyle = getComputedStyle(document.documentElement)
+  typography.value = {
+    family: rootStyle.getPropertyValue('--font-family-base').trim() || '—',
+    size: rootStyle.getPropertyValue('--font-size-base').trim() || '—',
+  }
 })
 
-watch(() => theme.preference.value, async (newTheme) => {
-  activeTheme.value = newTheme || 'dark'
+watch([theme.preference, mode.preference], async () => {
   await nextTick()
   checkCookies()
 })
 
+// The chosen theme and mode, e.g. "Natal · Claro".
 const currentThemeName = computed(() => {
-  return theme.data.value?.name || activeTheme.value || 'dark'
+  return `${theme.data.value?.name} · ${mode.data.value?.name}`
 })
 
 const customSvg = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor" /></svg>'
 
 const iconSamples = computed(() => [
-  { label: t('icons.iconify'), icon: 'line-md:loading-loop' },
-  { label: t('icons.emoji'), icon: '🎨' },
-  { label: t('icons.svg'), icon: customSvg },
-  { label: t('icons.aliasHome'), icon: 'home' },
-  { label: t('icons.aliasStar'), icon: 'star' },
+  { label: t('icon.iconify'), icon: 'line-md:loading-loop' },
+  { label: t('icon.emoji'), icon: '🎨' },
+  { label: t('icon.svg'), icon: customSvg },
+  { label: t('icon.aliasHome'), icon: 'home' },
+  { label: t('icon.aliasStar'), icon: 'star' },
 ])
 
 const formatColorName = (name: string): string => {
@@ -277,23 +499,17 @@ const formatColorName = (name: string): string => {
 }
 
 const colorList = computed(() => {
-  const currentTheme = activeTheme.value || theme.preference.value || 'dark'
-  const themeColors = themeData.colors.themes[currentTheme as keyof typeof themeData.colors.themes]
+  const themeColors = theme.colors.themes[theme.value.value]
 
   if (!themeColors) return []
 
   return Object.entries(themeColors)
-    .filter(([key]) => !['dark', 'seasonal', 'dateRange', 'translations', 'icon'].includes(key))
     .filter(([, value]) => typeof value === 'string' && value.startsWith('#'))
     .map(([name, value]) => ({
       name,
       value: value as string,
     }))
 })
-
-const toggleTheme = () => {
-  theme.toggle()
-}
 </script>
 
 <style>
@@ -303,6 +519,11 @@ const toggleTheme = () => {
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 4.5rem;
+}
+
 body {
   font-family: var(--font-family-base, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   background: var(--color-background);
@@ -310,16 +531,21 @@ body {
   transition: all 0.3s ease;
 }
 
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+}
+
 .playground {
   min-height: 100vh;
 }
 
+/* ===== Header ===== */
 .header {
   position: relative;
   text-align: center;
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 3.5rem 1.25rem;
   background: var(--color-background2);
-  border-bottom: 1px solid var(--color-background3);
 }
 
 .header__switcher {
@@ -328,175 +554,260 @@ body {
   right: 1rem;
 }
 
-.header h1 {
+.header__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
   font-size: 2rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
-.content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1.25rem;
+.header__logo {
+  width: 2.75rem;
+  height: 2.75rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
 }
 
-.section {
-  background: var(--color-background2);
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border: 1px solid var(--color-background3);
-}
-
-.section h2 {
-  margin-bottom: 0.75rem;
-  font-size: 1.05rem;
+.header__subtitle {
   color: var(--color-secondary);
 }
 
-.row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
+/* ===== Module navigation ===== */
+.module-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  overflow-x: auto;
+  background: var(--color-background2);
+  border-top: 1px solid var(--color-background3);
+  border-bottom: 1px solid var(--color-background3);
 }
 
-.row__cell {
-  margin-bottom: 0;
+.module-nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
 }
 
-.theme-buttons {
+.module-nav__link:hover,
+.module-nav__link:focus-visible {
+  background: var(--color-background3);
+}
+
+/* ===== Content ===== */
+.content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.module {
+  margin-bottom: 2.5rem;
+}
+
+.module__header {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--color-background3);
+}
+
+.module__title {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.4rem;
+}
+
+.module__key {
+  margin-left: auto;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  background: var(--color-background3);
+  color: var(--color-secondary);
+  font-size: 0.75rem;
+  font-weight: normal;
+}
+
+.module__description {
+  margin-top: 0.25rem;
+  color: var(--color-secondary);
+  font-size: 0.9rem;
+}
+
+.demo {
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border-radius: 12px;
+  background: var(--color-background2);
+  border: 1px solid var(--color-background3);
+}
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 0.75rem;
 }
 
-.theme-button {
-  padding: 0.5rem 1rem;
+.demo-grid--three {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.demo-grid .demo {
+  margin-bottom: 0;
+}
+
+.demo__title {
+  margin-bottom: 0.6rem;
+  font-size: 1rem;
+  color: var(--color-secondary);
+}
+
+.demo__label {
+  margin: 0.75rem 0 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-secondary);
+  opacity: 0.8;
+}
+
+.demo__hint {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--color-secondary);
+  opacity: 0.85;
+}
+
+.demo__status {
+  margin: 0.6rem 0;
+  font-size: 0.85rem;
+  color: var(--color-secondary);
+}
+
+.demo__status code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: var(--color-background3);
+  color: var(--color-primary);
+}
+
+/* ===== Chips (buttons and tags) ===== */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
   border: 2px solid var(--color-background3);
   border-radius: 8px;
   background: transparent;
   color: var(--color-primary);
+  font: inherit;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
-.theme-button:hover {
+.chip:hover {
   border-color: var(--color-primary);
 }
 
-.theme-button.active {
+.chip--active {
   border-color: var(--color-primary);
   background: var(--color-primary);
   color: var(--color-background);
 }
 
+.chip--outline {
+  border-style: dashed;
+  color: var(--color-secondary);
+}
+
+.chip--success {
+  color: var(--color-success, var(--color-primary));
+  border-color: var(--color-success, var(--color-background3));
+}
+
+.chip--success:hover {
+  background: var(--color-success, var(--color-primary));
+  color: var(--color-background);
+}
+
+.chip--error {
+  color: var(--color-error, var(--color-primary));
+  border-color: var(--color-error, var(--color-background3));
+}
+
+.chip--error:hover {
+  background: var(--color-error, var(--color-primary));
+  color: var(--color-background);
+}
+
+.tag {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: var(--color-background3);
+  font-size: 0.85rem;
+}
+
+/* ===== Colors ===== */
 .color-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
   gap: 0.5rem;
 }
 
 .color-card {
-  background: var(--color-background3);
-  border-radius: 8px;
   padding: 0.4rem;
+  border-radius: 8px;
+  background: var(--color-background3);
   text-align: center;
 }
 
-.color-preview {
-  width: 100%;
+.color-card__swatch {
   height: 40px;
-  border-radius: 6px;
   margin-bottom: 0.35rem;
+  border-radius: 6px;
   border: 2px solid var(--color-background3);
 }
 
-.color-name {
+.color-card__name {
   display: block;
+  margin-bottom: 0.15rem;
   font-size: 0.7rem;
   color: var(--color-secondary);
-  margin-bottom: 0.15rem;
 }
 
-.color-value {
+.color-card__value {
   font-size: 0.65rem;
   color: var(--color-primary);
-  font-family: monospace;
 }
 
-.squares-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.color-square {
-  width: 120px;
-  height: 120px;
-  border-radius: 12px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 0.5rem;
-  border: 3px solid var(--color-background3);
-}
-
-.square-label {
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  text-align: center;
-  width: 100%;
-}
-
-/* Scroll Vertical */
-.scroll-vertical {
-  height: 160px;
-  overflow-y: auto;
-  background: var(--color-background3);
-  border-radius: 8px;
-  padding: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.scroll-item {
-  padding: 0.6rem;
-  background: var(--color-background2);
-  border-radius: 4px;
-  color: var(--color-primary);
-  text-align: center;
-  flex-shrink: 0;
-}
-
-/* Scroll Horizontal */
-.scroll-horizontal {
-  overflow-x: auto;
-  background: var(--color-background3);
-  border-radius: 8px;
-  padding: 0.75rem;
-  display: flex;
-  gap: 0.4rem;
-  white-space: nowrap;
-}
-
-.scroll-item-horizontal {
-  padding: 0.75rem 1rem;
-  background: var(--color-background2);
-  border-radius: 4px;
-  color: var(--color-primary);
-  text-align: center;
-  min-width: 140px;
-  flex-shrink: 0;
-}
-
+/* ===== Icons ===== */
 .icon-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .icon-sample {
@@ -507,7 +818,7 @@ body {
 }
 
 .icon-sample__icon {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   color: var(--color-primary);
 }
 
@@ -516,111 +827,110 @@ body {
   color: var(--color-secondary);
 }
 
-.lang-info {
-  margin-bottom: 0.6rem;
-  color: var(--color-secondary);
+/* ===== Typography ===== */
+.specs {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 1rem;
+  margin-bottom: 1rem;
   font-size: 0.85rem;
 }
 
-.lang-buttons {
+.specs dt {
+  color: var(--color-secondary);
+}
+
+.specs dd {
+  overflow-wrap: anywhere;
+}
+
+.specimen p {
+  margin-bottom: 0.4rem;
+  line-height: 1.3;
+}
+
+.specimen__size {
+  display: inline-block;
+  min-width: 4.5rem;
+  font-size: 0.75rem;
+  color: var(--color-secondary);
+  opacity: 0.7;
+}
+
+/* ===== Scrollbar ===== */
+.scroll-vertical {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.lang-button {
-  padding: 0.5rem 1rem;
-  border: 2px solid var(--color-background3);
+  flex-direction: column;
+  gap: 0.4rem;
+  height: 180px;
+  padding: 0.75rem;
+  overflow-y: auto;
   border-radius: 8px;
-  background: transparent;
-  color: var(--color-primary);
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.lang-button:hover {
-  border-color: var(--color-primary);
-}
-
-.lang-button.active {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-background);
-}
-
-.consent-info {
-  margin-bottom: 0.6rem;
-  color: var(--color-secondary);
-  font-size: 0.85rem;
-}
-
-.consent-info code {
   background: var(--color-background3);
-  padding: 0.1rem 0.35rem;
-  border-radius: 4px;
-  font-size: 0.85em;
 }
 
-.consent-buttons {
+.scroll-horizontal {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: var(--color-background3);
 }
 
-.consent-button {
-  padding: 0.5rem 1rem;
+.scroll-item {
+  flex-shrink: 0;
+  padding: 0.6rem;
+  border-radius: 4px;
+  background: var(--color-background2);
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.scroll-item--horizontal {
+  min-width: 120px;
+  padding: 2.5rem 1rem;
+}
+
+/* ===== Cursor ===== */
+.cursor-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  min-height: 110px;
+  font: inherit;
+  color: var(--color-primary);
+  text-align: left;
+}
+
+.cursor-area__input {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.6rem;
   border: 2px solid var(--color-background3);
   border-radius: 8px;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  background: var(--color-background);
+  color: var(--color-primary);
+  font: inherit;
 }
 
-.consent-button--grant {
-  color: var(--color-success, var(--color-primary));
-  border-color: var(--color-success, var(--color-background3));
-}
+@media (max-width: 600px) {
+  .header__title {
+    font-size: 1.5rem;
+  }
 
-.consent-button--grant:hover {
-  background: var(--color-success, var(--color-primary));
-  color: var(--color-background);
-}
+  .header__logo {
+    width: 2rem;
+    height: 2rem;
+  }
 
-.consent-button--revoke {
-  color: var(--color-error, var(--color-primary));
-  border-color: var(--color-error, var(--color-background3));
-}
+  .module-nav {
+    justify-content: flex-start;
+  }
 
-.consent-button--revoke:hover {
-  background: var(--color-error, var(--color-primary));
-  color: var(--color-background);
-}
-
-.consent-hint {
-  font-size: 0.8rem;
-  color: var(--color-secondary);
-  opacity: 0.8;
-}
-
-.actions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.action-button {
-  padding: 0.5rem 1rem;
-  border: 2px solid var(--color-secondary);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--color-secondary);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.action-button:hover {
-  background: var(--color-secondary);
-  color: var(--color-background);
+  .module__key {
+    margin-left: 0;
+  }
 }
 </style>

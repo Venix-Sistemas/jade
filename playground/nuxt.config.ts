@@ -76,56 +76,45 @@ export default defineNuxtConfig({
     color: {
       // defaultColor: 'dark',
       themes: {
-        // dark: {
-        //  primary: '#FF0000',
-        //  secondary: '#00FF00',
-        // }
+        // venix: {
+        //   dark: { primary: '#FF0000', secondary: '#00FF00' },
+        // },
         // Custom, project-only seasonal theme (not in the bundled theme.json)
-        // — a light/dark pair for the same occasion, same dateRange. When
-        // the 'system' preference is active during that window, the dark or
-        // light variant is picked automatically to match the OS's own
-        // light/dark setting, same as the built-in `dark`/`light` themes do
-        // outside of any season.
+        // with a light and a dark variant. While the theme is 'system'
+        // (Automatic) during its dateRange, it replaces the base theme, in
+        // the variant matching the chosen mode.
         pascoa: {
-          dark: false,
           seasonal: true,
           dateRange: { start: '03-25', end: '04-05' },
-          primary: '#E91E8C',
-          secondary: '#9C6ADE',
-          accent: '#26A69A',
-          error: '#E53935',
-          info: '#1E88E5',
-          success: '#43A047',
-          warning: '#FFB300',
-          background: '#FFFDF5',
-          background2: '#FFF3E0',
-          background3: '#FDE2ED',
           translations: { 'en-US': 'Easter', 'pt-BR': 'Páscoa' },
           icon: {
             emote: '🐰',
             css: 'mdi:egg-easter',
             svg: 'line-md:heart-filled',
           },
-        },
-        pascoaEscura: {
-          dark: true,
-          seasonal: true,
-          dateRange: { start: '03-25', end: '04-05' },
-          primary: '#FF6FB0',
-          secondary: '#B085F5',
-          accent: '#4DD0C4',
-          error: '#FF5252',
-          info: '#42A5F5',
-          success: '#66BB6A',
-          warning: '#FFCA28',
-          background: '#1B1225',
-          background2: '#251A33',
-          background3: '#301F40',
-          translations: { 'en-US': 'Easter Night', 'pt-BR': 'Páscoa Escura' },
-          icon: {
-            emote: '🐰',
-            css: 'mdi:egg-easter',
-            svg: 'line-md:heart-filled',
+          light: {
+            primary: '#E91E8C',
+            secondary: '#9C6ADE',
+            accent: '#26A69A',
+            error: '#E53935',
+            info: '#1E88E5',
+            success: '#43A047',
+            warning: '#FFB300',
+            background: '#FFFDF5',
+            background2: '#FFF3E0',
+            background3: '#FDE2ED',
+          },
+          dark: {
+            primary: '#FF6FB0',
+            secondary: '#B085F5',
+            accent: '#4DD0C4',
+            error: '#FF5252',
+            info: '#42A5F5',
+            success: '#66BB6A',
+            warning: '#FFCA28',
+            background: '#1B1225',
+            background2: '#251A33',
+            background3: '#301F40',
           },
         },
       },

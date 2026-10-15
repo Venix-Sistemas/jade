@@ -3,6 +3,7 @@ import { useCookie } from '#app'
 import {
   THEME_PREFERENCE_COOKIE,
   THEME_RESOLVED_COOKIE,
+  THEME_MODE_COOKIE,
   DEFAULT_LOCALE_COOKIE_NAME,
 } from '../../shared/constants'
 import { hasCookieConsent } from '../../shared/utils/consent'
@@ -22,6 +23,7 @@ export const useThemeCookies = (options: UseThemeCookiesOptions = {}) => {
 
   const preferenceCookie = useCookie<string>(THEME_PREFERENCE_COOKIE)
   const resolvedCookie = useCookie<string>(THEME_RESOLVED_COOKIE)
+  const modeCookie = useCookie<string>(THEME_MODE_COOKIE)
   const localeCookie = useCookie<string>(localeCookieName)
 
   const removeCookie = (name: string) => {
@@ -37,7 +39,7 @@ export const useThemeCookies = (options: UseThemeCookiesOptions = {}) => {
   // `persistence.enable()`. Without consent (and `requireConsent` on), the
   // theme still applies for this visit, it just isn't remembered — easy to
   // miss in an app that never wired up a consent banner, hence the warning.
-  const persistIfConsented = (preference: string, resolved: string) => {
+  const persistIfConsented = (preference: string, mode: string, resolved: string) => {
     if (!canPersist()) {
       if (import.meta.dev && import.meta.client && !warnedMissingConsent) {
         warnedMissingConsent = true
@@ -51,17 +53,20 @@ export const useThemeCookies = (options: UseThemeCookiesOptions = {}) => {
     }
 
     preferenceCookie.value = preference
+    modeCookie.value = mode
     resolvedCookie.value = resolved
   }
 
   const disablePersistence = () => {
     removeCookie(THEME_PREFERENCE_COOKIE)
     removeCookie(THEME_RESOLVED_COOKIE)
+    removeCookie(THEME_MODE_COOKIE)
   }
 
   return {
     preferenceCookie,
     resolvedCookie,
+    modeCookie,
     localeCookie,
     canPersist,
     persistIfConsented,

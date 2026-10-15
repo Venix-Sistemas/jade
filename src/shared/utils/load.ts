@@ -1,7 +1,7 @@
-import defaultTheme from '../../shared/theme.json' with { type: 'json' }
 import type { ThemeConfig } from '../types'
 import { DEFAULT_LOCALE } from '../constants'
 import { normalizeLocale } from './normalize'
+import { buildResolvedTheme } from './theme-config'
 
 // Loading a custom theme from a file (path) doesn't really exist yet — that's
 // why there's no public `theme` option in `ModuleOptions` today. The
@@ -9,14 +9,16 @@ import { normalizeLocale } from './normalize'
 // adds themes on top of this default theme). The parameter is reserved for
 // when this gets implemented.
 export function loadTheme(_path?: string): ThemeConfig {
-  return defaultTheme as ThemeConfig
+  return buildResolvedTheme()
 }
 
 export function extractLocales(theme: ThemeConfig): string[] {
   const locales = new Set<string>()
 
-  for (const themeConfig of Object.values(theme.colors?.themes || {})) {
-    for (const locale of Object.keys(themeConfig.translations ?? {})) {
+  const labelled = [...Object.values(theme.colors?.groups || {}), ...Object.values(theme.colors?.modes || {})]
+
+  for (const entry of labelled) {
+    for (const locale of Object.keys(entry.translations ?? {})) {
       locales.add(normalizeLocale(locale))
     }
   }

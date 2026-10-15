@@ -37,11 +37,11 @@ describe('initTheme × color.requireConsent', () => {
     expect(runInitTheme({ requireConsent: true }, false)).toEqual([])
   })
 
-  it('com consentimento, grava os dois cookies', () => {
-    expect(runInitTheme(undefined, true)).toEqual(['venix-theme-resolved', 'venix-theme-preference'])
+  it('com consentimento, grava os três cookies', () => {
+    expect(runInitTheme(undefined, true)).toEqual(['venix-theme-resolved', 'venix-theme-preference', 'venix-theme-mode'])
   })
 
-  it('com requireConsent: false, grava os dois cookies mesmo sem consentimento', () => {
-    expect(runInitTheme({ requireConsent: false }, false)).toEqual(['venix-theme-resolved', 'venix-theme-preference'])
+  it('com requireConsent: false, grava os três cookies mesmo sem consentimento', () => {
+    expect(runInitTheme({ requireConsent: false }, false)).toEqual(['venix-theme-resolved', 'venix-theme-preference', 'venix-theme-mode'])
   })
 })

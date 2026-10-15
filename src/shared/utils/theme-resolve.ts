@@ -1,6 +1,6 @@
 // src/shared/utils/theme-resolve.ts
-import type { ThemeColors } from '../types'
-import { NON_COLOR_PROPERTIES } from '../constants'
+import type { ThemeColors, ThemeMeta, ThemeMode, ThemeModePreference, ResolvedThemeGroup } from '../types'
+import { NON_COLOR_PROPERTIES, DEFAULT_THEME, SYSTEM_THEME } from '../constants'
 
 /**
  * A theme only really counts as a "color" theme if it has at least one real
@@ -72,7 +72,7 @@ function parseDatePart(value: string, year: number): number | null {
   return month * 100 + day
 }
 
-function isDateInSeasonalRange(themeConfig: ThemeColors, now: Date): boolean {
+function isDateInSeasonalRange(themeConfig: ThemeMeta, now: Date): boolean {
   if (themeConfig.seasonal !== true || !themeConfig.dateRange) return false
 
   const year = now.getFullYear()
@@ -87,57 +87,166 @@ function isDateInSeasonalRange(themeConfig: ThemeColors, now: Date): boolean {
     : current >= startNum || current <= endNum
 }
 
+/** The resolved color model the functions below work on (a subset of `ColorsConfig`). */
+export interface ColorModel {
+  themes: Record<string, ThemeColors>
+  groups: Record<string, ResolvedThemeGroup>
+  defaultColor?: string
+}
+
+/** What the user picked: a theme (or `'system'`: by date) and a mode (or `'system'`: by OS). */
+export interface ThemeSelection {
+  theme: string
+  mode: ThemeModePreference
+}
+
+export function isModePreference(value: unknown): value is ThemeModePreference {
+  return value === 'system' || value === 'light' || value === 'dark'
+}
+
+/** A theme the user can actually pick: has at least one real variant. */
+export function isSelectableGroup(colors: ColorModel, name: string): boolean {
+  const group = colors.groups[name]
+  if (!group || name === SYSTEM_THEME) return false
+  return Object.values(group.variants).some(id => !!id && isColorTheme(colors.themes[id]))
+}
+
+/** The theme and mode a variant id belongs to (e.g. `'dark'` → venix/dark). */
+export function findVariantOwner(colors: ColorModel, id: string): { theme: string, mode: ThemeMode } | null {
+  for (const [name, group] of Object.entries(colors.groups)) {
+    if (group.variants.dark === id) return { theme: name, mode: 'dark' }
+    if (group.variants.light === id) return { theme: name, mode: 'light' }
+  }
+  return null
+}
+
 /**
- * Active seasonal theme for today. When `prefersDark` is given, only returns
- * themes matching that mode (light/dark); when omitted, returns the first
- * active seasonal theme regardless of mode.
+ * Initial selection for a visitor with no saved choice, from `defaultColor`:
+ * a theme name (mode follows the OS), a variant id (`'dark'` → that theme in
+ * that mode, as before the theme/mode split) or `'system'` (both automatic).
+ * `fallbackTheme` is the theme `'system'` uses outside any season.
+ */
+export function getDefaultSelection(colors: ColorModel): ThemeSelection & { fallbackTheme: string } {
+  const selectable = Object.keys(colors.groups).filter(name => isSelectableGroup(colors, name))
+  const firstRegular = selectable.find(name => colors.groups[name]?.seasonal !== true) ?? selectable[0] ?? ''
+
+  const defaultColor = colors.defaultColor || DEFAULT_THEME
+  if (isSelectableGroup(colors, defaultColor)) {
+    return { theme: defaultColor, mode: 'system', fallbackTheme: defaultColor }
+  }
+
+  const owner = findVariantOwner(colors, defaultColor)
+  if (owner && isSelectableGroup(colors, owner.theme)) {
+    return { ...owner, fallbackTheme: owner.theme }
+  }
+
+  return { theme: SYSTEM_THEME, mode: 'system', fallbackTheme: firstRegular }
+}
+
+/**
+ * Turns the saved preferences (cookies, possibly from before the theme/mode
+ * split) into a valid selection. A legacy theme preference holding a variant
+ * id (`'dark'`, `'light'`, `'carnaval'`) maps to its theme and, when no mode
+ * was saved, to that variant's mode; a legacy `'system'` meant both automatic.
+ */
+export function normalizeThemeSelection(
+  themePreference: string | null | undefined,
+  modePreference: string | null | undefined,
+  colors: ColorModel,
+): ThemeSelection {
+  const defaults = getDefaultSelection(colors)
+  let theme = defaults.theme
+  let impliedMode: ThemeModePreference = defaults.mode
+
+  if (themePreference === SYSTEM_THEME) {
+    theme = SYSTEM_THEME
+    impliedMode = 'system'
+  }
+  else if (themePreference && isSelectableGroup(colors, themePreference)) {
+    theme = themePreference
+  }
+  else if (themePreference) {
+    const owner = findVariantOwner(colors, themePreference)
+    if (owner && isSelectableGroup(colors, owner.theme)) {
+      theme = owner.theme
+      impliedMode = owner.mode
+    }
+  }
+
+  return { theme, mode: isModePreference(modePreference) ? modePreference : impliedMode }
+}
+
+/**
+ * Active seasonal theme for today. When `mode` is given, only returns themes
+ * that have a variant for that mode; when omitted, returns the first active
+ * seasonal theme regardless of mode.
  */
 export function getActiveSeasonalTheme(
-  themes: Record<string, ThemeColors>,
-  prefersDark?: boolean,
+  groups: Record<string, ResolvedThemeGroup>,
+  mode?: ThemeMode,
   now: Date = new Date(),
 ): string | null {
-  for (const [themeName, themeConfig] of Object.entries(themes)) {
-    if (themeName === 'system') continue
-    if (!isColorTheme(themeConfig)) continue
-    if (!isDateInSeasonalRange(themeConfig, now)) continue
-    if (prefersDark !== undefined && themeConfig.dark !== prefersDark) continue
-    return themeName
+  for (const [name, group] of Object.entries(groups)) {
+    if (name === SYSTEM_THEME) continue
+    if (!group.variants.dark && !group.variants.light) continue
+    if (!isDateInSeasonalRange(group, now)) continue
+    if (mode !== undefined && !group.variants[mode]) continue
+    return name
   }
 
   return null
 }
 
+/** Resolves `'system'` mode to a concrete one. */
+export function resolveMode(mode: ThemeModePreference, prefersDark: boolean): ThemeMode {
+  if (mode === 'system') return prefersDark ? 'dark' : 'light'
+  return mode
+}
+
 /**
- * Resolves a theme preference (`'system'`, a theme name, or empty) to the
- * concrete color theme that should be applied. Single implementation of this
- * rule — used by `useVenixTheme`/`useThemeSeasonal` and the SSR plugin
- * (`theme-init.server.ts`). The pre-hydration script
+ * Resolves a selection to the concrete variant id to apply (`data-theme`).
+ * The mode picks the variant; a theme with only the other variant uses that
+ * one. `'system'` as theme means today's seasonal theme (one with a variant
+ * for the mode), else the default theme.
+ *
+ * Single implementation of this rule — used by `useVenixTheme` and the SSR
+ * and Vuetify plugins. The pre-hydration script
  * (`runtime/scripts/theme-init.ts`) is the one documented exception: it has
  * to run as a self-contained IIFE (no imports), so it deliberately duplicates
  * this logic — keep the two in sync when changing either.
  */
-export function resolveThemePreference(
-  preference: string | undefined,
-  themes: Record<string, ThemeColors>,
-  defaultTheme: string,
+export function resolveThemeSelection(
+  selection: ThemeSelection,
+  colors: ColorModel,
   prefersDark: boolean,
+  now: Date = new Date(),
 ): string {
-  let resolved: string
+  const mode = resolveMode(selection.mode, prefersDark)
+  const { fallbackTheme } = getDefaultSelection(colors)
 
-  if (preference === 'system') {
-    resolved = getActiveSeasonalTheme(themes, prefersDark) || (prefersDark ? 'dark' : 'light')
-  }
-  else if (preference && isColorTheme(themes[preference])) {
-    resolved = preference
-  }
-  else {
-    resolved = defaultTheme
-  }
+  const theme = selection.theme === SYSTEM_THEME
+    ? getActiveSeasonalTheme(colors.groups, mode, now) ?? fallbackTheme
+    : selection.theme
 
-  if (!isColorTheme(themes[resolved])) {
-    resolved = isColorTheme(themes[defaultTheme]) ? defaultTheme : 'dark'
+  const pick = (name: string): string | null => {
+    const variants = colors.groups[name]?.variants
+    const id = variants?.[mode] ?? variants?.[mode === 'dark' ? 'light' : 'dark']
+    return id && isColorTheme(colors.themes[id]) ? id : null
   }
 
-  return resolved
+  return pick(theme)
+    ?? pick(fallbackTheme)
+    ?? Object.keys(colors.themes).find(id => isColorTheme(colors.themes[id]))
+    ?? DEFAULT_THEME
+}
+
+/** `normalizeThemeSelection` + `resolveThemeSelection`, straight from the saved preferences. */
+export function resolveThemePreference(
+  themePreference: string | null | undefined,
+  modePreference: string | null | undefined,
+  colors: ColorModel,
+  prefersDark: boolean,
+  now: Date = new Date(),
+): string {
+  return resolveThemeSelection(normalizeThemeSelection(themePreference, modePreference, colors), colors, prefersDark, now)
 }

@@ -1,10 +1,20 @@
-import type { ThemeColors } from './colors'
+import type { ThemeEntry } from './colors'
 
 export interface ColorOptions {
   enabled: boolean
   apply: boolean
+  /**
+   * Initial choice for new visitors: a theme name (mode follows the OS), a
+   * variant id like `'dark'` (that theme in that mode) or `'system'` (both
+   * automatic). Default: `'dark'`.
+   */
   defaultColor: string
-  themes: Record<string, Partial<ThemeColors>>
+  /**
+   * Override or add themes. Use the grouped format
+   * (`{ translations, icon, light: {...}, dark: {...} }`); the flat format
+   * (`{ dark: true, primary, ... }`) still works but is deprecated.
+   */
+  themes: Record<string, Partial<ThemeEntry>>
   /**
    * Preferred variant for each theme's icon when `icon` is an object
    * (`ThemeIconFormats`). Default: `'svg'`. Falls back to `'emote'` when the

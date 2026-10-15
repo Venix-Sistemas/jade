@@ -3,7 +3,21 @@ import './runtime-config'
 export type { FontConfig, TypographyConfig } from './typography'
 export type { ScrollbarConfig } from './scrollbar'
 export type { CursorConfig } from './cursor'
-export type { ThemeColors, ThemeTranslations, ColorsConfig, ThemeIconFormats } from './colors'
+export type {
+  ThemeColors,
+  ThemeTranslations,
+  ColorsConfig,
+  ThemeIconFormats,
+  ThemeMode,
+  ThemeModePreference,
+  ThemePalette,
+  ThemeVariant,
+  ThemeMeta,
+  ThemeDefinition,
+  ThemeEntry,
+  ResolvedThemeGroup,
+  ThemeModeLabel,
+} from './colors'
 export type { ThemeConfig } from './theme'
 export type { TranslationConfig } from './translation'
 export type { ColorOptions } from './color-options'

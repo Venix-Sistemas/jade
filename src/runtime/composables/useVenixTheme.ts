@@ -1,15 +1,17 @@
 // runtime/composables/useVenixTheme.ts
 import { ref, computed, watch, onMounted, onUnmounted, getCurrentInstance } from 'vue'
 import { useRuntimeConfig, useState } from '#app'
-import { DEFAULT_THEME, DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT } from '../../shared/constants'
+import { DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT, SYSTEM_THEME } from '../../shared/constants'
 import { useThemeCookies } from './useThemeCookies'
 import { useThemeLocale } from './useThemeLocale'
 import { useThemeSeasonal } from './useThemeSeasonal'
 import { useThemeColors } from './useThemeColors'
 import { hasCookieConsent } from '../../shared/utils/consent'
 import { buildResolvedTheme } from '../../shared/utils/theme-config'
-import { resolveThemePreference } from '../../shared/utils/theme-resolve'
+import { findVariantOwner, isModePreference, isSelectableGroup, normalizeThemeSelection, resolveMode, resolveThemeSelection } from '../../shared/utils/theme-resolve'
+import type { ThemeSelection } from '../../shared/utils/theme-resolve'
 import type { ThemeIconFormat } from '../../shared/utils/icon'
+import type { ThemeMode, ThemeModePreference } from '../../shared/types'
 
 export const useVenixTheme = () => {
   const config = useRuntimeConfig()
@@ -17,7 +19,6 @@ export const useVenixTheme = () => {
 
   const theme = buildResolvedTheme(themeConfig)
 
-  const defaultTheme = theme.colors.defaultColor || DEFAULT_THEME
   const shouldApplyColors = themeConfig?.applyColors !== false && theme.colors.defaults !== false
 
   // Cookies — the locale cookie is the same one used by routing i18n
@@ -62,29 +63,37 @@ export const useVenixTheme = () => {
 
   const colors = useThemeColors(theme, locale.translate, (themeConfig?.iconFormat as ThemeIconFormat) || 'svg')
 
-  // Preference state — shared via useState so multiple calls to
-  // useVenixTheme() (e.g. the page and <VenixThemeSwitcher>) stay in sync
-  // instead of each getting its own disconnected copy.
-  const initialPreference = cookies.preferenceCookie.value || defaultTheme
-  const preference = useState<string>('venix-theme-preference', () => initialPreference || 'system')
+  // Preference state — the theme (`'system'` = by date) and the mode
+  // (`'system'` = by OS) are chosen independently. Shared via useState so
+  // multiple calls to useVenixTheme() (e.g. the page and
+  // <VenixThemeSwitcher>) stay in sync instead of each getting its own
+  // disconnected copy. `normalizeThemeSelection` also migrates cookies saved
+  // before the theme/mode split (e.g. a theme cookie of `'dark'`).
+  const readCookieSelection = (): ThemeSelection =>
+    normalizeThemeSelection(cookies.preferenceCookie.value, cookies.modeCookie.value, theme.colors)
+
+  const initialSelection = readCookieSelection()
+  const preference = useState<string>('venix-theme-preference', () => initialSelection.theme)
+  const modePreference = useState<ThemeModePreference>('venix-theme-mode', () => initialSelection.mode)
+
+  const currentSelection = (): ThemeSelection => ({ theme: preference.value, mode: modePreference.value })
 
   // Bumped whenever something theme resolution depends on changes outside
   // Vue's reactivity (OS color scheme, the date rolling over to a new day),
   // so the computeds below don't stay stuck on a stale result.
   const environmentVersion = ref(0)
 
-  const getResolvedTheme = (pref: string): string => {
-    const prefersDark = typeof window !== 'undefined'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
-      : true
+  const getPrefersDark = (): boolean => typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-color-scheme: dark)').matches
+    : true
 
-    return resolveThemePreference(pref, theme.colors.themes, defaultTheme, prefersDark)
-  }
+  const getResolvedTheme = (selection: ThemeSelection = currentSelection()): string =>
+    resolveThemeSelection(selection, theme.colors, getPrefersDark())
 
-  const apply = (pref: string) => {
+  const apply = (selection: ThemeSelection) => {
     if (!shouldApplyColors) return
 
-    const resolved = getResolvedTheme(pref)
+    const resolved = getResolvedTheme(selection)
 
     if (typeof document !== 'undefined') {
       const html = document.documentElement
@@ -103,13 +112,13 @@ export const useVenixTheme = () => {
 
   // Animates the theme switch with the View Transitions API (the browser's
   // native cross-fade) when available; without it the switch is instant.
-  const applyWithTransition = (pref: string) => {
+  const applyWithTransition = (selection: ThemeSelection) => {
     const canAnimate = typeof document !== 'undefined'
       && typeof document.startViewTransition === 'function'
       && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     if (!canAnimate) {
-      apply(pref)
+      apply(selection)
       return
     }
 
@@ -144,7 +153,7 @@ export const useVenixTheme = () => {
     // finishes, or the tab is hidden) — an expected outcome, not a real
     // error; without the `.catch()`s, this turns into "Uncaught (in
     // promise)" in the console.
-    const transition = document.startViewTransition(() => apply(pref))
+    const transition = document.startViewTransition(() => apply(selection))
     transition.ready.catch(() => {})
     transition.finished.then(restoreCursor).catch(restoreCursor)
   }
@@ -157,18 +166,15 @@ export const useVenixTheme = () => {
     // choice. `useCookie`, unlike `useState`, always re-reads `document.cookie`
     // on the client (see Nuxt's `useCookie` internals) — it's never poisoned
     // by that stale payload, so it's the one to trust whenever the two disagree.
-    if (cookies.preferenceCookie.value && cookies.preferenceCookie.value !== preference.value) {
-      preference.value = cookies.preferenceCookie.value
+    if (cookies.preferenceCookie.value || cookies.modeCookie.value) {
+      const fromCookies = readCookieSelection()
+      if (fromCookies.theme !== preference.value) preference.value = fromCookies.theme
+      if (fromCookies.mode !== modePreference.value) modePreference.value = fromCookies.mode
     }
 
-    const currentTheme = document.documentElement.getAttribute('data-theme')
-    if (currentTheme) {
-      if (!cookies.preferenceCookie.value) {
-        preference.value = currentTheme
-      }
-    }
-    else {
-      apply(preference.value)
+    // Normally already set by the pre-hydration script (theme-init.ts).
+    if (!document.documentElement.getAttribute('data-theme')) {
+      apply(currentSelection())
     }
   }
 
@@ -182,7 +188,7 @@ export const useVenixTheme = () => {
     hasConsent.value = hasCookieConsent()
 
     if (cookies.canPersist()) {
-      cookies.persistIfConsented(preference.value, getResolvedTheme(preference.value))
+      cookies.persistIfConsented(preference.value, modePreference.value, getResolvedTheme())
     }
     else {
       cookies.disablePersistence()
@@ -234,7 +240,7 @@ export const useVenixTheme = () => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const handleSystemThemeChange = () => {
       environmentVersion.value++
-      if (preference.value === 'system') applyWithTransition('system')
+      if (modePreference.value === 'system') applyWithTransition(currentSelection())
     }
     mq.addEventListener('change', handleSystemThemeChange)
 
@@ -248,7 +254,7 @@ export const useVenixTheme = () => {
 
       midnightTimeout = setTimeout(() => {
         environmentVersion.value++
-        if (preference.value === 'system') applyWithTransition('system')
+        if (preference.value === SYSTEM_THEME) applyWithTransition(currentSelection())
         scheduleSeasonalCheck()
       }, msToMidnight + 1000)
     }
@@ -266,34 +272,83 @@ export const useVenixTheme = () => {
     }
   })
 
-  watch(preference, (newPref) => {
+  watch([preference, modePreference], () => {
     if (!shouldApplyColors) return
 
-    applyWithTransition(newPref)
-    cookies.persistIfConsented(newPref, getResolvedTheme(newPref))
+    const selection = currentSelection()
+    applyWithTransition(selection)
+    cookies.persistIfConsented(selection.theme, selection.mode, getResolvedTheme(selection))
   })
 
+  /** Picks the theme (`'system'` = by date), keeping the current mode. */
+  const setTheme = (name: string) => {
+    if (name === SYSTEM_THEME || isSelectableGroup(theme.colors, name)) preference.value = name
+  }
+
+  /** Picks the mode (`'system'` = follow the OS), keeping the current theme. */
+  const setMode = (mode: ThemeModePreference) => {
+    if (isModePreference(mode)) modePreference.value = mode
+  }
+
+  // Both depend on the OS color scheme / today's date — reading
+  // `environmentVersion` re-evaluates them when either changes.
+  const resolvedTheme = computed(() => {
+    void environmentVersion.value
+    return getResolvedTheme(currentSelection())
+  })
+
+  // The mode actually applied: normally the chosen one, but a theme with a
+  // single variant keeps its own.
+  const resolvedMode = computed<ThemeMode>(() =>
+    theme.colors.themes[resolvedTheme.value]?.dark === false ? 'light' : 'dark',
+  )
+
+  const toggleMode = () => {
+    modePreference.value = resolvedMode.value === 'dark' ? 'light' : 'dark'
+  }
+
+  /**
+   * Without an argument, switches between light and dark mode. With one,
+   * selects it: a theme name; a variant id such as `'dark'`/`'light'` (as
+   * before the theme/mode split), which also sets its mode; or `'system'`,
+   * which makes both theme and mode automatic.
+   */
   const toggle = (forceTheme?: string) => {
-    const newTheme = forceTheme ?? (preference.value === 'light' ? 'dark' : 'light')
-    preference.value = newTheme
-    cookies.persistIfConsented(newTheme, getResolvedTheme(newTheme))
+    if (forceTheme === undefined) {
+      toggleMode()
+      return
+    }
+
+    if (forceTheme === SYSTEM_THEME) {
+      preference.value = SYSTEM_THEME
+      modePreference.value = 'system'
+      return
+    }
+
+    if (isSelectableGroup(theme.colors, forceTheme)) {
+      preference.value = forceTheme
+      return
+    }
+
+    const owner = findVariantOwner(theme.colors, forceTheme)
+    if (owner) {
+      preference.value = owner.theme
+      modePreference.value = owner.mode
+    }
   }
 
   const data = computed(() =>
     colors.themes.value.find(t => t.value === preference.value) ?? colors.themes.value[0],
   )
 
-  // Both depend on the OS color scheme / today's date — reading
-  // `environmentVersion` re-evaluates them when either changes.
-  const resolvedTheme = computed(() => {
-    void environmentVersion.value
-    return getResolvedTheme(preference.value)
-  })
+  const modeData = computed(() =>
+    colors.modes.value.find(m => m.value === modePreference.value) ?? colors.modes.value[0],
+  )
 
   const activeSeasonalTheme = computed(() => {
     void environmentVersion.value
-    if (preference.value !== 'system') return null
-    return seasonal.getActiveSeasonalTheme()
+    if (preference.value !== SYSTEM_THEME) return null
+    return seasonal.getActiveSeasonalTheme(resolveMode(modePreference.value, getPrefersDark()))
   })
 
   const isSeasonalActive = computed(() => activeSeasonalTheme.value !== null)
@@ -303,6 +358,7 @@ export const useVenixTheme = () => {
       value: resolvedTheme,
       preference,
       data,
+      set: setTheme,
       toggle,
       isSeasonalActive,
       activeSeasonalTheme,
@@ -310,6 +366,14 @@ export const useVenixTheme = () => {
       colors: theme.colors,
     },
     themes: colors.themes,
+    mode: {
+      value: resolvedMode,
+      preference: modePreference,
+      data: modeData,
+      set: setMode,
+      toggle: toggleMode,
+    },
+    modes: colors.modes,
     locale: {
       current: locale.currentLocale,
       set: locale.setLocale,
@@ -319,7 +383,7 @@ export const useVenixTheme = () => {
       hasConsent,
       grant: grantPersistence,
       revoke: revokePersistence,
-      enable: () => cookies.persistIfConsented(preference.value, getResolvedTheme(preference.value)),
+      enable: () => cookies.persistIfConsented(preference.value, modePreference.value, getResolvedTheme()),
       disable: cookies.disablePersistence,
     },
   }

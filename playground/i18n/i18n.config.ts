@@ -1,23 +1,32 @@
 // Playground's own content translations — separate from `@venix-sistemas/jade`'s
 // built-in theme-name translations, which follow the same locale automatically
-// via `translation.cookieSync` (see the "Languages" section in app.vue).
+// via `translation.cookieSync` (see the "Translation" section in app.vue).
 export default defineI18nConfig(() => ({
   legacy: false,
   messages: {
     en: {
       app: {
-        subtitle: 'Interactive playground for the theme module',
+        subtitle: 'Every Jade module in action, one section each',
+        modules: 'Modules',
       },
-      themeSelector: {
-        heading: 'Theme Selector',
+      modules: {
+        color: { title: 'Colors', description: 'Themes in light and dark mode, seasonal themes, CSS variables and cookie persistence.' },
+        translation: { title: 'Translation', description: 'Detects the user\'s locale and translates theme and mode names.' },
+        icon: { title: 'Icons', description: '<VenixIcon> renders an emoji, an Iconify icon or an inline SVG from a single value.' },
+        typography: { title: 'Typography', description: 'Base font family, font size and {\'@\'}font-face rules for custom fonts.' },
+        scrollbar: { title: 'Scrollbar', description: 'A custom scrollbar that follows the active theme\'s colors.' },
+        cursor: { title: 'Cursor', description: 'Custom cursor images for default, clickable and text areas.' },
+        vuetify: { title: 'Vuetify', description: 'Registers the color themes with Vuetify and keeps it in sync.' },
       },
-      languages: {
-        heading: 'Languages',
-        appLocaleLabel: 'Language ({pkg}):',
-        themeLocaleLabel: 'Theme locale:',
-      },
-      cookieConsent: {
-        heading: 'Cookie Consent',
+      color: {
+        selectorHeading: 'Mode and theme',
+        selectorHint: 'The same choice as the switcher in the top-right corner: both stay in sync.',
+        mode: 'Mode',
+        theme: 'Theme',
+        toggle: 'Toggle light/dark',
+        applied: 'Applied:',
+        paletteHeading: 'Palette · {theme}',
+        consentHeading: 'Saving the choice (cookie consent)',
         consentLabel: 'Consent:',
         cookiesLabel: 'Cookies:',
         granted: 'Granted',
@@ -26,44 +35,59 @@ export default defineI18nConfig(() => ({
         absent: 'Absent',
         grant: 'Allow cookies',
         revoke: 'Revoke cookies',
-        hint: 'Without consent, switching themes still works — it just isn\'t remembered on the next visit.',
+        consentHint: 'Without consent, switching themes still works — it just isn\'t remembered on the next visit.',
       },
-      colorPalette: {
-        heading: 'Color Palette - {theme}',
+      translation: {
+        languageHeading: 'Language',
+        appLocale: 'App language ({pkg}):',
+        themeLocale: 'Jade locale:',
+        namesHeading: 'Translated names',
+        namesHint: 'Mode and theme names come from Jade itself, in the current locale.',
       },
-      icons: {
-        heading: 'Icons (VenixIcon)',
+      icon: {
         iconify: 'Iconify (line-md, animated)',
         emoji: 'Emoji',
         svg: 'Inline SVG',
-        aliasHome: 'Alias -> \'home\'',
-        aliasStar: 'Alias -> \'star\' (emoji)',
+        aliasHome: 'Alias → \'home\'',
+        aliasStar: 'Alias → \'star\' (emoji)',
       },
-      scroll: {
-        verticalHeading: 'Vertical Scroll',
-        horizontalHeading: 'Horizontal Scroll',
-        verticalItem: 'Vertical item {n}',
-        horizontalItem: 'Item {n}',
+      typography: {
+        sample: 'The quick brown fox jumps over the lazy dog',
       },
-      actions: {
-        heading: 'Actions',
-        toggle: 'Toggle Light/Dark',
+      scrollbar: {
+        vertical: 'Vertical',
+        horizontal: 'Horizontal',
+        item: 'Item {n}',
+      },
+      cursor: {
+        default: 'Hover over this area',
+        pointer: 'Hover over this button',
+        text: 'Type here…',
       },
     },
     pt: {
       app: {
-        subtitle: 'Playground interativo do módulo de temas',
+        subtitle: 'Todos os módulos do Jade em ação, uma seção para cada',
+        modules: 'Módulos',
       },
-      themeSelector: {
-        heading: 'Seletor de Temas',
+      modules: {
+        color: { title: 'Cores', description: 'Temas nos modos claro e escuro, temas sazonais, variáveis CSS e persistência em cookies.' },
+        translation: { title: 'Tradução', description: 'Detecta o idioma do usuário e traduz os nomes de temas e modos.' },
+        icon: { title: 'Ícones', description: '<VenixIcon> renderiza um emoji, um ícone do Iconify ou um SVG inline a partir de um único valor.' },
+        typography: { title: 'Tipografia', description: 'Família e tamanho da fonte base, e regras {\'@\'}font-face para fontes próprias.' },
+        scrollbar: { title: 'Scrollbar', description: 'Uma barra de rolagem personalizada que segue as cores do tema ativo.' },
+        cursor: { title: 'Cursor', description: 'Imagens de cursor próprias para áreas comuns, clicáveis e de texto.' },
+        vuetify: { title: 'Vuetify', description: 'Registra os temas de cor no Vuetify e o mantém sincronizado.' },
       },
-      languages: {
-        heading: 'Idiomas',
-        appLocaleLabel: 'Idioma ({pkg}):',
-        themeLocaleLabel: 'Locale do tema:',
-      },
-      cookieConsent: {
-        heading: 'Consentimento de Cookies',
+      color: {
+        selectorHeading: 'Modo e tema',
+        selectorHint: 'A mesma escolha do seletor no canto superior direito: os dois ficam sincronizados.',
+        mode: 'Modo',
+        theme: 'Tema',
+        toggle: 'Alternar claro/escuro',
+        applied: 'Aplicado:',
+        paletteHeading: 'Paleta · {theme}',
+        consentHeading: 'Salvando a escolha (consentimento de cookies)',
         consentLabel: 'Consentimento:',
         cookiesLabel: 'Cookies:',
         granted: 'Concedido',
@@ -72,44 +96,59 @@ export default defineI18nConfig(() => ({
         absent: 'Ausentes',
         grant: 'Permitir cookies',
         revoke: 'Revogar cookies',
-        hint: 'Sem consentimento a troca de tema ainda funciona, só não é lembrada na próxima visita.',
+        consentHint: 'Sem consentimento a troca de tema ainda funciona, só não é lembrada na próxima visita.',
       },
-      colorPalette: {
-        heading: 'Paleta de Cores - {theme}',
+      translation: {
+        languageHeading: 'Idioma',
+        appLocale: 'Idioma do app ({pkg}):',
+        themeLocale: 'Locale do Jade:',
+        namesHeading: 'Nomes traduzidos',
+        namesHint: 'Os nomes de modos e temas vêm do próprio Jade, no idioma atual.',
       },
-      icons: {
-        heading: 'Ícones (VenixIcon)',
+      icon: {
         iconify: 'Iconify (line-md, animado)',
         emoji: 'Emoji',
         svg: 'SVG inline',
-        aliasHome: 'Alias -> \'home\'',
-        aliasStar: 'Alias -> \'star\' (emoji)',
+        aliasHome: 'Alias → \'home\'',
+        aliasStar: 'Alias → \'star\' (emoji)',
       },
-      scroll: {
-        verticalHeading: 'Scroll Vertical',
-        horizontalHeading: 'Scroll Horizontal',
-        verticalItem: 'Item vertical {n}',
-        horizontalItem: 'Item {n}',
+      typography: {
+        sample: 'Jovem craque belga prestigia a festa do Natal',
       },
-      actions: {
-        heading: 'Ações',
-        toggle: 'Alternar Light/Dark',
+      scrollbar: {
+        vertical: 'Vertical',
+        horizontal: 'Horizontal',
+        item: 'Item {n}',
+      },
+      cursor: {
+        default: 'Passe o mouse sobre esta área',
+        pointer: 'Passe o mouse sobre este botão',
+        text: 'Digite aqui…',
       },
     },
     es: {
       app: {
-        subtitle: 'Playground interactivo del módulo de temas',
+        subtitle: 'Todos los módulos de Jade en acción, una sección para cada uno',
+        modules: 'Módulos',
       },
-      themeSelector: {
-        heading: 'Selector de Temas',
+      modules: {
+        color: { title: 'Colores', description: 'Temas en modo claro y oscuro, temas de temporada, variables CSS y persistencia en cookies.' },
+        translation: { title: 'Traducción', description: 'Detecta el idioma del usuario y traduce los nombres de temas y modos.' },
+        icon: { title: 'Iconos', description: '<VenixIcon> renderiza un emoji, un icono de Iconify o un SVG en línea a partir de un solo valor.' },
+        typography: { title: 'Tipografía', description: 'Familia y tamaño de la fuente base, y reglas {\'@\'}font-face para fuentes propias.' },
+        scrollbar: { title: 'Scrollbar', description: 'Una barra de desplazamiento personalizada que sigue los colores del tema activo.' },
+        cursor: { title: 'Cursor', description: 'Imágenes de cursor propias para áreas normales, clicables y de texto.' },
+        vuetify: { title: 'Vuetify', description: 'Registra los temas de color en Vuetify y lo mantiene sincronizado.' },
       },
-      languages: {
-        heading: 'Idiomas',
-        appLocaleLabel: 'Idioma ({pkg}):',
-        themeLocaleLabel: 'Locale del tema:',
-      },
-      cookieConsent: {
-        heading: 'Consentimiento de Cookies',
+      color: {
+        selectorHeading: 'Modo y tema',
+        selectorHint: 'La misma elección que el selector de la esquina superior derecha: ambos se mantienen sincronizados.',
+        mode: 'Modo',
+        theme: 'Tema',
+        toggle: 'Alternar claro/oscuro',
+        applied: 'Aplicado:',
+        paletteHeading: 'Paleta · {theme}',
+        consentHeading: 'Guardar la elección (consentimiento de cookies)',
         consentLabel: 'Consentimiento:',
         cookiesLabel: 'Cookies:',
         granted: 'Concedido',
@@ -118,28 +157,34 @@ export default defineI18nConfig(() => ({
         absent: 'Ausentes',
         grant: 'Permitir cookies',
         revoke: 'Revocar cookies',
-        hint: 'Sin consentimiento, el cambio de tema sigue funcionando — solo no se recuerda en la próxima visita.',
+        consentHint: 'Sin consentimiento, el cambio de tema sigue funcionando — solo no se recuerda en la próxima visita.',
       },
-      colorPalette: {
-        heading: 'Paleta de Colores - {theme}',
+      translation: {
+        languageHeading: 'Idioma',
+        appLocale: 'Idioma de la app ({pkg}):',
+        themeLocale: 'Locale de Jade:',
+        namesHeading: 'Nombres traducidos',
+        namesHint: 'Los nombres de modos y temas vienen del propio Jade, en el idioma actual.',
       },
-      icons: {
-        heading: 'Iconos (VenixIcon)',
+      icon: {
         iconify: 'Iconify (line-md, animado)',
         emoji: 'Emoji',
         svg: 'SVG en línea',
-        aliasHome: 'Alias -> \'home\'',
-        aliasStar: 'Alias -> \'star\' (emoji)',
+        aliasHome: 'Alias → \'home\'',
+        aliasStar: 'Alias → \'star\' (emoji)',
       },
-      scroll: {
-        verticalHeading: 'Scroll Vertical',
-        horizontalHeading: 'Scroll Horizontal',
-        verticalItem: 'Elemento vertical {n}',
-        horizontalItem: 'Elemento {n}',
+      typography: {
+        sample: 'El veloz murciélago hindú comía feliz cardillo y kiwi',
       },
-      actions: {
-        heading: 'Acciones',
-        toggle: 'Alternar Claro/Oscuro',
+      scrollbar: {
+        vertical: 'Vertical',
+        horizontal: 'Horizontal',
+        item: 'Elemento {n}',
+      },
+      cursor: {
+        default: 'Pasa el ratón sobre esta área',
+        pointer: 'Pasa el ratón sobre este botón',
+        text: 'Escribe aquí…',
       },
     },
   },

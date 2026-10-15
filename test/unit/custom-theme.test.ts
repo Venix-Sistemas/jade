@@ -15,12 +15,11 @@ const options: ModuleOptions = {
   color: {
     themes: {
       easter: {
-        dark: false,
         seasonal: true,
         dateRange: { start: '03-25', end: '04-05' },
-        primary: '#F7C6D9',
-        background: '#FFFDF5',
         translations: { 'en-US': 'Easter', 'pt-BR': 'Páscoa' },
+        light: { primary: '#F7C6D9', background: '#FFFDF5' },
+        dark: { primary: '#FF6FB0', background: '#1B1225' },
       },
     },
   },
@@ -30,8 +29,8 @@ describe('registering a brand-new custom theme (not overriding a built-in one)',
   it('customizeTheme adds it alongside the built-in themes', () => {
     const theme = customizeTheme(loadTheme(), options)
 
-    expect(theme.colors.themes.easter).toBeDefined()
-    expect(theme.colors.themes.easter?.primary).toBe('#F7C6D9')
+    expect(theme.colors.groups.easter?.variants).toEqual({ light: 'easter-light', dark: 'easter-dark' })
+    expect(theme.colors.themes['easter-light']?.primary).toBe('#F7C6D9')
     // Built-ins are untouched
     expect(theme.colors.themes.dark).toBeDefined()
     expect(theme.colors.themes.light).toBeDefined()
@@ -41,7 +40,8 @@ describe('registering a brand-new custom theme (not overriding a built-in one)',
     const theme = customizeTheme(loadTheme(), options)
     const css = processTheme(theme)
 
-    expect(css).toContain(':root[data-theme=\'easter\']')
+    expect(css).toContain(':root[data-theme=\'easter-light\']')
+    expect(css).toContain(':root[data-theme=\'easter-dark\']')
     expect(css).toContain('--color-primary: #F7C6D9')
   })
 
@@ -49,14 +49,9 @@ describe('registering a brand-new custom theme (not overriding a built-in one)',
     const theme = customizeTheme(loadTheme(), options)
     const easterDay = new Date(2026, 2, 28) // March 28 — inside the 03-25..04-05 range
 
-    const resolved = resolveThemePreference('system', theme.colors.themes, 'dark', false)
-    // prefersDark=false matches `dark: false` on the custom theme; without a
-    // fixed `now`, this only checks resolution logic picks a real theme
-    // (see the dedicated date-range test below for the actual date match)
-    expect(theme.colors.themes[resolved]).toBeDefined()
-
-    // Directly exercise the date-range match the same way the client/SSR do
-    expect(getActiveSeasonalTheme(theme.colors.themes, false, easterDay)).toBe('easter')
+    expect(resolveThemePreference('system', 'light', theme.colors, true, easterDay)).toBe('easter-light')
+    expect(resolveThemePreference('system', 'system', theme.colors, true, easterDay)).toBe('easter-dark')
+    expect(getActiveSeasonalTheme(theme.colors.groups, 'light', easterDay)).toBe('easter')
   })
 
   it('is also picked up at runtime (client/SSR), via the colorThemes runtimeConfig round-trip', () => {
@@ -68,8 +63,8 @@ describe('registering a brand-new custom theme (not overriding a built-in one)',
     // the browser and the theme switcher, not just the generated CSS file.
     const runtimeTheme = buildResolvedTheme({ colorThemes: options.color && typeof options.color === 'object' ? options.color.themes : undefined })
 
-    expect(runtimeTheme.colors.themes.easter).toBeDefined()
-    expect(runtimeTheme.colors.themes.easter?.primary).toBe('#F7C6D9')
+    expect(runtimeTheme.colors.groups.easter).toBeDefined()
+    expect(runtimeTheme.colors.themes['easter-light']?.primary).toBe('#F7C6D9')
     expect(runtimeTheme.colors.themes.dark).toBeDefined()
   })
 })

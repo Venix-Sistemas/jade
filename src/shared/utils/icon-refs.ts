@@ -1,4 +1,4 @@
-import type { ThemeColors } from '../types/colors'
+import type { ThemeIconFormats } from '../types/colors'
 import { ICONIFY_NAME } from './icon'
 
 function addRef(refs: Map<string, Set<string>>, value: string | undefined) {
@@ -14,14 +14,14 @@ function addRef(refs: Map<string, Set<string>>, value: string | undefined) {
 
 /**
  * Extracts the Iconify `collection:icon` references used in color themes
- * (`icon.css` / `icon.svg`) and in the configured icon aliases, grouped by
+ * and modes (`icon.css` / `icon.svg`) and in the configured icon aliases, grouped by
  * collection. Lets each collection be bundled with only the icons actually
  * used (tree-shaking) instead of the whole collection — essential for large
  * collections like `mdi` (thousands of icons) used for only a handful of
  * icons in the default theme.
  */
 export function extractIconRefs(
-  themes: Record<string, ThemeColors>,
+  themes: Record<string, { icon?: string | ThemeIconFormats }> | Array<{ icon?: string | ThemeIconFormats }>,
   aliases: Record<string, string>,
 ): Map<string, Set<string>> {
   const refs = new Map<string, Set<string>>()

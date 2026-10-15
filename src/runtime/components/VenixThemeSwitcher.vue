@@ -38,57 +38,119 @@
       <span
         v-if="showLabel"
         class="venix-theme-switcher__trigger-label"
-      >{{ theme.data.value?.name }}</span>
+      >{{ triggerLabel }}</span>
     </button>
 
-    <ul
-      v-show="open"
-      class="venix-theme-switcher__menu"
-      role="menu"
-      :aria-label="resolvedLabel"
-      @keydown="handleMenuKeydown"
-    >
-      <li
-        class="venix-theme-switcher__heading"
-        aria-hidden="true"
+    <Transition name="venix-theme-switcher-menu">
+      <div
+        v-show="open"
+        class="venix-theme-switcher__menu"
+        role="menu"
+        :aria-label="resolvedLabel"
+        @keydown="handleMenuKeydown"
       >
-        {{ resolvedLabel }}
-      </li>
-      <li
-        v-for="item in themes"
-        :key="item.value"
-        role="none"
-      >
-        <button
-          type="button"
-          role="menuitemradio"
-          class="venix-theme-switcher__item"
-          :class="{ 'venix-theme-switcher__item--active': item.value === theme.preference.value }"
-          :aria-checked="item.value === theme.preference.value"
-          @click="select(item.value)"
+        <div
+          class="venix-theme-switcher__heading"
+          aria-hidden="true"
         >
-          <span
-            v-if="item.icon?.format === 'emote'"
-            class="venix-icon venix-icon--emoji venix-theme-switcher__item-icon"
+          {{ resolvedLabel }}
+        </div>
+
+        <div
+          class="venix-theme-switcher__separator"
+          role="separator"
+        />
+
+        <div
+          class="venix-theme-switcher__group"
+          role="group"
+          :aria-label="modeHeading"
+        >
+          <div
+            class="venix-theme-switcher__subheading"
             aria-hidden="true"
-          >{{ item.icon.value }}</span>
-          <VenixIcon
-            v-else-if="item.icon"
-            class="venix-theme-switcher__item-icon"
-            :icon="item.icon.value"
-            :mode="item.icon.format"
+          >
+            {{ modeHeading }}
+          </div>
+          <div class="venix-theme-switcher__modes">
+            <button
+              v-for="item in modes"
+              :key="item.value"
+              type="button"
+              role="menuitemradio"
+              class="venix-theme-switcher__item venix-theme-switcher__item--mode"
+              :class="{ 'venix-theme-switcher__item--active': item.value === mode.preference.value }"
+              :aria-checked="item.value === mode.preference.value"
+              @click="selectMode(item.value)"
+            >
+              <span
+                v-if="item.icon?.format === 'emote'"
+                class="venix-icon venix-icon--emoji venix-theme-switcher__item-icon"
+                aria-hidden="true"
+              >{{ item.icon.value }}</span>
+              <VenixIcon
+                v-else-if="item.icon"
+                class="venix-theme-switcher__item-icon"
+                :icon="item.icon.value"
+                :mode="item.icon.format"
+                aria-hidden="true"
+              />
+              <span>{{ item.name }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="venix-theme-switcher__separator"
+          role="separator"
+        />
+
+        <div
+          class="venix-theme-switcher__group"
+          role="group"
+          :aria-label="themeHeading"
+        >
+          <div
+            class="venix-theme-switcher__subheading"
             aria-hidden="true"
-          />
-          <span>{{ item.name }}</span>
-        </button>
-      </li>
-    </ul>
+          >
+            {{ themeHeading }}
+          </div>
+          <button
+            v-for="item in themes"
+            :key="item.value"
+            type="button"
+            role="menuitemradio"
+            class="venix-theme-switcher__item"
+            :class="{ 'venix-theme-switcher__item--active': item.value === theme.preference.value }"
+            :aria-checked="item.value === theme.preference.value"
+            @click="selectTheme(item.value)"
+          >
+            <span
+              v-if="item.icon?.format === 'emote'"
+              class="venix-icon venix-icon--emoji venix-theme-switcher__item-icon"
+              aria-hidden="true"
+            >{{ item.icon.value }}</span>
+            <VenixIcon
+              v-else-if="item.icon"
+              class="venix-theme-switcher__item-icon"
+              :icon="item.icon.value"
+              :mode="item.icon.format"
+              aria-hidden="true"
+            />
+            <span>{{ item.name }}</span>
+          </button>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useVenixTheme } from '../composables/useVenixTheme'
+import { getDefaultSelection } from '../../shared/utils/theme-resolve'
+import type { ThemeModePreference } from '../../shared/types'
 // Imported directly (not auto-imported) so the switcher still works with
 // `icon: false`: <VenixIcon> isn't registered then, and theme icons all
 // resolve to emoji, which render as plain text above without needing it.
@@ -123,16 +185,58 @@ const CHANGED_ANNOUNCEMENT_TRANSLATIONS: Record<string, string> = {
   'zh-CN': '颜色主题已更改为{theme}',
 }
 
+const MODE_HEADING_TRANSLATIONS: Record<string, string> = {
+  'pt-BR': 'Modo',
+  'en-US': 'Mode',
+  'es-ES': 'Modo',
+  'fr-FR': 'Mode',
+  'de-DE': 'Modus',
+  'it-IT': 'Modalità',
+  'ja-JP': 'モード',
+  'ko-KR': '모드',
+  'zh-CN': '模式',
+}
+
+const THEME_HEADING_TRANSLATIONS: Record<string, string> = {
+  'pt-BR': 'Tema',
+  'en-US': 'Theme',
+  'es-ES': 'Tema',
+  'fr-FR': 'Thème',
+  'de-DE': 'Thema',
+  'it-IT': 'Tema',
+  'ja-JP': 'テーマ',
+  'ko-KR': '테마',
+  'zh-CN': '主题',
+}
+
+const MODE_CHANGED_ANNOUNCEMENT_TRANSLATIONS: Record<string, string> = {
+  'pt-BR': 'Modo alterado para {mode}',
+  'en-US': 'Mode changed to {mode}',
+  'es-ES': 'Modo cambiado a {mode}',
+  'fr-FR': 'Mode changé pour {mode}',
+  'de-DE': 'Modus geändert zu {mode}',
+  'it-IT': 'Modalità cambiata in {mode}',
+  'ja-JP': 'モードが{mode}に変更されました',
+  'ko-KR': '모드가 {mode}(으)로 변경되었습니다',
+  'zh-CN': '模式已更改为{mode}',
+}
+
 const props = defineProps<{
   /** Accessible label for the button and the menu. Without a value, uses the component's own translation based on the current locale. */
   label?: string
-  /** Shows the active theme's name next to the icon on the button. */
+  /** Shows the active theme's and mode's names next to the icon on the button. */
   showLabel?: boolean
 }>()
 
-const { theme, themes, locale } = useVenixTheme()
+const { theme, themes, mode, modes, locale } = useVenixTheme()
 
 const resolvedLabel = computed(() => props.label ?? locale.translate(LABEL_TRANSLATIONS, 'Color theme'))
+const modeHeading = computed(() => locale.translate(MODE_HEADING_TRANSLATIONS, 'Mode'))
+const themeHeading = computed(() => locale.translate(THEME_HEADING_TRANSLATIONS, 'Theme'))
+const triggerLabel = computed(() => [theme.data.value?.name, mode.data.value?.name].filter(Boolean).join(' · '))
+
+// The theme used outside any season (e.g. Venix Sistemas)
+const baseTheme = getDefaultSelection(theme.colors).fallbackTheme
 
 const open = ref(false)
 const visible = ref(false)
@@ -140,7 +244,16 @@ const announcement = ref('')
 const rootRef = ref<HTMLElement | null>(null)
 const triggerRef = ref<HTMLButtonElement | null>(null)
 
-const activeIcon = computed(() => theme.data.value?.icon ?? null)
+// The button shows what's in effect: a seasonal or explicitly chosen theme's
+// own icon, or — on the base theme — the mode's (sun, moon, light/dark).
+const activeIcon = computed(() => {
+  const effectiveTheme = theme.preference.value === 'system'
+    ? theme.activeSeasonalTheme.value
+    : theme.preference.value
+
+  if (!effectiveTheme || effectiveTheme === baseTheme) return mode.data.value?.icon ?? null
+  return themes.value.find(item => item.value === effectiveTheme)?.icon ?? null
+})
 // Changes on every theme switch to force Vue to recreate <VenixIcon> (instead
 // of just updating props), restarting the new theme's icon CSS/SVG animation.
 const activeIconKey = computed(() => `${theme.value.value}:${activeIcon.value?.format ?? ''}:${activeIcon.value?.value ?? ''}`)
@@ -161,8 +274,7 @@ const toggleOpen = async () => {
 
   await nextTick()
   const items = getMenuItems()
-  const activeIndex = themes.value.findIndex(item => item.value === theme.preference.value)
-  ;(items[activeIndex] ?? items[0])?.focus()
+  ;(items.find(el => el.getAttribute('aria-checked') === 'true') ?? items[0])?.focus()
 }
 
 const close = (options: { restoreFocus?: boolean } = {}) => {
@@ -171,14 +283,24 @@ const close = (options: { restoreFocus?: boolean } = {}) => {
   if (options.restoreFocus) triggerRef.value?.focus()
 }
 
-const select = (value: string) => {
+const selectTheme = (value: string) => {
   const selected = themes.value.find(item => item.value === value)
-  theme.toggle(value)
+  theme.set(value)
 
   const template = locale.translate(CHANGED_ANNOUNCEMENT_TRANSLATIONS, 'Color theme changed to {theme}')
   announcement.value = template.replace('{theme}', selected?.name ?? value)
 
   close({ restoreFocus: true })
+}
+
+// Keeps the menu open: picking the mode and then the theme (or vice versa)
+// is the common flow.
+const selectMode = (value: ThemeModePreference) => {
+  const selected = modes.value.find(item => item.value === value)
+  mode.set(value)
+
+  const template = locale.translate(MODE_CHANGED_ANNOUNCEMENT_TRANSLATIONS, 'Mode changed to {mode}')
+  announcement.value = template.replace('{mode}', selected?.name ?? value)
 }
 
 const handleMenuKeydown = (event: KeyboardEvent) => {
@@ -187,10 +309,12 @@ const handleMenuKeydown = (event: KeyboardEvent) => {
 
   switch (event.key) {
     case 'ArrowDown':
+    case 'ArrowRight':
       event.preventDefault()
       focusItemAt(currentIndex + 1)
       break
     case 'ArrowUp':
+    case 'ArrowLeft':
       event.preventDefault()
       focusItemAt(currentIndex - 1)
       break
@@ -289,16 +413,45 @@ onUnmounted(() => {
   top: calc(100% + 0.5rem);
   right: 0;
   z-index: 50;
-  min-width: 12rem;
+  min-width: 15rem;
   margin: 0;
   padding: 0.375rem;
-  list-style: none;
   border-radius: 0.75rem;
   /* Fixed colors (not from the active theme): the menu needs to stay legible
      no matter which color theme is currently applied/being picked. */
   background: #1f2128;
   border: 1px solid #3a3d46;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  transform-origin: top right;
+}
+
+/* Opening: grows from ~30% of its size, anchored at the button's corner (top
+   right), fast at first and settling at the end — like Vuetify's menus.
+   Closing: just fades out. */
+.venix-theme-switcher-menu-enter-active {
+  transition:
+    transform 0.22s cubic-bezier(0, 0, 0.2, 1),
+    opacity 0.12s ease-out;
+}
+
+.venix-theme-switcher-menu-leave-active {
+  transition: opacity 0.2s ease-in;
+}
+
+.venix-theme-switcher-menu-enter-from {
+  transform: scale(0.3);
+  opacity: 0;
+}
+
+.venix-theme-switcher-menu-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .venix-theme-switcher-menu-enter-active,
+  .venix-theme-switcher-menu-leave-active {
+    transition: none;
+  }
 }
 
 .venix-theme-switcher__heading {
@@ -309,6 +462,27 @@ onUnmounted(() => {
   letter-spacing: 0.04em;
   color: rgba(245, 245, 247, 0.6);
   text-align: center;
+}
+
+.venix-theme-switcher__subheading {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(245, 245, 247, 0.45);
+}
+
+.venix-theme-switcher__modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+}
+
+.venix-theme-switcher__separator {
+  height: 1px;
+  margin: 0.375rem 0.25rem;
+  background: #3a3d46;
 }
 
 .venix-theme-switcher__item {
@@ -324,6 +498,19 @@ onUnmounted(() => {
   font: inherit;
   text-align: left;
   cursor: pointer;
+}
+
+.venix-theme-switcher__item--mode {
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.25rem;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.venix-theme-switcher__item--mode .venix-theme-switcher__item-icon {
+  font-size: 1.125rem;
 }
 
 .venix-theme-switcher__item:hover,

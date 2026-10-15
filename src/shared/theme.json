@@ -50,52 +50,19 @@
         "enabled": true,
         "defaults": true,
         "defaultColor": "dark",
-        "themes": {
+        "modes": {
             "system": {
                 "translations": {
                     "pt-BR": "Automático",
                     "en-US": "Automatic"
                 },
                 "icon": {
-                    "emote": "🎨",
-                    "css": "line-md:light-dark",
+                    "emote": "🌓",
+                    "css": "mdi:theme-light-dark",
                     "svg": "line-md:light-dark-loop"
                 }
             },
-            "dark": {
-                "dark": true,
-                "primary": "#FF6B6B",
-                "secondary": "#FFB96A",
-                "accent": "#82B1FF",
-                "error": "#FF5252",
-                "info": "#2196F3",
-                "success": "#4CAF50",
-                "warning": "#FCCF3D",
-                "background": "#0C0C0C",
-                "background2": "#191919",
-                "background3": "#282828",
-                "translations": {
-                    "pt-BR": "Escuro",
-                    "en-US": "Dark"
-                },
-                "icon": {
-                    "emote": "🌙",
-                    "css": "mdi:moon-and-stars",
-                    "svg": "line-md:moon-filled-loop"
-                }
-            },
             "light": {
-                "dark": false,
-                "primary": "#FF0000",
-                "secondary": "#FF8800",
-                "accent": "#82B1FF",
-                "error": "#FF5252",
-                "info": "#2196F3",
-                "success": "#4CAF50",
-                "warning": "#FCCF3D",
-                "background": "#FAFAFA",
-                "background2": "#F0F0F0",
-                "background3": "#E6E6E6",
                 "translations": {
                     "pt-BR": "Claro",
                     "en-US": "Light"
@@ -106,23 +73,73 @@
                     "svg": "line-md:sunny-filled-loop"
                 }
             },
+            "dark": {
+                "translations": {
+                    "pt-BR": "Escuro",
+                    "en-US": "Dark"
+                },
+                "icon": {
+                    "emote": "🌙",
+                    "css": "mdi:moon-and-stars",
+                    "svg": "line-md:moon-filled-loop"
+                }
+            }
+        },
+        "themes": {
+            "system": {
+                "translations": {
+                    "pt-BR": "Automático",
+                    "en-US": "Automatic"
+                },
+                "icon": {
+                    "emote": "📅",
+                    "css": "mdi:calendar-star",
+                    "svg": "line-md:calendar"
+                }
+            },
+            "venix": {
+                "translations": {
+                    "pt-BR": "Venix Sistemas",
+                    "en-US": "Venix Sistemas"
+                },
+                "icon": {
+                    "emote": "💎",
+                    "css": "mdi:diamond-stone",
+                    "svg": "line-md:paint-drop-half-filled-twotone"
+                },
+                "dark": {
+                    "id": "dark",
+                    "primary": "#FF6B6B",
+                    "secondary": "#FFB96A",
+                    "accent": "#82B1FF",
+                    "error": "#FF5252",
+                    "info": "#2196F3",
+                    "success": "#4CAF50",
+                    "warning": "#FCCF3D",
+                    "background": "#0C0C0C",
+                    "background2": "#191919",
+                    "background3": "#282828"
+                },
+                "light": {
+                    "id": "light",
+                    "primary": "#FF0000",
+                    "secondary": "#FF8800",
+                    "accent": "#82B1FF",
+                    "error": "#FF5252",
+                    "info": "#2196F3",
+                    "success": "#4CAF50",
+                    "warning": "#FCCF3D",
+                    "background": "#FAFAFA",
+                    "background2": "#F0F0F0",
+                    "background3": "#E6E6E6"
+                }
+            },
             "carnaval": {
-                "dark": true,
                 "seasonal": true,
                 "dateRange": {
                     "start": "easter-65",
                     "end": "easter-46"
                 },
-                "primary": "#FF5CA8",
-                "secondary": "#FFD54A",
-                "accent": "#3DD9B8",
-                "error": "#FF5252",
-                "info": "#4FC3F7",
-                "success": "#66D17A",
-                "warning": "#FFA54C",
-                "background": "#170A16",
-                "background2": "#210F20",
-                "background3": "#2E152B",
                 "translations": {
                     "pt-BR": "Carnaval",
                     "en-US": "Carnival"
@@ -131,25 +148,39 @@
                     "emote": "🎭",
                     "css": "mdi:emoticon-excited-outline",
                     "svg": "line-md:emoji-grin"
+                },
+                "dark": {
+                    "id": "carnaval",
+                    "primary": "#FF5CA8",
+                    "secondary": "#FFD54A",
+                    "accent": "#3DD9B8",
+                    "error": "#FF5252",
+                    "info": "#4FC3F7",
+                    "success": "#66D17A",
+                    "warning": "#FFA54C",
+                    "background": "#170A16",
+                    "background2": "#210F20",
+                    "background3": "#2E152B"
+                },
+                "light": {
+                    "primary": "#C2186F",
+                    "secondary": "#A16207",
+                    "accent": "#0F9E86",
+                    "error": "#E53935",
+                    "info": "#0277BD",
+                    "success": "#2E8B4E",
+                    "warning": "#E65100",
+                    "background": "#FFF7FB",
+                    "background2": "#FCEAF3",
+                    "background3": "#F6D8E8"
                 }
             },
             "natal": {
-                "dark": true,
                 "seasonal": true,
                 "dateRange": {
                     "start": "12-01",
                     "end": "12-26"
                 },
-                "primary": "#FF6B6B",
-                "secondary": "#6FCF7F",
-                "accent": "#FFD54F",
-                "error": "#FF6161",
-                "info": "#64B5F6",
-                "success": "#66D49A",
-                "warning": "#FFB74D",
-                "background": "#0B1611",
-                "background2": "#10201A",
-                "background3": "#172C23",
                 "translations": {
                     "pt-BR": "Natal",
                     "en-US": "Christmas"
@@ -158,25 +189,39 @@
                     "emote": "🎄",
                     "css": "mdi:pine-tree-variant",
                     "svg": "line-md:star-filled"
+                },
+                "dark": {
+                    "id": "natal",
+                    "primary": "#FF6B6B",
+                    "secondary": "#6FCF7F",
+                    "accent": "#FFD54F",
+                    "error": "#FF6161",
+                    "info": "#64B5F6",
+                    "success": "#66D49A",
+                    "warning": "#FFB74D",
+                    "background": "#0B1611",
+                    "background2": "#10201A",
+                    "background3": "#172C23"
+                },
+                "light": {
+                    "primary": "#C62828",
+                    "secondary": "#2E7D32",
+                    "accent": "#B8860B",
+                    "error": "#D32F2F",
+                    "info": "#1976D2",
+                    "success": "#2E7D4F",
+                    "warning": "#EF6C00",
+                    "background": "#FBFAF5",
+                    "background2": "#F0F5EE",
+                    "background3": "#E1EBE0"
                 }
             },
             "halloween": {
-                "dark": true,
                 "seasonal": true,
                 "dateRange": {
                     "start": "10-01",
                     "end": "10-31"
                 },
-                "primary": "#FF8A3D",
-                "secondary": "#B98AF0",
-                "accent": "#A5D65A",
-                "error": "#FF6161",
-                "info": "#64A8E8",
-                "success": "#66BB6A",
-                "warning": "#FFCA28",
-                "background": "#16100C",
-                "background2": "#1F1711",
-                "background3": "#2B1F17",
                 "translations": {
                     "pt-BR": "Dia das Bruxas",
                     "en-US": "Halloween"
@@ -185,6 +230,31 @@
                     "emote": "🎃",
                     "css": "mdi:halloween",
                     "svg": "line-md:emoji-frown"
+                },
+                "dark": {
+                    "id": "halloween",
+                    "primary": "#FF8A3D",
+                    "secondary": "#B98AF0",
+                    "accent": "#A5D65A",
+                    "error": "#FF6161",
+                    "info": "#64A8E8",
+                    "success": "#66BB6A",
+                    "warning": "#FFCA28",
+                    "background": "#16100C",
+                    "background2": "#1F1711",
+                    "background3": "#2B1F17"
+                },
+                "light": {
+                    "primary": "#C2410C",
+                    "secondary": "#6A3FB5",
+                    "accent": "#5B8A1E",
+                    "error": "#D32F2F",
+                    "info": "#1E6FB8",
+                    "success": "#388E3C",
+                    "warning": "#E09B00",
+                    "background": "#FFF8F0",
+                    "background2": "#FBEBDD",
+                    "background3": "#F3DCC8"
                 }
             }
         }

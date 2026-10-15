@@ -2,42 +2,40 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import initTheme from '../../src/runtime/scripts/theme-init'
 import { resolveThemePreference } from '../../src/shared/utils/theme-resolve'
 import { buildResolvedTheme } from '../../src/shared/utils/theme-config'
-import { DEFAULT_THEME } from '../../src/shared/constants'
 import type { ThemeConfig } from '../../src/shared/types'
 
 // `runtime/scripts/theme-init.ts` duplica de propósito a regra de
-// `resolveThemePreference` (precisa rodar como IIFE autocontida, sem imports).
-// Este teste garante que as duas implementações não divirjam: para cada
-// combinação de preferência × modo do sistema × data, o tema aplicado pelo
-// script tem que ser o mesmo que a versão compartilhada resolve.
+// `normalizeThemeSelection`/`resolveThemeSelection` (precisa rodar como IIFE
+// autocontida, sem imports). Este teste garante que as duas implementações
+// não divirjam: para cada combinação de tema × modo salvos × modo do sistema
+// × data, o tema aplicado pelo script tem que ser o mesmo que a versão
+// compartilhada resolve.
 
-const base = buildResolvedTheme()
-const theme: ThemeConfig = {
-  ...base,
-  colors: {
-    ...base.colors,
-    themes: {
-      ...base.colors.themes,
-      // Faixa que atravessa a virada do ano (dez → jan)
-      reveillon: {
-        dark: true,
-        primary: '#ffd700',
-        seasonal: true,
-        dateRange: { start: '12-28', end: '01-03' },
-      },
-      // `dateRange` malformado — nunca deve ficar ativo
-      quebrado: {
-        dark: false,
-        primary: '#000000',
-        seasonal: true,
-        dateRange: { start: '12', end: '01-03' },
-      },
+const theme: ThemeConfig = buildResolvedTheme({
+  colorThemes: {
+    // Faixa que atravessa a virada do ano (dez → jan)
+    reveillon: {
+      seasonal: true,
+      dateRange: { start: '12-28', end: '01-03' },
+      dark: { primary: '#ffd700' },
+      light: { primary: '#b8860b' },
     },
+    // Só uma variante (clara)
+    pascoa: {
+      seasonal: true,
+      dateRange: { start: 'easter-6', end: 'easter' },
+      light: { primary: '#f4a6c0' },
+    },
+    // `dateRange` malformado — nunca deve ficar ativo
+    quebrado: {
+      seasonal: true,
+      dateRange: { start: '12', end: '01-03' },
+      light: { primary: '#000000' },
+    },
+    // Formato plano (obsoleto)
+    legado: { dark: false, primary: '#123456' },
   },
-}
-
-const themes = theme.colors.themes
-const defaultTheme = theme.colors.defaultColor || DEFAULT_THEME
+})
 
 function runInitTheme(cookie: string, prefersDark: boolean): string | null {
   const attrs: Record<string, string> = {}
@@ -58,22 +56,28 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-const preferences = [undefined, 'system', ...Object.keys(themes), 'inexistente']
-const dates = ['2026-01-01', '2026-02-05', '2026-02-18', '2026-02-19', '2027-01-25', '2027-02-09', '2027-02-20', '2026-06-15', '2026-10-31', '2026-12-25', '2026-12-30']
+const themePreferences = [undefined, 'system', ...Object.keys(theme.colors.groups), ...Object.keys(theme.colors.themes), 'inexistente']
+const modePreferences = [undefined, 'system', 'light', 'dark', 'roxo']
+const dates = ['2026-01-01', '2026-02-05', '2026-02-18', '2026-02-19', '2026-03-31', '2027-01-25', '2027-02-09', '2026-06-15', '2026-10-31', '2026-12-25', '2026-12-30']
 
 describe('initTheme × resolveThemePreference (paridade)', () => {
   for (const date of dates) {
     for (const prefersDark of [true, false]) {
-      for (const preference of preferences) {
-        it(`${date}, prefersDark=${prefersDark}, preferência=${preference ?? '(nenhuma)'}`, () => {
-          vi.useFakeTimers()
-          vi.setSystemTime(new Date(`${date}T12:00:00`))
+      for (const themePreference of new Set(themePreferences)) {
+        for (const modePreference of modePreferences) {
+          it(`${date}, prefersDark=${prefersDark}, tema=${themePreference ?? '(nenhum)'}, modo=${modePreference ?? '(nenhum)'}`, () => {
+            vi.useFakeTimers()
+            vi.setSystemTime(new Date(`${date}T12:00:00`))
 
-          const cookie = preference ? `venix-theme-preference=${encodeURIComponent(preference)}` : ''
-          const expected = resolveThemePreference(preference, themes, defaultTheme, prefersDark)
+            const cookie = [
+              themePreference && `venix-theme-preference=${encodeURIComponent(themePreference)}`,
+              modePreference && `venix-theme-mode=${encodeURIComponent(modePreference)}`,
+            ].filter(Boolean).join('; ')
+            const expected = resolveThemePreference(themePreference, modePreference, theme.colors, prefersDark)
 
-          expect(runInitTheme(cookie, prefersDark)).toBe(expected)
-        })
+            expect(runInitTheme(cookie, prefersDark)).toBe(expected)
+          })
+        }
       }
     }
   }

@@ -1,5 +1,5 @@
 // runtime/scripts/theme-init.ts
-import type { ThemeConfig, ThemeColors } from '../../shared/types'
+import type { ThemeConfig, ThemeColors, ThemeMode, ThemeModePreference, ResolvedThemeGroup } from '../../shared/types'
 
 declare global {
   interface Window {
@@ -21,7 +21,7 @@ declare global {
  * gets serialized and executed as a standalone IIFE, so any import from
  * another module would become a `ReferenceError` on the client. That's why
  * the cookie names below and the theme-resolution rule
- * (`resolveThemePreference`/`getActiveSeasonalTheme`) are deliberately
+ * (`normalizeThemeSelection`/`resolveThemeSelection`) are deliberately
  * duplicated — the canonical implementation, shared between the composable
  * and the SSR plugin, lives in `shared/constants.ts` and
  * `shared/utils/theme-resolve.ts`. Keep the two sides in sync when changing
@@ -36,6 +36,7 @@ export default function initTheme(themeData: ThemeConfig, options: InitThemeOpti
   const requireConsent = options.requireConsent !== false
   const THEME_PREFERENCE_COOKIE = 'venix-theme-preference'
   const THEME_RESOLVED_COOKIE = 'venix-theme-resolved'
+  const THEME_MODE_COOKIE = 'venix-theme-mode'
   const COOKIE_CONSENT_STORAGE_KEY = 'venix-cookie-consent'
 
   function hasCookieConsent(): boolean {
@@ -107,12 +108,12 @@ export default function initTheme(themeData: ThemeConfig, options: InitThemeOpti
     return month * 100 + day
   }
 
-  function isDateInSeasonalRange(themeConfig: ThemeColors, now: Date): boolean {
-    if (themeConfig.seasonal !== true || !themeConfig.dateRange) return false
+  function isDateInSeasonalRange(group: ResolvedThemeGroup, now: Date): boolean {
+    if (group.seasonal !== true || !group.dateRange) return false
 
     const year = now.getFullYear()
-    const startNum = parseDatePart(themeConfig.dateRange.start, year)
-    const endNum = parseDatePart(themeConfig.dateRange.end, year)
+    const startNum = parseDatePart(group.dateRange.start, year)
+    const endNum = parseDatePart(group.dateRange.end, year)
     if (startNum === null || endNum === null) return false
 
     const current = (now.getMonth() + 1) * 100 + now.getDate()
@@ -122,53 +123,108 @@ export default function initTheme(themeData: ThemeConfig, options: InitThemeOpti
       : current >= startNum || current <= endNum
   }
 
-  function getActiveSeasonalTheme(themes: Record<string, ThemeColors>, prefersDark: boolean): string | null {
-    const now = new Date()
+  const themes = themeData.colors?.themes || {}
+  const groups = themeData.colors?.groups || {}
 
-    for (const [themeName, themeConfig] of Object.entries(themes)) {
-      if (themeName === 'system') continue
-      if (!isColorTheme(themeConfig)) continue
-      if (!isDateInSeasonalRange(themeConfig, now)) continue
-      if (themeConfig.dark !== prefersDark) continue
-      return themeName
+  function isModePreference(value: unknown): value is ThemeModePreference {
+    return value === 'system' || value === 'light' || value === 'dark'
+  }
+
+  function isSelectableGroup(name: string): boolean {
+    const group = groups[name]
+    if (!group || name === 'system') return false
+    return Object.values(group.variants).some(id => !!id && isColorTheme(themes[id]))
+  }
+
+  function findVariantOwner(id: string): { theme: string, mode: ThemeMode } | null {
+    for (const [name, group] of Object.entries(groups)) {
+      if (group.variants.dark === id) return { theme: name, mode: 'dark' }
+      if (group.variants.light === id) return { theme: name, mode: 'light' }
+    }
+    return null
+  }
+
+  function getDefaultSelection(): { theme: string, mode: ThemeModePreference, fallbackTheme: string } {
+    const selectable = Object.keys(groups).filter(isSelectableGroup)
+    const firstRegular = selectable.find(name => groups[name]?.seasonal !== true) ?? selectable[0] ?? ''
+
+    const defaultColor = themeData.colors?.defaultColor || 'dark'
+    if (isSelectableGroup(defaultColor)) {
+      return { theme: defaultColor, mode: 'system', fallbackTheme: defaultColor }
+    }
+
+    const owner = findVariantOwner(defaultColor)
+    if (owner && isSelectableGroup(owner.theme)) {
+      return { ...owner, fallbackTheme: owner.theme }
+    }
+
+    return { theme: 'system', mode: 'system', fallbackTheme: firstRegular }
+  }
+
+  function normalizeThemeSelection(themePreference: string | null, modePreference: string | null): { theme: string, mode: ThemeModePreference } {
+    const defaults = getDefaultSelection()
+    let theme = defaults.theme
+    let impliedMode: ThemeModePreference = defaults.mode
+
+    if (themePreference === 'system') {
+      theme = 'system'
+      impliedMode = 'system'
+    }
+    else if (themePreference && isSelectableGroup(themePreference)) {
+      theme = themePreference
+    }
+    else if (themePreference) {
+      const owner = findVariantOwner(themePreference)
+      if (owner && isSelectableGroup(owner.theme)) {
+        theme = owner.theme
+        impliedMode = owner.mode
+      }
+    }
+
+    return { theme, mode: isModePreference(modePreference) ? modePreference : impliedMode }
+  }
+
+  function getActiveSeasonalTheme(mode: ThemeMode, now: Date): string | null {
+    for (const [name, group] of Object.entries(groups)) {
+      if (name === 'system') continue
+      if (!group.variants.dark && !group.variants.light) continue
+      if (!isDateInSeasonalRange(group, now)) continue
+      if (!group.variants[mode]) continue
+      return name
     }
 
     return null
   }
 
-  function resolveThemePreference(
-    preference: string | undefined,
-    themes: Record<string, ThemeColors>,
-    defaultTheme: string,
-    prefersDark: boolean,
-  ): string {
-    let resolved: string
+  function resolveThemeSelection(selection: { theme: string, mode: ThemeModePreference }, prefersDark: boolean): string {
+    const mode: ThemeMode = selection.mode === 'system' ? (prefersDark ? 'dark' : 'light') : selection.mode
+    const { fallbackTheme } = getDefaultSelection()
 
-    if (preference === 'system') {
-      resolved = getActiveSeasonalTheme(themes, prefersDark) || (prefersDark ? 'dark' : 'light')
-    }
-    else if (preference && isColorTheme(themes[preference])) {
-      resolved = preference
-    }
-    else {
-      resolved = defaultTheme
+    const theme = selection.theme === 'system'
+      ? getActiveSeasonalTheme(mode, new Date()) ?? fallbackTheme
+      : selection.theme
+
+    const pick = (name: string): string | null => {
+      const variants = groups[name]?.variants
+      const id = variants?.[mode] ?? variants?.[mode === 'dark' ? 'light' : 'dark']
+      return id && isColorTheme(themes[id]) ? id : null
     }
 
-    if (!isColorTheme(themes[resolved])) {
-      resolved = isColorTheme(themes[defaultTheme]) ? defaultTheme : 'dark'
-    }
-
-    return resolved
+    return pick(theme)
+      ?? pick(fallbackTheme)
+      ?? Object.keys(themes).find(id => isColorTheme(themes[id]))
+      ?? 'dark'
   }
 
   const html = document.documentElement
 
-  const themes = themeData.colors?.themes || {}
-  const defaultTheme = themeData.colors?.defaultColor || 'dark'
   const preference = getCookie(THEME_PREFERENCE_COOKIE)
+  const modePreference = getCookie(THEME_MODE_COOKIE)
   const resolvedCookie = getCookie(THEME_RESOLVED_COOKIE)
   const systemPrefersDark = typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-color-scheme: dark)').matches
+
+  const selection = normalizeThemeSelection(preference, modePreference)
 
   let theme: string
 
@@ -176,7 +232,7 @@ export default function initTheme(themeData: ThemeConfig, options: InitThemeOpti
     theme = resolvedCookie
   }
   else {
-    theme = resolveThemePreference(preference || undefined, themes, defaultTheme, systemPrefersDark)
+    theme = resolveThemeSelection(selection, systemPrefersDark)
   }
 
   html.classList.add(theme)
@@ -188,6 +244,10 @@ export default function initTheme(themeData: ThemeConfig, options: InitThemeOpti
   }
 
   if (!preference) {
-    setCookieIfConsented(THEME_PREFERENCE_COOKIE, theme)
+    setCookieIfConsented(THEME_PREFERENCE_COOKIE, selection.theme)
+  }
+
+  if (!modePreference) {
+    setCookieIfConsented(THEME_MODE_COOKIE, selection.mode)
   }
 }

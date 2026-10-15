@@ -3,6 +3,8 @@
 // ===== COOKIES =====
 export const THEME_PREFERENCE_COOKIE = 'venix-theme-preference'
 export const THEME_RESOLVED_COOKIE = 'venix-theme-resolved'
+/** The user's mode choice (`'system'`, `'light'`, `'dark'`); the theme itself stays in `THEME_PREFERENCE_COOKIE`. */
+export const THEME_MODE_COOKIE = 'venix-theme-mode'
 
 // ===== EVENTS =====
 export const COOKIE_PREFERENCES_UPDATED_EVENT = 'venix-cookie-preferences-updated'
@@ -44,6 +46,7 @@ export const LOCALE_MAP: Record<string, string> = {
 // ===== THEME =====
 export const DEFAULT_THEME = 'dark'
 export const SYSTEM_THEME = 'system'
+export const THEME_MODES = ['light', 'dark'] as const
 
 // ===== COLOR PROPERTIES =====
 export const COLOR_PROPERTIES = [
@@ -61,7 +64,9 @@ export const COLOR_PROPERTIES = [
 
 // ===== NON_COLOR_PROPERTIES =====
 export const NON_COLOR_PROPERTIES = [
+  'id',
   'dark',
+  'light',
   'seasonal',
   'dateRange',
   'translations',

@@ -1,6 +1,6 @@
 // runtime/plugins/theme-init.server.ts
 import { defineNuxtPlugin, useRuntimeConfig, useCookie, useHead } from '#app'
-import { THEME_PREFERENCE_COOKIE, THEME_RESOLVED_COOKIE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_LOCALE, DEFAULT_THEME } from '../../shared/constants'
+import { THEME_PREFERENCE_COOKIE, THEME_RESOLVED_COOKIE, THEME_MODE_COOKIE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_LOCALE } from '../../shared/constants'
 import { useThemeLocale } from '../composables/useThemeLocale'
 import { buildResolvedTheme } from '../../shared/utils/theme-config'
 import { isColorTheme, resolveThemePreference } from '../../shared/utils/theme-resolve'
@@ -14,28 +14,19 @@ export default defineNuxtPlugin({
 
     const resolvedCookie = useCookie<string>(THEME_RESOLVED_COOKIE)
     const preferenceCookie = useCookie<string>(THEME_PREFERENCE_COOKIE)
+    const modeCookie = useCookie<string>(THEME_MODE_COOKIE)
 
     const theme = buildResolvedTheme(themeConfig)
-    const defaultTheme = theme.colors.defaultColor || DEFAULT_THEME
 
     // No `matchMedia` on the server: `resolveThemePreference` doesn't know
-    // whether the user prefers light/dark when the preference is 'system'
-    // (i.e. "Automatic"), so it assumes dark — the pre-hydration script
+    // whether the user prefers light/dark when the mode is 'system' (i.e.
+    // "Automatic"), so it assumes dark — the pre-hydration script
     // (`runtime/scripts/theme-init.ts`) corrects it on the client before the
-    // first paint, if needed. Previously, a `preferenceCookie` of 'system'
-    // was treated as a valid theme name (the key exists in `colors.themes`
-    // as a UI placeholder — see `theme.json`) and turned into
-    // `data-theme="system"`, for which no CSS is generated
-    // (`generateThemeVars` skips 'system' on purpose) — resulting in a flash
-    // with no color at all.
-    let resolvedTheme = defaultTheme
-
-    if (resolvedCookie.value && isColorTheme(theme.colors.themes[resolvedCookie.value])) {
-      resolvedTheme = resolvedCookie.value
-    }
-    else if (preferenceCookie.value) {
-      resolvedTheme = resolveThemePreference(preferenceCookie.value, theme.colors.themes, defaultTheme, true)
-    }
+    // first paint, if needed. 'system' is never a variant id itself (no CSS is
+    // generated for it), so it can't end up in `data-theme`.
+    const resolvedTheme = resolvedCookie.value && isColorTheme(theme.colors.themes[resolvedCookie.value])
+      ? resolvedCookie.value
+      : resolveThemePreference(preferenceCookie.value, modeCookie.value, theme.colors, true)
 
     const htmlAttrs: Record<string, string> = {
       'data-theme': resolvedTheme,

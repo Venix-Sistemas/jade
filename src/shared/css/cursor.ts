@@ -20,7 +20,7 @@ export function generateCustomCursorCSS(theme: ThemeConfig): string {
   if (cursors.default) {
     const value = cursorValue('default')
     css += '\n/* 1. Default cursor on everything */\n'
-    css += `body {
+    css += `html {
   cursor: ${value};
 }\n`
   }

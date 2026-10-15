@@ -1,8 +1,9 @@
 // runtime/plugins/vuetify-theme.ts
 import { defineNuxtPlugin, useRuntimeConfig, useCookie } from '#app'
 import type { NuxtApp } from '#app'
-import { THEME_PREFERENCE_COOKIE, THEME_RESOLVED_COOKIE, THEME_APPLIED_EVENT, DEFAULT_THEME } from '../../shared/constants'
+import { THEME_PREFERENCE_COOKIE, THEME_RESOLVED_COOKIE, THEME_MODE_COOKIE, THEME_APPLIED_EVENT } from '../../shared/constants'
 import { buildResolvedTheme } from '../../shared/utils/theme-config'
+import { resolveThemePreference } from '../../shared/utils/theme-resolve'
 
 interface VuetifyBeforeCreateContext {
   vuetifyOptions?: {
@@ -105,9 +106,9 @@ export default defineNuxtPlugin({
 
     const resolvedCookie = useCookie<string>(THEME_RESOLVED_COOKIE)
     const preferenceCookie = useCookie<string>(THEME_PREFERENCE_COOKIE)
+    const modeCookie = useCookie<string>(THEME_MODE_COOKIE)
 
     const theme = buildResolvedTheme(themeConfig)
-    const defaultTheme = theme.colors.defaultColor || DEFAULT_THEME
 
     // The 'vuetify:*' hooks only exist when vuetify-nuxt-module is installed
     // (optional peer); the cast is safe because they never fire without the
@@ -118,15 +119,11 @@ export default defineNuxtPlugin({
       const themes = vuetifyOptions?.theme?.themes
       if (!vuetifyOptions?.theme || !themes) return
 
-      let resolved = defaultTheme
-      if (resolvedCookie.value && themes[resolvedCookie.value]) {
-        resolved = resolvedCookie.value
-      }
-      else if (preferenceCookie.value && themes[preferenceCookie.value]) {
-        resolved = preferenceCookie.value
-      }
-
-      vuetifyOptions.theme.defaultTheme = resolved
+      // Same rule as the SSR plugin (`theme-init.server.ts`), so Vuetify's
+      // first render matches `data-theme`.
+      vuetifyOptions.theme.defaultTheme = resolvedCookie.value && themes[resolvedCookie.value]
+        ? resolvedCookie.value
+        : resolveThemePreference(preferenceCookie.value, modeCookie.value, theme.colors, true)
     })
 
     // 'vuetify:before-create' only decides the theme for the first render —

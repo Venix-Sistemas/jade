@@ -80,7 +80,8 @@ export async function registerThemeIcon(nuxt: Nuxt, resolver: Resolver, options:
   const explicit = new Set(options.collections)
   const collections: IconCollectionEntry[] = options.collections.map(name => loadFullCollection(name, projectRequire))
 
-  const refs = extractIconRefs(colors.themes, options.aliases)
+  const labelled = [...Object.values(colors.groups ?? {}), ...Object.values(colors.modes ?? {})]
+  const refs = extractIconRefs(labelled, options.aliases)
   for (const [name, iconNames] of refs) {
     if (explicit.has(name)) continue // already bundled whole above
     collections.push(loadCollectionSubset(name, iconNames, projectRequire) ?? name)

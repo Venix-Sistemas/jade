@@ -21,7 +21,8 @@ The UI foundation for Nuxt applications, in a single module: color themes (inclu
 * 🖱️ **Cursor customization**
 * 📜 **Scrollbar customization**
 * 🎨 **Color customization**, with dark and light themes included
-* 🖥️ **System theme preference detection**, including seasonal overrides
+* 🌗 **Theme and mode picked separately**: any theme (Venix Sistemas, Carnival, Christmas…) in light or dark, each following the system or fixed
+* 🖥️ **System preference detection**, including seasonal themes by date
 * 🎃 **Seasonal themes**: Carnival, Halloween, Christmas and more
 * 💾 **Cookie-consent-aware persistence**: nothing is written until the user opts in
 * 🌐 **i18n**: internationalization and locale detection for theme names and your own strings
@@ -65,27 +66,33 @@ Every module except Vuetify is on by default with built-in values, so you only c
 
 The auto-imported `useVenixTheme()` composable gives access to the theme. It isn't called `useTheme` to avoid colliding with UI libraries (like Vuetify) that auto-import a composable with that name.
 
+The **theme** (Venix Sistemas, Carnival, Christmas…) and the **mode** (light or dark) are chosen independently; the applied colors are the theme's variant for that mode. Either can be `'system'`: an automatic theme follows the calendar ([seasonal themes](#seasonal-themes)), an automatic mode follows the OS.
+
 ```vue
 <template>
-  <button @click="theme.toggle('dark')">Dark</button>
-  <button @click="theme.toggle('light')">Light</button>
+  <button @click="mode.set('dark')">Dark</button>
+  <button @click="mode.set('light')">Light</button>
+  <button @click="theme.set('natal')">Christmas</button>
 </template>
 
 <script setup lang="ts">
-const { theme } = useVenixTheme()
+const { theme, mode } = useVenixTheme()
 </script>
 ```
 
-It returns four groups:
+It returns:
 
-- `theme` — state and controls:
-  - `value`: the applied theme (e.g. `'dark'` when the preference is `'system'`)
-  - `preference`: the user's raw choice, including `'system'`
-  - `data`: the active theme's `{ value, name, icon }`
-  - `toggle(name?)`: switches to `name`, or between `light` and `dark` when called without one
+- `theme` — the theme choice:
+  - `preference`: the chosen theme (`'system'`, `'venix'`, `'carnaval'`…)
+  - `value`: the variant actually applied, as in `data-theme` (e.g. `'natal-light'`, or `'dark'` for Venix Sistemas in dark mode)
+  - `data`: the chosen theme's `{ value, name, icon }`
+  - `set(name)`: picks a theme, keeping the mode
+  - `toggle(name?)`: kept for compatibility — without a name switches the mode; `'dark'`/`'light'` select Venix Sistemas in that mode; `'system'` makes both theme and mode automatic
   - `isSeasonalActive`, `activeSeasonalTheme`: whether a [seasonal theme](#seasonal-themes) is currently in effect, and which one
-  - `shouldApplyColors`, `colors`: whether the module applies colors, and the raw color config
+  - `shouldApplyColors`, `colors`: whether the module applies colors, and the resolved color config
 - `themes` — every selectable theme, ready to render a picker (see [Theme icons](#theme-icons)).
+- `mode` — the mode choice: `preference` (`'system'`, `'light'`, `'dark'`), `value` (the mode applied, `'light'` or `'dark'`), `data`, `set(mode)` and `toggle()`.
+- `modes` — the three mode options with names and icons, ready to render.
 - `locale` — `current`, `set()` and `translate()` (see [Translation](#translation)).
 - `persistence` — cookie consent controls (see [Saving the theme](#saving-the-theme-cookie-consent)).
 
@@ -93,7 +100,7 @@ The state is shared app-wide (via Nuxt's `useState`): every component calling `u
 
 ### 3. Ready-made component
 
-`<VenixThemeSwitcher>` is an auto-imported dropdown for picking a theme, with no dependency on Vuetify or any other UI kit:
+`<VenixThemeSwitcher>` is an auto-imported dropdown with two sections, **Mode** (Automatic, Light, Dark) and **Theme** (Automatic, Venix Sistemas, the seasonal ones and your own), with no dependency on Vuetify or any other UI kit:
 
 ```vue
 <template>
@@ -104,13 +111,14 @@ The state is shared app-wide (via Nuxt's `useState`): every component calling `u
 | Prop        | Type      | Default                 | Description                                         |
 | ----------- | --------- | ----------------------- | --------------------------------------------------- |
 | `label`     | `string`  | translated, per locale  | Accessible label for the button and the menu        |
-| `showLabel` | `boolean` | `false`                 | Show the active theme's name next to the icon       |
+| `showLabel` | `boolean` | `false`                 | Show the theme and mode names next to the icon      |
 
 - **Accessible:** arrow keys, Home/End and Esc navigate the menu, focus returns to the button on close, and each change is announced to screen readers.
 - **Always legible:** the menu uses fixed neutral colors (dark surface, light text) instead of the active theme's, so every option stays readable whatever theme is applied. The button itself follows the active theme.
-- **Lively:** animated icons (e.g. `line-md`) replay on every switch, and the button fades in on mount.
+- **Lively:** animated icons (e.g. `line-md`) replay on every switch, and the button fades in on mount. The button shows the mode's icon on the base theme, and the theme's own icon when a seasonal or other theme is in effect.
+- **Quick:** picking a mode keeps the menu open, so mode and theme can be set in one go; picking a theme closes it.
 
-It ships with minimal CSS of its own. To restyle it, target `.venix-theme-switcher`, `.venix-theme-switcher__trigger`, `.venix-theme-switcher__menu` and `.venix-theme-switcher__item` (see [`VenixThemeSwitcher.vue`](./src/runtime/components/VenixThemeSwitcher.vue)).
+It ships with minimal CSS of its own. To restyle it, target `.venix-theme-switcher`, `.venix-theme-switcher__trigger`, `.venix-theme-switcher__menu`, `.venix-theme-switcher__subheading` and `.venix-theme-switcher__item` (`--mode` for the mode buttons) (see [`VenixThemeSwitcher.vue`](./src/runtime/components/VenixThemeSwitcher.vue)).
 
 ## Modules
 
@@ -118,7 +126,7 @@ Jade is a set of independent modules, each configured under its own key in `veni
 
 | Module                      | Key           | Default | What it does                                                          |
 | --------------------------- | ------------- | ------- | --------------------------------------------------------------------- |
-| [Colors](#colors)           | `color`       | `true`  | Color themes (dark, light, seasonal, custom), saved per user, as CSS variables and a UnoCSS preset |
+| [Colors](#colors)           | `color`       | `true`  | Color themes (built-in, seasonal, custom) in light and dark mode, saved per user, as CSS variables and a UnoCSS preset |
 | [Translation](#translation) | `translation` | `true`  | Detects the user's locale and translates theme names and your own strings |
 | [Icons](#icons)             | `icon`        | `true`  | `<VenixIcon>`: emoji, Iconify (bundled offline) or inline SVG through one component |
 | [Typography](#typography)   | `typography`  | `true`  | Base font family, font size and `@font-face` rules                    |
@@ -131,64 +139,71 @@ Jade is a set of independent modules, each configured under its own key in `veni
 | Option           | Type                        | Default  | Description                                                   |
 | ---------------- | --------------------------- | -------- | ------------------------------------------------------------- |
 | `apply`          | `boolean`                   | `true`   | Apply the resolved theme to `<html>` (`data-theme` and class) |
-| `defaultColor`   | `string`                    | `'dark'` | Theme used when there's no preference yet                     |
+| `defaultColor`   | `string`                    | `'dark'` | Initial choice with no saved preference: a theme (mode follows the OS), a variant id like `'dark'` (that theme in that mode) or `'system'` |
 | `themes`         | `object`                    | `{}`     | Override or add themes — see [Themes](#themes)                |
 | `iconFormat`     | `'emote' \| 'css' \| 'svg'` | `'svg'`  | Preferred theme icon variant — see [Theme icons](#theme-icons) |
 | `requireConsent` | `boolean`                   | `true`   | Only save the chosen theme after cookie consent — see [Saving the theme](#saving-the-theme-cookie-consent) |
 
 ### Themes
 
-The module ships with `dark`, `light` and the [seasonal themes](#seasonal-themes). `color.themes` extends that set:
+Each theme has a `light` and a `dark` variant, plus a name (`translations`) and an `icon` shared by both. The module ships with **Venix Sistemas** (`venix`) and the [seasonal themes](#seasonal-themes), all in both modes. `color.themes` extends that set:
 
-- An **existing** name overrides only the properties you set; the rest of the theme (other colors, translations, icon) stays as shipped.
-- A **new** name adds a theme that works like a built-in one: its own CSS variables, an entry in `useVenixTheme().themes` (so it appears in `<VenixThemeSwitcher>`), and UnoCSS/Vuetify support when enabled. New themes are dark unless you set `dark: false`.
+- An **existing** name overrides only the properties you set; the rest of the theme (the other variant, other colors, translations, icon) stays as shipped.
+- A **new** name adds a theme that works like a built-in one: its own CSS variables, an entry in `useVenixTheme().themes` (so it appears in `<VenixThemeSwitcher>`), and UnoCSS/Vuetify support when enabled. A theme with only one variant uses it in both modes.
 
 ```typescript
 color: {
   themes: {
-    // Overrides only `primary` of the built-in dark theme
-    dark: {
-      primary: '#FF6B6B',
+    // Overrides only `primary` of the built-in theme in dark mode
+    venix: {
+      dark: { primary: '#FF6B6B' },
     },
 
     // Adds a project-specific theme
     summerSale: {
-      dark: false,
-      primary: '#FF8A00',
-      background: '#FFF8EE',
+      translations: { 'en-US': 'Summer sale', 'pt-BR': 'Liquidação de verão' },
+      icon: '🏖️',
+      light: { primary: '#FF8A00', background: '#FFF8EE' },
+      dark: { primary: '#FFB04C', background: '#1A1206' },
     },
   },
 }
 ```
 
-Available colors: `primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`, `background`, `background2`, `background3`. Each becomes a `--color-<name>` CSS variable, plus `--color-inverse` (white on dark themes, black on light ones).
+Available colors: `primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`, `background`, `background2`, `background3`. Each becomes a `--color-<name>` CSS variable, plus `--color-inverse` (white on dark variants, black on light ones).
+
+Each variant is applied as `<html data-theme="<id>">`, and the id is also its Vuetify theme name. It defaults to `<theme>-<mode>` (`summerSale-light`); set `id` on a variant to choose it. The built-in themes keep the ids they had before light/dark became separate: `dark` and `light` for Venix Sistemas, `carnaval`, `natal` and `halloween` for the dark seasonal variants (their light ones are `carnaval-light` and so on).
+
+#### Flat format (deprecated)
+
+Before themes had two variants, each one was a single flat set of colors with a `dark` flag (`summerSale: { dark: false, primary: '#FF8A00' }`), and built-in themes were overridden by variant name (`dark: { primary: '#FF6B6B' }`). Both still work: a flat theme becomes a theme with only that variant (same `data-theme` id as before), and an override by variant name lands on that variant. Each one logs a `[jade]` warning at build time pointing at the new format; the flat format will be removed in 2.0.
 
 ### Seasonal themes
 
-Built in: 🎭 Carnival, 🎃 Halloween and 🎄 Christmas. While the preference is `'system'` and today is inside a seasonal theme's `dateRange`, it replaces `dark` or `light` — whichever matches its own `dark` flag and the user's system mode.
+Built in: 🎭 Carnival, 🎃 Halloween and 🎄 Christmas, each in light and dark. While the theme is `'system'` (Automatic) and today is inside a seasonal theme's `dateRange`, it replaces the base theme, in the variant matching the mode. Seasonal themes can also be picked directly, any day.
 
-Add your own with `seasonal: true` and a `dateRange`. Seasonal themes aren't directly selectable; they only appear through `'system'`. The range is inclusive and wraps across the new year when `end` comes before `start`. Each bound is a fixed `MM-DD` date or, for movable holidays, a number of days relative to Easter Sunday (`easter`, `easter-47`, `easter+1`):
+Add your own with `seasonal: true` and a `dateRange`. The range is inclusive and wraps across the new year when `end` comes before `start`. Each bound is a fixed `MM-DD` date or, for movable holidays, a number of days relative to Easter Sunday (`easter`, `easter-47`, `easter+1`):
 
 ```typescript
 color: {
   themes: {
     blackFriday: {
-      dark: true,
       seasonal: true,
       dateRange: { start: '11-24', end: '11-30' },
-      primary: '#111111',
-      background: '#000000',
+      dark: { primary: '#FFD400', background: '#000000' },
+      light: { primary: '#111111', background: '#FFF8D6' },
     },
     pascoa: {
-      dark: false,
       seasonal: true,
       dateRange: { start: 'easter-6', end: 'easter' }, // Holy Week, every year
-      primary: '#F4A6C0',
-      background: '#FFF8F0',
+      light: { primary: '#F4A6C0', background: '#FFF8F0' },
+      dark: { primary: '#FF6FB0', background: '#1B1225' },
     },
   },
 }
 ```
+
+A seasonal theme with a single variant only takes over automatically when the mode matches it.
 
 The built-in Carnival theme uses `easter-65` to `easter-46`: 20 days, from the pre-Carnival weeks up to Ash Wednesday.
 
@@ -198,12 +213,15 @@ Every theme switch — manual, through the switcher, or an automatic system/seas
 
 ### Saving the theme (cookie consent)
 
-Two cookies remember the user's choice between visits:
+Three cookies remember the user's choice between visits:
 
 | Cookie                   | Stores                                                                              |
 | ------------------------ | ----------------------------------------------------------------------------------- |
-| `venix-theme-preference` | The user's raw choice (`'dark'`, `'system'`, a custom theme…)                       |
-| `venix-theme-resolved`   | The theme actually applied (e.g. `'dark'` for `'system'`), so SSR renders it with no flash |
+| `venix-theme-preference` | The chosen theme (`'system'`, `'venix'`, a custom theme…)                           |
+| `venix-theme-mode`       | The chosen mode (`'system'`, `'light'`, `'dark'`)                                    |
+| `venix-theme-resolved`   | The variant actually applied (e.g. `'natal-light'`), so SSR renders it with no flash |
+
+Choices saved before theme and mode were separate (e.g. a theme cookie of `'dark'`) are read as the equivalent theme and mode, so users keep their theme.
 
 By default, neither is written without consent. Switching themes always works; without consent it just isn't remembered on the next visit. In development, the first unsaved theme change logs a `[jade]` warning in the console, so a missing consent setup doesn't go unnoticed.
 
@@ -390,11 +408,11 @@ If a referenced collection can't be found, `@nuxt/icon` fetches it from the Icon
 A theme's `icon` (shown by pickers such as `<VenixThemeSwitcher>`) is either a plain emoji, like `"icon": "🌙"`, or an object with up to three variants:
 
 ```json
-"light": {
+"natal": {
   "icon": {
-    "emote": "☀️",
-    "css": "mdi:white-balance-sunny",
-    "svg": "line-md:sunny-filled-loop"
+    "emote": "🎄",
+    "css": "mdi:pine-tree-variant",
+    "svg": "line-md:star-filled"
   }
 }
 ```
@@ -403,7 +421,7 @@ A theme's `icon` (shown by pickers such as `<VenixThemeSwitcher>`) is either a p
 - `css` — an Iconify name rendered in CSS mode: lighter, but never animated.
 - `svg` — an Iconify name rendered as a real `<svg>`, needed for animated icons like `line-md`'s.
 
-`color.iconFormat` picks the variant for every theme (default `'svg'`, so the built-in `line-md` icons animate). When a theme doesn't define it, the other Iconify variant is tried before the emoji: `svg` → `css` → `emote` (or `css` → `svg` → `emote`). `useVenixTheme().themes` already resolves it to `{ format, value }`, ready for `<VenixIcon>`:
+`color.iconFormat` picks the variant for every theme (default `'svg'`, so the built-in `line-md` icons animate). When a theme doesn't define it, the other Iconify variant is tried before the emoji: `svg` → `css` → `emote` (or `css` → `svg` → `emote`). The mode options (Automatic, Light, Dark) use the same formats. `useVenixTheme().themes` and `.modes` already resolve it to `{ format, value }`, ready for `<VenixIcon>`:
 
 ```vue
 <VenixIcon
@@ -463,6 +481,11 @@ venixTheme: {
   },
 }
 ```
+
+> [!NOTE]
+> Keep cursor images at **32×32 pixels or smaller**. Browsers accept larger cursors (Chromium up to 128×128), but Chromium falls back to the system cursor whenever a cursor larger than 32×32 would overlap the browser UI, so it flickers near the edges of the window.
+>
+> Browser-drawn UI ignores the CSS `cursor` property and always shows the system cursor. That includes native scrollbars, `<select>` dropdowns, date and color pickers, and the `<textarea>` resize handle.
 
 ## Vuetify
 

@@ -1,11 +1,11 @@
 // src/shared/types/runtime-config.ts
-import type { ThemeColors } from './colors'
+import type { ThemeEntry } from './colors'
 
 declare module '@nuxt/schema' {
   interface PublicRuntimeConfig {
     venixTheme?: {
       defaultTheme: string
-      colorThemes: Record<string, Partial<ThemeColors>>
+      colorThemes: Record<string, Partial<ThemeEntry>>
       applyColors: boolean
       localeCookie: string
       defaultLocale: string

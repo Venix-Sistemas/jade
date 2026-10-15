@@ -1,8 +1,10 @@
-import { defineNuxtModule, createResolver, addImports } from '@nuxt/kit'
+import { defineNuxtModule, createResolver, addImports, useLogger } from '@nuxt/kit'
 import { loadTheme } from './shared/utils/load'
 import type { TypographyConfig, ScrollbarConfig, CursorConfig, ColorOptions, TranslationConfig, VuetifyOptions, IconOptions } from './shared/types'
 import { DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_THEME } from './shared/constants'
 import { resolveFeatureOption } from './shared/utils/options'
+import { findDeprecatedThemeEntries } from './shared/utils/merge-themes'
+import { getBaseThemeEntries } from './shared/utils/theme-config'
 import { customizeTheme } from './setup/customize-theme'
 import { registerPublicAssets } from './setup/register-assets'
 import { registerThemeComponents } from './setup/register-components'
@@ -72,6 +74,10 @@ export default defineNuxtModule<ModuleOptions>({
       iconFormat: 'svg',
       requireConsent: true,
     })
+    for (const message of findDeprecatedThemeEntries(getBaseThemeEntries(), colorOptions.themes)) {
+      useLogger('jade').warn(message)
+    }
+
     const shouldApplyColors = colorOptions.enabled && colorOptions.apply && theme.colors?.defaults !== false
 
     const translationOptions = resolveFeatureOption<TranslationConfig>(options.translation, {

@@ -2,7 +2,7 @@
 import type { ThemeConfig } from '../shared/types'
 import type { ModuleOptions } from '../module'
 import { resolveFeatureOption } from '../shared/utils/options'
-import { mergeColorThemes } from '../shared/utils/merge-themes'
+import { buildResolvedTheme } from '../shared/utils/theme-config'
 
 export function customizeTheme(baseTheme: ThemeConfig, options: ModuleOptions): ThemeConfig {
   const customized = structuredClone(baseTheme)
@@ -23,12 +23,14 @@ export function customizeTheme(baseTheme: ThemeConfig, options: ModuleOptions): 
       customized.colors.enabled = false
     }
 
-    if (colorOption.defaultColor) {
-      customized.colors.defaultColor = colorOption.defaultColor
-    }
-
-    // Overrides an existing theme, or adds a new one (dark by default)
-    customized.colors.themes = mergeColorThemes(customized.colors.themes, colorOption.themes)
+    // Same merge + normalization the runtime does (`buildResolvedTheme`), so
+    // the generated CSS/Vuetify themes and the client always agree. Overrides
+    // an existing theme, or adds a new one.
+    const resolved = buildResolvedTheme({
+      defaultTheme: colorOption.defaultColor || customized.colors.defaultColor,
+      colorThemes: colorOption.themes,
+    })
+    customized.colors = { ...resolved.colors, enabled: customized.colors.enabled }
   }
 
   return customized
