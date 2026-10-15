@@ -23,7 +23,10 @@ export const useVenixTheme = () => {
   // Cookies — the locale cookie is the same one used by routing i18n
   // solutions (e.g. @nuxtjs/i18n defaults to 'i18n_redirected', same as
   // ours), so theme-name translations automatically follow the app's locale.
-  const cookies = useThemeCookies(themeConfig?.localeCookie)
+  const cookies = useThemeCookies({
+    localeCookieName: themeConfig?.localeCookie,
+    requireConsent: themeConfig?.requireConsent !== false,
+  })
 
   // Cookie consent — shared via useState for the same reason as `preference`
   // (multiple calls to useVenixTheme() must agree on the current state).
@@ -173,11 +176,12 @@ export const useVenixTheme = () => {
   // whenever COOKIE_PREFERENCES_UPDATED_EVENT fires (from any source:
   // grant()/revoke() below, or the consumer app's own consent UI), and also
   // called directly by grant()/revoke() to reflect immediately, without
-  // depending on the event's round-trip.
+  // depending on the event's round-trip. With `color.requireConsent: false`
+  // the cookies don't depend on consent, so a revoke doesn't delete them.
   const syncPersistence = () => {
     hasConsent.value = hasCookieConsent()
 
-    if (hasConsent.value) {
+    if (cookies.canPersist()) {
       cookies.persistIfConsented(preference.value, getResolvedTheme(preference.value))
     }
     else {

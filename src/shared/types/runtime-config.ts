@@ -11,6 +11,7 @@ declare module '@nuxt/schema' {
       defaultLocale: string
       locale: string
       iconFormat: 'emote' | 'css' | 'svg'
+      requireConsent: boolean
       icon: {
         aliases: Record<string, string>
       }

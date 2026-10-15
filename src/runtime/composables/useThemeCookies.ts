@@ -7,7 +7,19 @@ import {
 } from '../../shared/constants'
 import { hasCookieConsent } from '../../shared/utils/consent'
 
-export const useThemeCookies = (localeCookieName: string = DEFAULT_LOCALE_COOKIE_NAME) => {
+// Module-level so the dev warning shows once per page load, not once per
+// `useVenixTheme()` call or per theme change.
+let warnedMissingConsent = false
+
+export interface UseThemeCookiesOptions {
+  localeCookieName?: string
+  /** See `color.requireConsent` — when `false`, the theme cookies are always written. */
+  requireConsent?: boolean
+}
+
+export const useThemeCookies = (options: UseThemeCookiesOptions = {}) => {
+  const { localeCookieName = DEFAULT_LOCALE_COOKIE_NAME, requireConsent = true } = options
+
   const preferenceCookie = useCookie<string>(THEME_PREFERENCE_COOKIE)
   const resolvedCookie = useCookie<string>(THEME_RESOLVED_COOKIE)
   const localeCookie = useCookie<string>(localeCookieName)
@@ -18,11 +30,26 @@ export const useThemeCookies = (localeCookieName: string = DEFAULT_LOCALE_COOKIE
     }
   }
 
-  // Only writes if the consumer app has already recorded functional-cookie
-  // consent — called both automatically (on every theme change) and
-  // explicitly via `persistence.enable()`.
+  /** Whether the theme cookies may be written right now. */
+  const canPersist = (): boolean => !requireConsent || hasCookieConsent()
+
+  // Called both automatically (on every theme change) and explicitly via
+  // `persistence.enable()`. Without consent (and `requireConsent` on), the
+  // theme still applies for this visit, it just isn't remembered — easy to
+  // miss in an app that never wired up a consent banner, hence the warning.
   const persistIfConsented = (preference: string, resolved: string) => {
-    if (!hasCookieConsent()) return
+    if (!canPersist()) {
+      if (import.meta.dev && import.meta.client && !warnedMissingConsent) {
+        warnedMissingConsent = true
+        console.warn(
+          '[jade] Theme change not saved: no cookie consent recorded, so it will be lost on reload. '
+          + 'Call `persistence.grant()`, record consent from your cookie banner, '
+          + 'or set `venixTheme.color.requireConsent: false` if this app has no consent banner.',
+        )
+      }
+      return
+    }
+
     preferenceCookie.value = preference
     resolvedCookie.value = resolved
   }
@@ -36,6 +63,7 @@ export const useThemeCookies = (localeCookieName: string = DEFAULT_LOCALE_COOKIE
     preferenceCookie,
     resolvedCookie,
     localeCookie,
+    canPersist,
     persistIfConsented,
     disablePersistence,
   }

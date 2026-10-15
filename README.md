@@ -151,6 +151,7 @@ With `translation: false`, detection is off: theme names and the switcher's stri
 | `defaultColor` | `string`                    | `'dark'` | Theme used when there's no preference yet                     |
 | `themes`       | `object`                    | `{}`     | Override or add themes — see [Themes](#themes)                |
 | `iconFormat`   | `'emote' \| 'css' \| 'svg'` | `'svg'`  | Preferred theme icon variant — see [Theme icons](#theme-icons) |
+| `requireConsent` | `boolean`                 | `true`   | Only save the chosen theme after cookie consent — see [Cookie Consent](#cookie-consent) |
 
 #### `scrollbar`, `cursor` and `typography`
 
@@ -330,7 +331,19 @@ Two cookies remember the user's choice between visits:
 | `venix-theme-preference` | The user's raw choice (`'dark'`, `'system'`, a custom theme…)                       |
 | `venix-theme-resolved`   | The theme actually applied (e.g. `'dark'` for `'system'`), so SSR renders it with no flash |
 
-Neither is written without consent. Switching themes always works; without consent it just isn't remembered on the next visit. (The locale cookie is covered in [Integrating with a routing-based i18n module](#integrating-with-a-routing-based-i18n-module-eg-nuxtjsi18n).)
+Neither is written without consent. Switching themes always works; without consent it just isn't remembered on the next visit. In development, the first unsaved theme change logs a `[jade]` warning in the console, so a missing consent setup doesn't go unnoticed. (The locale cookie is covered in [Integrating with a routing-based i18n module](#integrating-with-a-routing-based-i18n-module-eg-nuxtjsi18n).)
+
+For apps without a consent banner — e.g. an internal tool — turn the requirement off, and the theme is always saved:
+
+```typescript
+venixTheme: {
+  color: {
+    requireConsent: false,
+  },
+}
+```
+
+Consent is then ignored for the theme cookies: `persistence.revoke()` no longer deletes them. Whether that's acceptable is a decision for each app; the locale cookie written by `locale.set()` still follows consent.
 
 Consent is read from `localStorage['venix-cookie-consent']`, a JSON object with a `functionality: boolean` field — the "functional cookies" category most consent banners already use. The module never writes this key by itself. For a minimal banner, use the built-in helpers:
 

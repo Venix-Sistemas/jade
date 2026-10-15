@@ -70,6 +70,7 @@ export default defineNuxtModule<ModuleOptions>({
       defaultColor: theme.colors?.defaultColor || DEFAULT_THEME,
       themes: {},
       iconFormat: 'svg',
+      requireConsent: true,
     })
     const shouldApplyColors = colorOptions.enabled && colorOptions.apply && theme.colors?.defaults !== false
 
@@ -110,6 +111,7 @@ export default defineNuxtModule<ModuleOptions>({
       defaultLocale: translationOptions.defaultLocale,
       locale: translationOptions.locale,
       iconFormat: colorOptions.iconFormat,
+      requireConsent: colorOptions.requireConsent,
       icon: {
         aliases: iconOptions.aliases,
       },

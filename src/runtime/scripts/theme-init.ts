@@ -27,7 +27,13 @@ declare global {
  * `shared/utils/theme-resolve.ts`. Keep the two sides in sync when changing
  * either one.
  */
-export default function initTheme(themeData: ThemeConfig): void {
+export interface InitThemeOptions {
+  /** See `color.requireConsent` — when `false`, the theme cookies are always written. */
+  requireConsent?: boolean
+}
+
+export default function initTheme(themeData: ThemeConfig, options: InitThemeOptions = {}): void {
+  const requireConsent = options.requireConsent !== false
   const THEME_PREFERENCE_COOKIE = 'venix-theme-preference'
   const THEME_RESOLVED_COOKIE = 'venix-theme-resolved'
   const COOKIE_CONSENT_STORAGE_KEY = 'venix-cookie-consent'
@@ -55,7 +61,7 @@ export default function initTheme(themeData: ThemeConfig): void {
   }
 
   function setCookieIfConsented(name: string, value: string): void {
-    if (hasCookieConsent()) {
+    if (!requireConsent || hasCookieConsent()) {
       document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax`
     }
   }
