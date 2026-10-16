@@ -100,47 +100,53 @@
           </div>
         </div>
 
-        <div
-          class="venix-theme-switcher__separator"
-          role="separator"
-        />
-
-        <div
-          class="venix-theme-switcher__group"
-          role="group"
-          :aria-label="themeHeading"
+        <template
+          v-for="section in themeSections"
+          :key="section.key"
         >
           <div
-            class="venix-theme-switcher__subheading"
-            aria-hidden="true"
+            class="venix-theme-switcher__separator"
+            role="separator"
+          />
+
+          <div
+            class="venix-theme-switcher__group"
+            role="group"
+            :aria-label="section.heading"
           >
-            {{ themeHeading }}
+            <div
+              v-if="section.showHeading"
+              class="venix-theme-switcher__subheading"
+              aria-hidden="true"
+            >
+              {{ section.heading }}
+            </div>
+            <button
+              v-for="item in section.items"
+              :key="item.value"
+              type="button"
+              role="menuitemradio"
+              class="venix-theme-switcher__item"
+              :class="{ 'venix-theme-switcher__item--active': item.value === theme.preference.value }"
+              :aria-checked="item.value === theme.preference.value"
+              @click="selectTheme(item.value)"
+            >
+              <span
+                v-if="item.icon?.format === 'emote'"
+                class="venix-icon venix-icon--emoji venix-theme-switcher__item-icon"
+                aria-hidden="true"
+              >{{ item.icon.value }}</span>
+              <VenixIcon
+                v-else-if="item.icon"
+                class="venix-theme-switcher__item-icon"
+                :icon="item.icon.value"
+                :mode="item.icon.format"
+                aria-hidden="true"
+              />
+              <span>{{ item.name }}</span>
+            </button>
           </div>
-          <button
-            v-for="item in themes"
-            :key="item.value"
-            type="button"
-            role="menuitemradio"
-            class="venix-theme-switcher__item"
-            :class="{ 'venix-theme-switcher__item--active': item.value === theme.preference.value }"
-            :aria-checked="item.value === theme.preference.value"
-            @click="selectTheme(item.value)"
-          >
-            <span
-              v-if="item.icon?.format === 'emote'"
-              class="venix-icon venix-icon--emoji venix-theme-switcher__item-icon"
-              aria-hidden="true"
-            >{{ item.icon.value }}</span>
-            <VenixIcon
-              v-else-if="item.icon"
-              class="venix-theme-switcher__item-icon"
-              :icon="item.icon.value"
-              :mode="item.icon.format"
-              aria-hidden="true"
-            />
-            <span>{{ item.name }}</span>
-          </button>
-        </div>
+        </template>
       </div>
     </Transition>
   </div>
@@ -209,6 +215,18 @@ const THEME_HEADING_TRANSLATIONS: Record<string, string> = {
   'zh-CN': '主题',
 }
 
+const CUSTOM_HEADING_TRANSLATIONS: Record<string, string> = {
+  'pt-BR': 'Personalizado',
+  'en-US': 'Custom',
+  'es-ES': 'Personalizado',
+  'fr-FR': 'Personnalisé',
+  'de-DE': 'Benutzerdefiniert',
+  'it-IT': 'Personalizzato',
+  'ja-JP': 'カスタム',
+  'ko-KR': '사용자 지정',
+  'zh-CN': '自定义',
+}
+
 const MODE_CHANGED_ANNOUNCEMENT_TRANSLATIONS: Record<string, string> = {
   'pt-BR': 'Modo alterado para {mode}',
   'en-US': 'Mode changed to {mode}',
@@ -233,6 +251,13 @@ const { theme, themes, mode, modes, locale } = useVenixTheme()
 const resolvedLabel = computed(() => props.label ?? locale.translate(LABEL_TRANSLATIONS, 'Color theme'))
 const modeHeading = computed(() => locale.translate(MODE_HEADING_TRANSLATIONS, 'Mode'))
 const themeHeading = computed(() => locale.translate(THEME_HEADING_TRANSLATIONS, 'Theme'))
+// Built-in themes (and "Automatic") first; the project's own themes, if
+// any, below a divider. Their heading is only announced to screen readers
+// (the group's aria-label), not shown.
+const themeSections = computed(() => [
+  { key: 'built-in', heading: themeHeading.value, showHeading: true, items: themes.value.filter(item => !item.custom) },
+  { key: 'custom', heading: locale.translate(CUSTOM_HEADING_TRANSLATIONS, 'Custom'), showHeading: false, items: themes.value.filter(item => item.custom) },
+].filter(section => section.items.length > 0))
 const triggerLabel = computed(() => [theme.data.value?.name, mode.data.value?.name].filter(Boolean).join(' · '))
 
 // The theme used outside any season (e.g. Venix Sistemas)

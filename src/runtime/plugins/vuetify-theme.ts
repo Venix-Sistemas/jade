@@ -23,6 +23,8 @@ interface VuetifyInstance {
     global: {
       name: { value: string }
     }
+    /** The registered themes, by name. */
+    themes?: { value: Record<string, unknown> }
     /** The theme stylesheet (`--v-theme-*` variables + utility classes) Vuetify hands to unhead. */
     styles: { value: string }
   }
@@ -121,9 +123,14 @@ export default defineNuxtPlugin({
 
       // Same rule as the SSR plugin (`theme-init.server.ts`), so Vuetify's
       // first render matches `data-theme`.
-      vuetifyOptions.theme.defaultTheme = resolvedCookie.value && themes[resolvedCookie.value]
+      const resolved = resolvedCookie.value && themes[resolvedCookie.value]
         ? resolvedCookie.value
         : resolveThemePreference(preferenceCookie.value, modeCookie.value, theme.colors, true)
+
+      // Vuetify throws (taking the whole render down) on a theme name it
+      // doesn't have — e.g. a theme added after its themes were registered
+      // at build time. Keeping Vuetify's own default is the safe fallback.
+      if (themes[resolved]) vuetifyOptions.theme.defaultTheme = resolved
     })
 
     // 'vuetify:before-create' only decides the theme for the first render —
@@ -149,6 +156,8 @@ export default defineNuxtPlugin({
         if (!nuxtApp.payload.serverRendered) writeEarlyThemeStylesheet(nuxtApp, vuetify)
 
         window.addEventListener(THEME_APPLIED_EVENT, ((event: CustomEvent<string>) => {
+          // Same guard as above: skip names Vuetify doesn't have.
+          if (vuetify.theme.themes && !vuetify.theme.themes.value[event.detail]) return
           applyVuetifyTheme(vuetify, event.detail)
         }) as EventListener)
       })

@@ -21,7 +21,7 @@ const theme: ThemeConfig = buildResolvedTheme({
       light: { primary: '#b8860b' },
     },
     // Só uma variante (clara)
-    pascoa: {
+    semanaSanta: {
       seasonal: true,
       dateRange: { start: 'easter-6', end: 'easter' },
       light: { primary: '#f4a6c0' },

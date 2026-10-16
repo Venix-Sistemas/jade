@@ -7,6 +7,8 @@ import { mergeColorThemes, normalizeColorThemes } from './merge-themes'
 export interface VenixRuntimeThemeConfig {
   defaultTheme?: string
   colorThemes?: Record<string, Partial<ThemeEntry>>
+  /** `false` drops every seasonal theme (built-in and custom). Default: `true`. */
+  seasonal?: boolean
 }
 
 /** `theme.json` as authored: `colors.themes` holds config entries, not resolved variants. */
@@ -38,7 +40,22 @@ export function buildResolvedTheme(runtimeThemeConfig?: VenixRuntimeThemeConfig)
   // the user set), so they're merged theme by theme — a shallow spread would
   // replace e.g. the whole built-in theme, dropping its `translations`, `icon`
   // and untouched colors.
-  const entries = mergeColorThemes(getBaseThemeEntries(), runtimeThemeConfig?.colorThemes)
+  const baseEntries = getBaseThemeEntries()
+  const merged = mergeColorThemes(baseEntries, runtimeThemeConfig?.colorThemes)
+
+  // `color.seasonal: false`: seasonal themes are removed before anything
+  // else sees them, so they get no CSS, no Vuetify theme, no entry in the
+  // pickers and never take over by date.
+  const entries = runtimeThemeConfig?.seasonal === false
+    ? Object.fromEntries(Object.entries(merged).filter(([, entry]) => entry.seasonal !== true))
+    : merged
+  const { themes, groups } = normalizeColorThemes(entries)
+
+  // Themes the project added (not overrides of built-in ones), so pickers
+  // can list them apart from the built-in ones.
+  for (const [name, group] of Object.entries(groups)) {
+    if (!(name in baseEntries)) group.custom = true
+  }
 
   return {
     ...(themeData as unknown as ThemeConfig),
@@ -47,7 +64,8 @@ export function buildResolvedTheme(runtimeThemeConfig?: VenixRuntimeThemeConfig)
       defaults: rawColors.defaults ?? true,
       defaultColor: runtimeThemeConfig?.defaultTheme || rawColors.defaultColor || DEFAULT_THEME,
       modes: rawColors.modes ?? {},
-      ...normalizeColorThemes(entries),
+      themes,
+      groups,
     },
   }
 }

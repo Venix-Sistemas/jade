@@ -10,6 +10,7 @@ import {
 } from '../../src/shared/utils/theme-resolve'
 import type { ColorModel } from '../../src/shared/utils/theme-resolve'
 import { normalizeColorThemes } from '../../src/shared/utils/merge-themes'
+import { buildResolvedTheme } from '../../src/shared/utils/theme-config'
 import type { ThemeEntry } from '../../src/shared/types'
 
 const entries: Record<string, ThemeEntry> = {
@@ -113,6 +114,13 @@ describe('normalizeThemeSelection (cookies, inclusive os de antes da separação
   })
 })
 
+describe('normalizeThemeSelection sem temas sazonais', () => {
+  it('"system" como tema vira o tema base, que é o que ele aplicaria', () => {
+    expect(normalizeThemeSelection('system', undefined, base)).toEqual({ theme: 'venix', mode: 'system' })
+    expect(normalizeThemeSelection('natal', 'dark', base)).toEqual({ theme: 'venix', mode: 'dark' })
+  })
+})
+
 describe('resolveThemeSelection', () => {
   it('modo "system" segue o SO', () => {
     expect(resolveThemeSelection({ theme: 'venix', mode: 'system' }, base, true)).toBe('dark')
@@ -205,5 +213,28 @@ describe('dateRange relativo à Páscoa', () => {
     expect(getActiveSeasonalTheme(pascoa, 'light', new Date('2026-04-05T12:00:00'))).toBe('pascoa')
     expect(getActiveSeasonalTheme(pascoa, 'light', new Date('2026-04-06T12:00:00'))).toBe('pascoa')
     expect(getActiveSeasonalTheme(pascoa, 'light', new Date('2026-04-07T12:00:00'))).toBeNull()
+  })
+})
+
+describe('temas sazonais embutidos', () => {
+  const builtIn = buildResolvedTheme().colors
+
+  it.each([
+    // 2026: Páscoa em 05/04 — de Domingo de Ramos (29/03) à segunda (06/04)
+    ['2026-03-28', null],
+    ['2026-03-29', 'pascoa'],
+    ['2026-04-05', 'pascoa'],
+    ['2026-04-06', 'pascoa'],
+    ['2026-04-07', null],
+    // Carnaval 2026 continua só com o Carnaval
+    ['2026-02-17', 'carnaval'],
+  ])('%s → %s', (date, expected) => {
+    expect(getActiveSeasonalTheme(builtIn.groups, 'light', new Date(`${date}T12:00:00`))).toBe(expected)
+  })
+
+  it('a Páscoa resolve para a variante do modo escolhido', () => {
+    const easter = new Date('2026-04-05T12:00:00')
+    expect(resolveThemeSelection({ theme: 'system', mode: 'light' }, builtIn, true, easter)).toBe('pascoa-light')
+    expect(resolveThemeSelection({ theme: 'system', mode: 'dark' }, builtIn, false, easter)).toBe('pascoa-dark')
   })
 })

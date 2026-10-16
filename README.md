@@ -90,7 +90,7 @@ It returns:
   - `toggle(name?)`: kept for compatibility — without a name switches the mode; `'dark'`/`'light'` select Venix Sistemas in that mode; `'system'` makes both theme and mode automatic
   - `isSeasonalActive`, `activeSeasonalTheme`: whether a [seasonal theme](#seasonal-themes) is currently in effect, and which one
   - `shouldApplyColors`, `colors`: whether the module applies colors, and the resolved color config
-- `themes` — every selectable theme, ready to render a picker (see [Theme icons](#theme-icons)).
+- `themes` — every selectable theme as `{ value, name, icon, custom }`, ready to render a picker (see [Theme icons](#theme-icons)); `custom` is `true` for themes your project added in `color.themes`.
 - `mode` — the mode choice: `preference` (`'system'`, `'light'`, `'dark'`), `value` (the mode applied, `'light'` or `'dark'`), `data`, `set(mode)` and `toggle()`.
 - `modes` — the three mode options with names and icons, ready to render.
 - `locale` — `current`, `set()` and `translate()` (see [Translation](#translation)).
@@ -100,7 +100,7 @@ The state is shared app-wide (via Nuxt's `useState`): every component calling `u
 
 ### 3. Ready-made component
 
-`<VenixThemeSwitcher>` is an auto-imported dropdown with two sections, **Mode** (Automatic, Light, Dark) and **Theme** (Automatic, Venix Sistemas, the seasonal ones and your own), with no dependency on Vuetify or any other UI kit:
+`<VenixThemeSwitcher>` is an auto-imported dropdown with a **Mode** section (Automatic, Dark, Light) and a **Theme** section (Automatic, Venix Sistemas and the seasonal themes), followed, below a divider, by the themes your project adds itself. It has no dependency on Vuetify or any other UI kit:
 
 ```vue
 <template>
@@ -143,6 +143,7 @@ Jade is a set of independent modules, each configured under its own key in `veni
 | `themes`         | `object`                    | `{}`     | Override or add themes — see [Themes](#themes)                |
 | `iconFormat`     | `'emote' \| 'css' \| 'svg'` | `'svg'`  | Preferred theme icon variant — see [Theme icons](#theme-icons) |
 | `requireConsent` | `boolean`                   | `true`   | Only save the chosen theme after cookie consent — see [Saving the theme](#saving-the-theme-cookie-consent) |
+| `seasonal`       | `boolean`                   | `true`   | Seasonal themes — `false` removes them entirely, see [Seasonal themes](#seasonal-themes) |
 
 ### Themes
 
@@ -172,7 +173,7 @@ color: {
 
 Available colors: `primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`, `background`, `background2`, `background3`. Each becomes a `--color-<name>` CSS variable, plus `--color-inverse` (white on dark variants, black on light ones).
 
-Each variant is applied as `<html data-theme="<id>">`, and the id is also its Vuetify theme name. It defaults to `<theme>-<mode>` (`summerSale-light`); set `id` on a variant to choose it. The built-in themes keep the ids they had before light/dark became separate: `dark` and `light` for Venix Sistemas, `carnaval`, `natal` and `halloween` for the dark seasonal variants (their light ones are `carnaval-light` and so on).
+Each variant is applied as `<html data-theme="<id>">`, and the id is also its Vuetify theme name. It defaults to `<theme>-<mode>` (`summerSale-light`); set `id` on a variant to choose it. The built-in themes keep the ids they had before light/dark became separate: `dark` and `light` for Venix Sistemas, `carnaval`, `natal` and `halloween` for the dark seasonal variants (their light ones are `carnaval-light` and so on). Easter, added later, uses the default `pascoa-light` and `pascoa-dark`.
 
 #### Flat format (deprecated)
 
@@ -180,7 +181,7 @@ Before themes had two variants, each one was a single flat set of colors with a 
 
 ### Seasonal themes
 
-Built in: 🎭 Carnival, 🎃 Halloween and 🎄 Christmas, each in light and dark. While the theme is `'system'` (Automatic) and today is inside a seasonal theme's `dateRange`, it replaces the base theme, in the variant matching the mode. Seasonal themes can also be picked directly, any day.
+Built in: 🎭 Carnival, 🐰 Easter, 🎃 Halloween and 🎄 Christmas, each in light and dark. While the theme is `'system'` (Automatic) and today is inside a seasonal theme's `dateRange`, it replaces the base theme, in the variant matching the mode. Seasonal themes can also be picked directly, any day.
 
 Add your own with `seasonal: true` and a `dateRange`. The range is inclusive and wraps across the new year when `end` comes before `start`. Each bound is a fixed `MM-DD` date or, for movable holidays, a number of days relative to Easter Sunday (`easter`, `easter-47`, `easter+1`):
 
@@ -193,11 +194,11 @@ color: {
       dark: { primary: '#FFD400', background: '#000000' },
       light: { primary: '#111111', background: '#FFF8D6' },
     },
-    pascoa: {
+    corpusChristi: {
       seasonal: true,
-      dateRange: { start: 'easter-6', end: 'easter' }, // Holy Week, every year
-      light: { primary: '#F4A6C0', background: '#FFF8F0' },
-      dark: { primary: '#FF6FB0', background: '#1B1225' },
+      dateRange: { start: 'easter+60', end: 'easter+60' }, // a single day, every year
+      light: { primary: '#B8860B', background: '#FFFBEF' },
+      dark: { primary: '#F2C94C', background: '#17130A' },
     },
   },
 }
@@ -205,7 +206,9 @@ color: {
 
 A seasonal theme with a single variant only takes over automatically when the mode matches it.
 
-The built-in Carnival theme uses `easter-65` to `easter-46`: 20 days, from the pre-Carnival weeks up to Ash Wednesday.
+To turn seasonal themes off, set `color.seasonal: false`. All of them, built-in and custom, are removed: they get no CSS, aren't listed in pickers and never take over by date. "Automatic" then always means the base theme, so it's left out of the theme list too.
+
+The built-in Carnival theme uses `easter-65` to `easter-46`: 20 days, from the pre-Carnival weeks up to Ash Wednesday. Easter uses `easter-7` to `easter+1`: from Palm Sunday to Easter Monday.
 
 ### Theme transition
 

@@ -29,4 +29,10 @@ export interface ColorOptions {
    * internal tool) so the chosen theme always survives a reload.
    */
   requireConsent: boolean
+  /**
+   * Seasonal themes (Carnival, Easter, Halloween, Christmas and any custom
+   * one with `seasonal: true`). Default: `true`. With `false` they're
+   * removed entirely: not listed in pickers and never applied by date.
+   */
+  seasonal: boolean
 }

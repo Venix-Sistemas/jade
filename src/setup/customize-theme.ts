@@ -29,6 +29,7 @@ export function customizeTheme(baseTheme: ThemeConfig, options: ModuleOptions): 
     const resolved = buildResolvedTheme({
       defaultTheme: colorOption.defaultColor || customized.colors.defaultColor,
       colorThemes: colorOption.themes,
+      seasonal: colorOption.seasonal,
     })
     customized.colors = { ...resolved.colors, enabled: customized.colors.enabled }
   }

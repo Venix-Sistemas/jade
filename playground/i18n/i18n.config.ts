@@ -20,7 +20,7 @@ export default defineI18nConfig(() => ({
       },
       color: {
         selectorHeading: 'Mode and theme',
-        selectorHint: 'The same choice as the switcher in the top-right corner: both stay in sync.',
+        selectorHint: 'The same choice as the switcher in the navigation bar: both stay in sync.',
         mode: 'Mode',
         theme: 'Theme',
         toggle: 'Toggle light/dark',
@@ -81,7 +81,7 @@ export default defineI18nConfig(() => ({
       },
       color: {
         selectorHeading: 'Modo e tema',
-        selectorHint: 'A mesma escolha do seletor no canto superior direito: os dois ficam sincronizados.',
+        selectorHint: 'A mesma escolha do seletor na barra de navegação: os dois ficam sincronizados.',
         mode: 'Modo',
         theme: 'Tema',
         toggle: 'Alternar claro/escuro',
@@ -142,7 +142,7 @@ export default defineI18nConfig(() => ({
       },
       color: {
         selectorHeading: 'Modo y tema',
-        selectorHint: 'La misma elección que el selector de la esquina superior derecha: ambos se mantienen sincronizados.',
+        selectorHint: 'La misma elección que el selector de la barra de navegación: ambos se mantienen sincronizados.',
         mode: 'Modo',
         theme: 'Tema',
         toggle: 'Alternar claro/oscuro',

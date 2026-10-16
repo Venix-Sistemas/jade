@@ -1,9 +1,6 @@
 <template>
   <div class="playground">
     <header class="header">
-      <client-only>
-        <VenixThemeSwitcher class="header__switcher" />
-      </client-only>
       <h1 class="header__title">
         <img
           src="/images/jade-logo.png"
@@ -23,15 +20,22 @@
       class="module-nav"
       :aria-label="$t('app.modules')"
     >
-      <a
-        v-for="item in modules"
-        :key="item.id"
-        :href="`#${item.id}`"
-        class="module-nav__link"
-      >
-        <span aria-hidden="true">{{ item.emoji }}</span>
-        {{ $t(`modules.${item.id}.title`) }}
-      </a>
+      <!-- Only the links scroll sideways on narrow screens: a scrolling
+           container would clip the switcher's dropdown. -->
+      <div class="module-nav__links">
+        <a
+          v-for="item in modules"
+          :key="item.id"
+          :href="`#${item.id}`"
+          class="module-nav__link"
+        >
+          <span aria-hidden="true">{{ item.emoji }}</span>
+          {{ $t(`modules.${item.id}.title`) }}
+        </a>
+      </div>
+      <client-only>
+        <VenixThemeSwitcher class="module-nav__switcher" />
+      </client-only>
     </nav>
 
     <main class="content">
@@ -544,14 +548,8 @@ code {
 .header {
   position: relative;
   text-align: center;
-  padding: 1.5rem 3.5rem 1.25rem;
+  padding: 1.5rem 1.5rem 1.25rem;
   background: var(--color-background2);
-}
-
-.header__switcher {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
 }
 
 .header__title {
@@ -579,13 +577,23 @@ code {
   top: 0;
   z-index: 10;
   display: flex;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 0.5rem 1rem;
-  overflow-x: auto;
+  align-items: center;
+  /* Room on the right for the switcher (absolutely positioned, so the links
+     stay centered on the page) */
+  padding: 0.5rem 3.75rem 0.5rem 1rem;
   background: var(--color-background2);
   border-top: 1px solid var(--color-background3);
   border-bottom: 1px solid var(--color-background3);
+}
+
+.module-nav__links {
+  display: flex;
+  justify-content: safe center;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .module-nav__link {
@@ -593,18 +601,29 @@ code {
   align-items: center;
   gap: 0.35rem;
   flex-shrink: 0;
-  padding: 0.4rem 0.75rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
   border-radius: 999px;
+  /* A light wash of the theme's primary color, so links read as buttons */
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
   color: var(--color-primary);
   font-size: 0.875rem;
   text-decoration: none;
   white-space: nowrap;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .module-nav__link:hover,
 .module-nav__link:focus-visible {
-  background: var(--color-background3);
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+.module-nav__switcher {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
 }
 
 /* ===== Content ===== */
@@ -923,10 +942,6 @@ code {
   .header__logo {
     width: 2rem;
     height: 2rem;
-  }
-
-  .module-nav {
-    justify-content: flex-start;
   }
 
   .module__key {

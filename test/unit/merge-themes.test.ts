@@ -91,7 +91,7 @@ describe('normalizeColorThemes', () => {
   })
 
   it('gives every built-in theme both a light and a dark variant', () => {
-    for (const name of ['venix', 'carnaval', 'natal', 'halloween']) {
+    for (const name of ['venix', 'carnaval', 'pascoa', 'natal', 'halloween']) {
       expect(base.colors.groups[name]?.variants.light, name).toBeTruthy()
       expect(base.colors.groups[name]?.variants.dark, name).toBeTruthy()
     }
@@ -128,6 +128,17 @@ describe('buildResolvedTheme with `colorThemes` overrides', () => {
     expect(resolved.colors.themes.light).toEqual(base.colors.themes.light)
   })
 
+  it('flags the project themes as custom, but not overrides of built-in ones', () => {
+    const resolved = buildResolvedTheme({
+      colorThemes: { ...overrides, brand: { light: { primary: '#123456' } }, legacy: { dark: false, primary: '#654321' } },
+    })
+
+    expect(resolved.colors.groups.brand?.custom).toBe(true)
+    expect(resolved.colors.groups.legacy?.custom).toBe(true)
+    expect(resolved.colors.groups.venix?.custom).toBeUndefined()
+    expect(resolved.colors.groups.system?.custom).toBeUndefined()
+  })
+
   it('is unchanged when there are no overrides', () => {
     expect(buildResolvedTheme({})).toEqual(base)
     expect(buildResolvedTheme({ colorThemes: {} })).toEqual(base)
@@ -143,21 +154,40 @@ describe('buildResolvedTheme with `colorThemes` overrides', () => {
   })
 })
 
+describe('color.seasonal: false', () => {
+  const noSeasonal = buildResolvedTheme({ seasonal: false, colorThemes: { feriado: { seasonal: true, dateRange: { start: '01-01', end: '12-31' }, dark: { primary: '#000001' } } } })
+
+  it('removes every seasonal theme, built-in and custom, with its variants', () => {
+    expect(Object.keys(noSeasonal.colors.groups)).toEqual(['system', 'venix'])
+    expect(Object.keys(noSeasonal.colors.themes).sort()).toEqual(['dark', 'light'])
+  })
+
+  it('matches the build-time result, so no CSS or Vuetify theme is generated for them', () => {
+    const buildTime = customizeTheme(loadTheme(), { color: { seasonal: false } })
+    expect(buildTime.colors.groups).toEqual(buildResolvedTheme({ seasonal: false }).colors.groups)
+  })
+
+  it('leaves "Automatic" out of the theme list', () => {
+    const translate = (translations?: Record<string, string>, fallback = '') => translations?.['pt-BR'] ?? fallback
+    expect(useThemeColors(noSeasonal, translate).themes.value.map(t => t.value)).toEqual(['venix'])
+  })
+})
+
 describe('useVenixTheme().themes / modes', () => {
   const translate = (translations?: Record<string, string>, fallback = '') => translations?.['pt-BR'] ?? fallback
 
   it('lists the themes, "Automático" first, without separate light/dark entries', () => {
     const { themes } = useThemeColors(buildResolvedTheme({ colorThemes: overrides }), translate)
 
-    expect(themes.value.map(t => t.value)).toEqual(['system', 'venix', 'carnaval', 'natal', 'halloween'])
-    expect(themes.value.map(t => t.name)).toEqual(['Automático', 'Venix Sistemas', 'Carnaval', 'Natal', 'Dia das Bruxas'])
+    expect(themes.value.map(t => t.value)).toEqual(['system', 'venix', 'carnaval', 'pascoa', 'natal', 'halloween'])
+    expect(themes.value.map(t => t.name)).toEqual(['Automático', 'Venix Sistemas', 'Carnaval', 'Páscoa', 'Natal', 'Dia das Bruxas'])
     expect(themes.value.every(t => !!t.icon)).toBe(true)
   })
 
   it('lists the modes with their icons', () => {
     const { modes } = useThemeColors(base, translate)
 
-    expect(modes.value.map(m => [m.value, m.name])).toEqual([['system', 'Automático'], ['light', 'Claro'], ['dark', 'Escuro']])
+    expect(modes.value.map(m => [m.value, m.name])).toEqual([['system', 'Automático'], ['dark', 'Escuro'], ['light', 'Claro']])
     expect(modes.value.every(m => !!m.icon)).toBe(true)
   })
 })

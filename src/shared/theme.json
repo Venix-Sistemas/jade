@@ -175,6 +175,46 @@
                     "background3": "#F6D8E8"
                 }
             },
+            "pascoa": {
+                "seasonal": true,
+                "dateRange": {
+                    "start": "easter-7",
+                    "end": "easter+1"
+                },
+                "translations": {
+                    "pt-BR": "Páscoa",
+                    "en-US": "Easter"
+                },
+                "icon": {
+                    "emote": "🐰",
+                    "css": "mdi:egg-easter",
+                    "svg": "line-md:heart-filled"
+                },
+                "dark": {
+                    "primary": "#FF6FB0",
+                    "secondary": "#B085F5",
+                    "accent": "#4DD0C4",
+                    "error": "#FF5252",
+                    "info": "#42A5F5",
+                    "success": "#66BB6A",
+                    "warning": "#FFCA28",
+                    "background": "#1B1225",
+                    "background2": "#251A33",
+                    "background3": "#301F40"
+                },
+                "light": {
+                    "primary": "#C2185B",
+                    "secondary": "#7B4FC4",
+                    "accent": "#26A69A",
+                    "error": "#E53935",
+                    "info": "#1E88E5",
+                    "success": "#43A047",
+                    "warning": "#FFB300",
+                    "background": "#FFFDF5",
+                    "background2": "#FFF3E0",
+                    "background3": "#FDE2ED"
+                }
+            },
             "natal": {
                 "seasonal": true,
                 "dateRange": {

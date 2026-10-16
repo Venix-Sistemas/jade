@@ -173,6 +173,11 @@ export function normalizeThemeSelection(
     }
   }
 
+  // Without seasonal themes (e.g. `color.seasonal: false`), "by date" is
+  // always the base theme — so say that, instead of a choice no picker lists.
+  const hasSeasonal = Object.values(colors.groups).some(group => group.seasonal === true)
+  if (theme === SYSTEM_THEME && !hasSeasonal && defaults.fallbackTheme) theme = defaults.fallbackTheme
+
   return { theme, mode: isModePreference(modePreference) ? modePreference : impliedMode }
 }
 

@@ -73,6 +73,7 @@ export default defineNuxtModule<ModuleOptions>({
       themes: {},
       iconFormat: 'svg',
       requireConsent: true,
+      seasonal: true,
     })
     for (const message of findDeprecatedThemeEntries(getBaseThemeEntries(), colorOptions.themes)) {
       useLogger('jade').warn(message)
@@ -119,6 +120,7 @@ export default defineNuxtModule<ModuleOptions>({
       // Without the icon module, @nuxt/icon isn't installed — only emoji can render
       iconFormat: iconOptions.enabled ? colorOptions.iconFormat : 'emote',
       requireConsent: colorOptions.requireConsent,
+      seasonal: colorOptions.seasonal,
       icon: {
         aliases: iconOptions.aliases,
       },

@@ -181,6 +181,9 @@ export default function initTheme(themeData: ThemeConfig, options: InitThemeOpti
       }
     }
 
+    const hasSeasonal = Object.values(groups).some(group => group.seasonal === true)
+    if (theme === 'system' && !hasSeasonal && defaults.fallbackTheme) theme = defaults.fallbackTheme
+
     return { theme, mode: isModePreference(modePreference) ? modePreference : impliedMode }
   }
 

@@ -75,46 +75,46 @@ export default defineNuxtConfig({
     // Custom colors
     color: {
       // defaultColor: 'dark',
+      // seasonal: false, // removes Carnival, Easter, Halloween and Christmas
       themes: {
         // venix: {
         //   dark: { primary: '#FF0000', secondary: '#00FF00' },
         // },
-        // Custom, project-only seasonal theme (not in the bundled theme.json)
-        // with a light and a dark variant. While the theme is 'system'
-        // (Automatic) during its dateRange, it replaces the base theme, in
-        // the variant matching the chosen mode.
-        pascoa: {
-          seasonal: true,
-          dateRange: { start: '03-25', end: '04-05' },
-          translations: { 'en-US': 'Easter', 'pt-BR': 'Páscoa' },
+        // A project-only theme (not in the bundled theme.json), added just by
+        // naming it here: it gets its own CSS variables, shows up in
+        // <VenixThemeSwitcher> and follows the light/dark mode like the
+        // built-in ones. Leave out `seasonal`/`dateRange` for a theme the
+        // user picks by hand; add them to make it take over by date.
+        oceano: {
+          translations: { 'en-US': 'Ocean', 'pt-BR': 'Oceano', 'es-ES': 'Océano' },
           icon: {
-            emote: '🐰',
-            css: 'mdi:egg-easter',
-            svg: 'line-md:heart-filled',
+            emote: '🌊',
+            css: 'mdi:waves',
+            svg: 'line-md:water-filled',
           },
           light: {
-            primary: '#E91E8C',
-            secondary: '#9C6ADE',
-            accent: '#26A69A',
-            error: '#E53935',
+            primary: '#0B6E8A',
+            secondary: '#0A6462',
+            accent: '#F4A259',
+            error: '#D64545',
             info: '#1E88E5',
-            success: '#43A047',
-            warning: '#FFB300',
-            background: '#FFFDF5',
-            background2: '#FFF3E0',
-            background3: '#FDE2ED',
+            success: '#2E8B57',
+            warning: '#E09F3E',
+            background: '#F4FAFC',
+            background2: '#E6F2F6',
+            background3: '#D3E7EE',
           },
           dark: {
-            primary: '#FF6FB0',
-            secondary: '#B085F5',
-            accent: '#4DD0C4',
-            error: '#FF5252',
-            info: '#42A5F5',
-            success: '#66BB6A',
-            warning: '#FFCA28',
-            background: '#1B1225',
-            background2: '#251A33',
-            background3: '#301F40',
+            primary: '#4FC3D9',
+            secondary: '#7FD8C9',
+            accent: '#FFB677',
+            error: '#FF6B6B',
+            info: '#64B5F6',
+            success: '#5FD38D',
+            warning: '#FFC857',
+            background: '#08141A',
+            background2: '#0E1E26',
+            background3: '#152A34',
           },
         },
       },

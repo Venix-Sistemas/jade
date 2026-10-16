@@ -6,7 +6,7 @@ import { resolveThemeIcon } from '../../shared/utils/icon'
 import type { ThemeIconFormat } from '../../shared/utils/icon'
 import { isSelectableGroup } from '../../shared/utils/theme-resolve'
 
-const MODE_ORDER = ['system', 'light', 'dark'] as const
+const MODE_ORDER = ['system', 'dark', 'light'] as const
 
 export const useThemeColors = (
   theme: ThemeConfig,
@@ -21,14 +21,19 @@ export const useThemeColors = (
         value,
         name: translate(group.translations, value),
         icon: resolveThemeIcon(group.icon, iconFormat),
+        custom: group.custom === true,
       }))
 
+    // "Automatic" picks a seasonal theme by date; with none available it
+    // would only repeat the base theme, so it's left out.
+    const hasSeasonal = Object.values(theme.colors.groups).some(group => group.seasonal === true)
     const systemTheme = theme.colors.groups[SYSTEM_THEME]
-    if (systemTheme) {
+    if (systemTheme && hasSeasonal) {
       list.unshift({
         value: SYSTEM_THEME,
         name: translate(systemTheme.translations, 'Automatic'),
         icon: resolveThemeIcon(systemTheme.icon, iconFormat),
+        custom: false,
       })
     }
 

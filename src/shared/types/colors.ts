@@ -83,6 +83,8 @@ export type ThemeEntry = ThemeDefinition | ThemeColors
 /** A selectable theme after resolution: its metadata and the ids of its variants. */
 export interface ResolvedThemeGroup extends ThemeMeta {
   variants: Partial<Record<ThemeMode, string>>
+  /** Added by the project in `color.themes`, not shipped with the module. */
+  custom?: boolean
 }
 
 /** Label and icon of a mode option (`'system'`, `'light'`, `'dark'`). */
