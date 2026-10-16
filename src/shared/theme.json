@@ -33,11 +33,11 @@
         "cursors": {
             "default": {
                 "path": "/images/ui/cursor/cursor.png",
-                "hotspot": "0 0"
+                "hotspot": "4 0"
             },
             "pointer": {
                 "path": "/images/ui/cursor/cursor-hand.png",
-                "hotspot": "0 0"
+                "hotspot": "8 0"
             },
             "text": {
                 "path": "/images/ui/cursor/cursor-text.png",

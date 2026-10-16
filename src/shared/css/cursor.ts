@@ -23,6 +23,13 @@ export function generateCustomCursorCSS(theme: ThemeConfig): string {
     css += `html {
   cursor: ${value};
 }\n`
+    css += '\n/* 1b. Elements the browser stylesheet sets to `cursor: default`, which would show the system arrow instead of inheriting */\n'
+    css += `label,
+select,
+input[type="checkbox"], input[type="radio"],
+input[type="range"], input[type="color"], input[type="file"] {
+  cursor: ${value};
+}\n`
   }
 
   if (cursors.pointer) {
@@ -60,7 +67,6 @@ input[type="month"],
 input[type="week"],
 input[type="time"],
 textarea,
-select,
 [contenteditable="true"] {
   cursor: ${value} !important;
 }\n`
