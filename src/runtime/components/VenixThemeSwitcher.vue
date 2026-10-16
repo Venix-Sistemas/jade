@@ -442,6 +442,9 @@ onUnmounted(() => {
   margin: 0;
   padding: 0.375rem;
   border-radius: 0.75rem;
+  /* Set here so the layout doesn't depend on the page around the switcher
+     (e.g. a centered header vs. a left-aligned toolbar). */
+  text-align: left;
   /* Fixed colors (not from the active theme): the menu needs to stay legible
      no matter which color theme is currently applied/being picked. */
   background: #1f2128;
@@ -496,6 +499,7 @@ onUnmounted(() => {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: rgba(245, 245, 247, 0.45);
+  text-align: center;
 }
 
 .venix-theme-switcher__modes {
