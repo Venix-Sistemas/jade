@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "my-module": "latest",
-    "nuxt": "^4.5.2"
+    "nuxt": "^4.6.1"
   },
   "devDependencies": {
     "@nuxtjs/i18n": "^10.6.0",
