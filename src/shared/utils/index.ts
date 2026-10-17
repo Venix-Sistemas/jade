@@ -2,8 +2,6 @@
 export {
   normalizeLocale,
   extractFirstLocale,
-  normalizeColor,
-  normalizeThemeName,
 } from './normalize'
 export { resolveFeatureOption } from './options'
 export { resolveIcon, resolveThemeIcon } from './icon'

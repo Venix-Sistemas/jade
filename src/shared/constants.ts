@@ -81,6 +81,3 @@ export const NON_COLOR_PROPERTIES = [
   'translations',
   'icon',
 ] as const
-
-// ===== CSS =====
-export const CSS_HEADER = '/* ============================================ */'

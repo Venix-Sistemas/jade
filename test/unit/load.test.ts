@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { loadTheme, extractLocales, getDefaultLocale } from '../../src/shared/utils/load'
+import { loadTheme, extractLocales } from '../../src/shared/utils/load'
 
 describe('loadTheme', () => {
   it('deve carregar o tema padrão', () => {
@@ -25,12 +25,5 @@ describe('extractLocales', () => {
     const locales = extractLocales(theme)
     expect(locales).toContain('pt-BR')
     expect(locales).toContain('en-US')
-  })
-})
-
-describe('getDefaultLocale', () => {
-  it('deve retornar en-US como padrão', () => {
-    const theme = loadTheme()
-    expect(getDefaultLocale(theme)).toBe('en-US')
   })
 })

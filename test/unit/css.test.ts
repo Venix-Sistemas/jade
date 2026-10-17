@@ -7,7 +7,7 @@ describe('processTheme', () => {
   const theme = loadTheme()
 
   it('deve gerar CSS com cores', () => {
-    const css = processTheme(theme, { colors: true })
+    const css = processTheme(theme)
     expect(css).toContain('--color-primary')
     expect(css).toContain(':root[data-theme=\'dark\']')
   })
@@ -22,29 +22,26 @@ describe('processTheme', () => {
       },
     }
 
-    const css = processTheme(themeWithoutColors, {
-      typography: false,
-      customScrollbar: false,
-      customCursor: false,
-    })
+    const css = processTheme(themeWithoutColors)
 
-    expect(css).not.toContain('--color-primary')
+    // Só a definição das variáveis: a scrollbar ainda as usa (`var(--color-primary)`)
+    expect(css).not.toContain('--color-primary:')
     expect(css).not.toContain(':root[data-theme=\'dark\']')
   })
 
   it('deve gerar CSS de scrollbar se habilitado', () => {
-    const css = processTheme(theme, { customScrollbar: true })
+    const css = processTheme(theme)
     expect(css).toContain('::-webkit-scrollbar')
   })
 
   it('deve gerar CSS de transição de tema junto com as cores', () => {
-    const css = processTheme(theme, { colors: true })
+    const css = processTheme(theme)
     expect(css).toContain('::view-transition-old(root)')
     expect(css).toContain('::view-transition-new(root)')
   })
 
   it('deve desligar pointer-events em toda a árvore de pseudo-elementos da transição, para não travar cursor/hover do conteúdo real', () => {
-    const css = processTheme(theme, { colors: true })
+    const css = processTheme(theme)
     expect(css).toMatch(/::view-transition,\n::view-transition-group\(\*\),\n::view-transition-image-pair\(\*\),\n::view-transition-old\(\*\),\n::view-transition-new\(\*\)\s*\{[^}]*pointer-events:\s*none\s*!important/)
   })
 })

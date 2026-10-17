@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeLocale, extractFirstLocale, normalizeColor, normalizeThemeName } from '../../src/shared/utils/normalize'
+import { normalizeLocale, extractFirstLocale } from '../../src/shared/utils/normalize'
 
 describe('normalizeLocale', () => {
   it('deve normalizar "pt" para "pt-BR"', () => {
@@ -22,25 +22,5 @@ describe('extractFirstLocale', () => {
 
   it('deve retornar null para string vazia', () => {
     expect(extractFirstLocale('')).toBeNull()
-  })
-})
-
-describe('normalizeColor', () => {
-  it('deve adicionar # se não tiver', () => {
-    expect(normalizeColor('FF6B6B')).toBe('#FF6B6B')
-  })
-
-  it('deve manter # se já tiver', () => {
-    expect(normalizeColor('#FF6B6B')).toBe('#FF6B6B')
-  })
-})
-
-describe('normalizeThemeName', () => {
-  it('deve capitalizar primeira letra', () => {
-    expect(normalizeThemeName('dark')).toBe('Dark')
-  })
-
-  it('deve normalizar maiúsculas', () => {
-    expect(normalizeThemeName('DARK')).toBe('Dark')
   })
 })

@@ -1,5 +1,4 @@
 import type { ThemeConfig } from '../types'
-import { DEFAULT_LOCALE } from '../constants'
 import { normalizeLocale } from './normalize'
 import { buildResolvedTheme } from './theme-config'
 
@@ -24,15 +23,4 @@ export function extractLocales(theme: ThemeConfig): string[] {
   }
 
   return Array.from(locales)
-}
-
-export function getDefaultLocale(theme: ThemeConfig): string {
-  const locales = extractLocales(theme)
-
-  if (locales.includes('en-US')) return 'en-US'
-
-  const firstLocale = locales[0]
-  if (firstLocale) return firstLocale
-
-  return DEFAULT_LOCALE
 }

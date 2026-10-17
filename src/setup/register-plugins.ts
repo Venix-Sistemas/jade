@@ -14,6 +14,4 @@ export function registerThemePlugins(_nuxt: Nuxt, resolver: Resolver, shouldAppl
     // `<head>` through Nitro's `render:html` hook — see `runtime/nitro/theme-init.ts`.
     addServerPlugin(resolver.resolve('./runtime/nitro/theme-init'))
   }
-
-  addPlugin(resolver.resolve('./runtime/plugin'))
 }

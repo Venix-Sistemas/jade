@@ -44,29 +44,3 @@ export function extractFirstLocale(acceptLanguage: string): string | null {
   const firstLocale = localeParts[0]?.trim()
   return firstLocale || null
 }
-
-/**
- * Normalizes a hex color: trims it and adds the leading `#` when missing
- * (case is preserved).
- * E.g.: "fff" -> "#fff", " #FFFFFF " -> "#FFFFFF"
- */
-export function normalizeColor(color: string): string {
-  if (!color) return color
-
-  color = color.trim()
-
-  if (!color.startsWith('#')) {
-    color = `#${color}`
-  }
-
-  return color
-}
-
-/**
- * Normalizes a theme name.
- * E.g.: "dark" -> "Dark", "DARK" -> "Dark"
- */
-export function normalizeThemeName(name: string): string {
-  if (!name) return name
-  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
-}
