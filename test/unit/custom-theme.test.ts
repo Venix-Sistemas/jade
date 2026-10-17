@@ -68,3 +68,14 @@ describe('registering a brand-new custom theme (not overriding a built-in one)',
     expect(runtimeTheme.colors.themes.dark).toBeDefined()
   })
 })
+
+describe('buildResolvedTheme (memoização)', () => {
+  it('reaproveita o resultado para o mesmo objeto de config', () => {
+    const config = { defaultTheme: 'dark' }
+    expect(buildResolvedTheme(config)).toBe(buildResolvedTheme(config))
+  })
+
+  it('recalcula para outro objeto de config', () => {
+    expect(buildResolvedTheme({ seasonal: false })).not.toBe(buildResolvedTheme({ seasonal: false }))
+  })
+})

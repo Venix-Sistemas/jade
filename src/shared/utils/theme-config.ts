@@ -25,6 +25,8 @@ export function getBaseThemeEntries(): Record<string, ThemeEntry> {
   return ((themeData.colors as RawColors | undefined)?.themes ?? {}) as Record<string, ThemeEntry>
 }
 
+const resolvedThemeCache = new WeakMap<VenixRuntimeThemeConfig, ThemeConfig>()
+
 /**
  * Rebuilds the full `ThemeConfig` at runtime, layering `theme.json`
  * (bundled with the module, with the "base" themes) with the customizations
@@ -32,8 +34,24 @@ export function getBaseThemeEntries(): Record<string, ThemeEntry> {
  * module options in `nuxt.config`, see `module.ts`). Single implementation —
  * used by the composable (`useVenixTheme`), the SSR/Vuetify plugins and, at
  * build time, `customizeTheme`.
+ *
+ * Memoized per config object: every `useVenixTheme()` call and plugin asks
+ * for it with the same `runtimeConfig.public.venixTheme`, and rebuilding it
+ * (merge + normalization of every theme) each time was wasted work. The
+ * result is shared, so callers must treat it as read-only.
  */
 export function buildResolvedTheme(runtimeThemeConfig?: VenixRuntimeThemeConfig): ThemeConfig {
+  if (!runtimeThemeConfig) return resolveTheme()
+
+  let resolved = resolvedThemeCache.get(runtimeThemeConfig)
+  if (!resolved) {
+    resolved = resolveTheme(runtimeThemeConfig)
+    resolvedThemeCache.set(runtimeThemeConfig, resolved)
+  }
+  return resolved
+}
+
+function resolveTheme(runtimeThemeConfig?: VenixRuntimeThemeConfig): ThemeConfig {
   const rawColors = (themeData.colors as RawColors | undefined) ?? {}
 
   // `colorThemes` holds the raw overrides from `nuxt.config` (only the keys
