@@ -34,7 +34,7 @@ export const COOKIE_PREFERENCES_UPDATED_EVENT = 'venix-cookie-preferences-update
 export const THEME_APPLIED_EVENT = 'venix-theme-applied'
 
 // ===== LOCAL STORAGE =====
-/** Read (never written) by this module — the consumer app's cookie-consent UI writes here. */
+/** Where functional-cookie consent is stored — written by `persistence.grant()/revoke()` or by the consumer app's own consent UI. */
 export const COOKIE_CONSENT_STORAGE_KEY = 'venix-cookie-consent'
 
 // ===== LOCALE =====

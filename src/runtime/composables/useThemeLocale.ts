@@ -148,10 +148,8 @@ export const useThemeLocale = (
   const setLocale = (locale: string) => {
     const normalized = normalizeLocale(locale)
     currentLocale.value = normalized
-    // Same consent rule used for the theme cookies (see
-    // `useThemeCookies.persistIfConsented`) — without this, the locale cookie
-    // used to be written unconditionally, inconsistent with the rest of the
-    // module's privacy posture.
+    // Same consent rule as the theme cookies (`useThemeCookies().canPersist`,
+    // which honors `color.requireConsent`).
     if (enabled && !forcedLocale && canPersist()) {
       localeCookie.value = normalized
     }

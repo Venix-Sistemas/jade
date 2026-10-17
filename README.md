@@ -216,17 +216,19 @@ Every theme switch — manual, through the switcher, or an automatic system/seas
 
 ### Saving the theme (cookie consent)
 
-Three cookies remember the user's choice between visits:
+Three cookies remember the user's choice between visits, for a year:
 
-| Cookie                   | Stores                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `venix-theme-preference` | The chosen theme (`'system'`, `'venix'`, a custom theme…)                           |
-| `venix-theme-mode`       | The chosen mode (`'system'`, `'light'`, `'dark'`)                                    |
-| `venix-theme-resolved`   | The variant actually applied (e.g. `'natal-light'`), so SSR renders it with no flash |
+| Cookie                   | Stores                                                                                                  |
+| ------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `venix-theme-preference` | The chosen theme (`'system'`, `'venix'`, a custom theme…)                                               |
+| `venix-theme-mode`       | The chosen mode (`'system'`, `'light'`, `'dark'`)                                                        |
+| `venix-theme-resolved`   | The variant last applied (e.g. `'natal-light'`) — lets SSR guess light or dark when the mode is `'system'` |
+
+The theme itself is always recomputed from the first two (with `'system'`, by today's date and the OS color scheme), so a saved seasonal theme never outlives its season.
 
 Choices saved before theme and mode were separate (e.g. a theme cookie of `'dark'`) are read as the equivalent theme and mode, so users keep their theme.
 
-By default, neither is written without consent. Switching themes always works; without consent it just isn't remembered on the next visit. In development, the first unsaved theme change logs a `[jade]` warning in the console, so a missing consent setup doesn't go unnoticed.
+By default, none of them is written without consent. Switching themes always works; without consent it just isn't remembered on the next visit. In development, the first unsaved theme change logs a `[jade]` warning in the console, so a missing consent setup doesn't go unnoticed.
 
 Consent is read from `localStorage['venix-cookie-consent']`, a JSON object with a `functionality: boolean` field — the "functional cookies" category most consent banners already use. The module never writes this key by itself. For a minimal banner, use the built-in helpers:
 
@@ -244,7 +246,7 @@ const { persistence } = useVenixTheme()
 
 - `persistence.hasConsent` — reactive `Ref<boolean>`, shared app-wide.
 - `persistence.grant()` — records consent and saves the current theme to the cookies right away.
-- `persistence.revoke()` — records the refusal and deletes both cookies right away.
+- `persistence.revoke()` — records the refusal and deletes the theme cookies right away.
 - `persistence.enable()` / `persistence.disable()` — lower-level: write or delete the cookies directly (`enable()` still does nothing without consent).
 
 If you already have a consent banner or CMP, have it write the same key and then dispatch `venix-cookie-preferences-updated` on `window`, so the module re-syncs immediately:
@@ -264,7 +266,11 @@ venixTheme: {
 }
 ```
 
-Consent is then ignored for the theme cookies: `persistence.revoke()` no longer deletes them. Whether that's acceptable is a decision for each app; the locale cookie written by `locale.set()` still follows consent (see [Translation](#translation)).
+Consent is then ignored for the theme cookies and for the locale cookie written by `locale.set()` (see [Translation](#translation)): `persistence.revoke()` no longer deletes them. Whether that's acceptable is a decision for each app.
+
+### Content-Security-Policy
+
+To avoid a wrong-theme flash, a small inline script in `<head>` applies the theme before the page renders. Under a strict CSP that blocks inline scripts, it needs the request's nonce: with [`nuxt-security`](https://nuxt-security.vercel.app) and nonces enabled, the module adds it automatically (from `event.context.security.nonce`).
 
 ### UnoCSS preset
 
@@ -306,7 +312,7 @@ The locale is detected in this order:
 4. The `Accept-Language` header (SSR) or `navigator.language` (client)
 5. `translation.defaultLocale`
 
-With `translation: false`, detection is off: theme names and the switcher's strings always use `defaultLocale`, and `locale.set()` never writes the cookie. When it's on, `locale.set()` only writes the cookie after [cookie consent](#saving-the-theme-cookie-consent).
+With `translation: false`, detection is off: theme names and the switcher's strings always use `defaultLocale`, and `locale.set()` never writes the cookie. When it's on, `locale.set()` only writes the cookie after [cookie consent](#saving-the-theme-cookie-consent), unless `color.requireConsent` is `false`.
 
 ### Using your own translations
 
@@ -509,7 +515,7 @@ export default defineNuxtConfig({
 - **Order matters:** the themes are registered through Vuetify's [`vuetify:registerModule`](https://nuxt.vuetifyjs.com/guide/advanced/layers-and-hooks.html) hook, which only sees modules listed before Vuetify.
 - **Real colors:** Vuetify computes contrast and `on-*` colors in JavaScript, so it receives the actual hex values, not `var(...)`. `background2` also fills Vuetify's `surface` slot (cards, toolbars, …).
 - **Your values win:** anything you set in `vuetify.vuetifyOptions.theme.themes` is merged per color on top of the generated themes.
-- **Always in sync:** a small runtime plugin picks Vuetify's initial theme from the same cookies (so the first paint is right, with or without SSR) and applies every later switch with `theme.change()`, inside the same View Transition as the rest of the page.
+- **Always in sync:** a small runtime plugin starts Vuetify on the same theme the page gets (so the first paint is right, with or without SSR) and applies every later switch with `theme.change()`, inside the same View Transition as the rest of the page.
 - **No flash in SPA mode** (`ssr: false`): Vuetify's theme stylesheet only reaches the DOM after the first render there, so the plugin writes a temporary copy into `<head>` before mount and removes it once Vuetify's own arrives.
 
 It's opt-in because it adds a runtime plugin, and it does nothing if `vuetify-nuxt-module` isn't installed. Tested with Vuetify `^4.2.1` and `vuetify-nuxt-module@1.0.0-rc.6`; that module is still pre-1.0, so its hooks may change.

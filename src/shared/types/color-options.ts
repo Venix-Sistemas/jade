@@ -23,8 +23,9 @@ export interface ColorOptions {
    */
   iconFormat: 'emote' | 'css' | 'svg'
   /**
-   * Only save the theme cookies (`venix-theme-preference`/`venix-theme-resolved`)
-   * after functional-cookie consent is recorded (see `persistence.grant()`).
+   * Only save the theme cookies (`venix-theme-preference`, `venix-theme-mode`,
+   * `venix-theme-resolved`) and the locale cookie after functional-cookie
+   * consent is recorded (see `persistence.grant()`).
    * Default: `true`. Set `false` for apps without a consent banner (e.g. an
    * internal tool) so the chosen theme always survives a reload.
    */

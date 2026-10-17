@@ -1,6 +1,6 @@
 // src/shared/css/transition.ts
 
-/** Duration of the native cross-fade (View Transitions API) when switching themes. */
+/** CSS for the native cross-fade (View Transitions API) when switching themes: its duration and pointer pass-through. */
 export function generateThemeTransitionCSS(): string {
   return `\n/* ============================================ */\n`
     + `/* Theme transition                              */\n`

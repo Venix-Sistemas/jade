@@ -31,10 +31,10 @@ describe('jade module', () => {
     })
 
     it('the anti-FOUC script knows about a custom theme registered via color.themes, not just the bundled theme.json', async () => {
-      // Regression: the script used to be built from the static theme.json
-      // alone, so a custom/project-only theme's `venix-theme-resolved`
-      // cookie would fail its isColorTheme check and get silently reset to
-      // the default theme on every full reload.
+      // The script has to be built from the resolved theme (theme.json plus
+      // `color.themes`), not theme.json alone: otherwise it wouldn't know a
+      // project's own themes and would reset a saved one to the default on
+      // every full reload.
       const html = await $fetch('/')
 
       expect(html).toContain('"customFixtureTheme"')
