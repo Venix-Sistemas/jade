@@ -86,26 +86,32 @@
               </button>
             </div>
 
-            <h4 class="demo__label">
-              {{ $t('color.theme') }}
-            </h4>
-            <div class="chips">
-              <button
-                v-for="item in themes"
-                :key="item.value"
-                type="button"
-                class="chip"
-                :class="{ 'chip--active': theme.preference.value === item.value }"
-                @click="theme.set(item.value)"
-              >
-                <VenixIcon
-                  v-if="item.icon"
-                  :icon="item.icon.value"
-                  :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
-                />
-                <span>{{ item.name }}</span>
-              </button>
-            </div>
+            <!-- Built-in themes, then the ones this project adds in `color.themes` -->
+            <template
+              v-for="group in themeGroups"
+              :key="group.key"
+            >
+              <h4 class="demo__label">
+                {{ group.label }}
+              </h4>
+              <div class="chips">
+                <button
+                  v-for="item in group.items"
+                  :key="item.value"
+                  type="button"
+                  class="chip"
+                  :class="{ 'chip--active': theme.preference.value === item.value }"
+                  @click="theme.set(item.value)"
+                >
+                  <VenixIcon
+                    v-if="item.icon"
+                    :icon="item.icon.value"
+                    :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
+                  />
+                  <span>{{ item.name }}</span>
+                </button>
+              </div>
+            </template>
 
             <p class="demo__status">
               {{ $t('color.applied') }} <code>data-theme="{{ theme.value.value }}"</code>
@@ -482,6 +488,11 @@ watch([theme.preference, mode.preference], async () => {
 })
 
 // The chosen theme and mode, e.g. "Natal · Claro".
+const themeGroups = computed(() => [
+  { key: 'built-in', label: t('color.theme'), items: themes.value.filter(item => !item.custom) },
+  { key: 'custom', label: t('color.customTheme'), items: themes.value.filter(item => item.custom) },
+].filter(group => group.items.length > 0))
+
 const currentThemeName = computed(() => {
   return `${theme.data.value?.name} · ${mode.data.value?.name}`
 })
