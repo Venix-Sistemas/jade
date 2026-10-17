@@ -3,10 +3,10 @@ name: ci
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
   lint:
@@ -47,3 +47,9 @@ jobs:
 
       - name: Test
         run: npm run test
+
+      - name: Type check
+        run: npm run test:types
+
+      - name: Build
+        run: npm run prepack
