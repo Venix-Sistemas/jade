@@ -445,12 +445,41 @@ onUnmounted(() => {
   /* Set here so the layout doesn't depend on the page around the switcher
      (e.g. a centered header vs. a left-aligned toolbar). */
   text-align: left;
-  /* Fixed colors (not from the active theme): the menu needs to stay legible
-     no matter which color theme is currently applied/being picked. */
-  background: #1f2128;
-  border: 1px solid #3a3d46;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  /* Fixed neutral colors (not from the active theme): the menu needs to stay
+     legible no matter which color theme is currently applied/being picked.
+     Dark palette here; the @supports block below switches to the light one
+     when the page is in light mode. */
+  --venix-switcher-bg: #1f2128;
+  --venix-switcher-border: #3a3d46;
+  --venix-switcher-text: #f5f5f7;
+  --venix-switcher-text-strong: #ffffff;
+  --venix-switcher-heading: rgba(245, 245, 247, 0.6);
+  --venix-switcher-subheading: rgba(245, 245, 247, 0.45);
+  --venix-switcher-hover: rgba(255, 255, 255, 0.08);
+  --venix-switcher-active: rgba(255, 255, 255, 0.14);
+  --venix-switcher-shadow: rgba(0, 0, 0, 0.25);
+  background: var(--venix-switcher-bg);
+  border: 1px solid var(--venix-switcher-border);
+  box-shadow: 0 8px 24px var(--venix-switcher-shadow);
   transform-origin: top right;
+}
+
+/* `light-dark()` follows the `color-scheme` each theme sets on :root, so the
+   menu matches the mode (light/dark) without depending on the theme's colors.
+   Guarded because custom properties don't fall back on unsupported values:
+   older browsers keep the dark palette above. */
+@supports (color: light-dark(#fff, #000)) {
+  .venix-theme-switcher__menu {
+    --venix-switcher-bg: light-dark(#ffffff, #1f2128);
+    --venix-switcher-border: light-dark(#e2e4ea, #3a3d46);
+    --venix-switcher-text: light-dark(#1f2128, #f5f5f7);
+    --venix-switcher-text-strong: light-dark(#000000, #ffffff);
+    --venix-switcher-heading: light-dark(rgba(31, 33, 40, 0.6), rgba(245, 245, 247, 0.6));
+    --venix-switcher-subheading: light-dark(rgba(31, 33, 40, 0.5), rgba(245, 245, 247, 0.45));
+    --venix-switcher-hover: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.08));
+    --venix-switcher-active: light-dark(rgba(0, 0, 0, 0.09), rgba(255, 255, 255, 0.14));
+    --venix-switcher-shadow: light-dark(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.25));
+  }
 }
 
 /* Opening: grows from ~30% of its size, anchored at the button's corner (top
@@ -488,7 +517,7 @@ onUnmounted(() => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(245, 245, 247, 0.6);
+  color: var(--venix-switcher-heading);
   text-align: center;
 }
 
@@ -498,7 +527,7 @@ onUnmounted(() => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(245, 245, 247, 0.45);
+  color: var(--venix-switcher-subheading);
   text-align: center;
 }
 
@@ -511,7 +540,7 @@ onUnmounted(() => {
 .venix-theme-switcher__separator {
   height: 1px;
   margin: 0.375rem 0.25rem;
-  background: #3a3d46;
+  background: var(--venix-switcher-border);
 }
 
 .venix-theme-switcher__item {
@@ -523,7 +552,7 @@ onUnmounted(() => {
   border: none;
   border-radius: 0.5rem;
   background: transparent;
-  color: #f5f5f7;
+  color: var(--venix-switcher-text);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -544,12 +573,12 @@ onUnmounted(() => {
 
 .venix-theme-switcher__item:hover,
 .venix-theme-switcher__item:focus-visible {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--venix-switcher-hover);
 }
 
 .venix-theme-switcher__item--active {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
+  background: var(--venix-switcher-active);
+  color: var(--venix-switcher-text-strong);
   font-weight: 600;
 }
 
