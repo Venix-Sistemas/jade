@@ -8,7 +8,10 @@ export function registerPublicAssets(nuxt: Nuxt, resolver: Resolver) {
 
   nuxt.options.nitro.publicAssets.push({
     dir: resolver.resolve('./runtime/public'),
-    maxAge: 60 * 60 * 24 * 365,
+    // A week, not a year: these files (cursor images, fonts) keep the same
+    // URL across releases (no content hash), so a long cache would keep
+    // serving the old file for months after an update.
+    maxAge: 60 * 60 * 24 * 7,
     baseURL: '/',
   })
 }
