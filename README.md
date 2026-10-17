@@ -15,6 +15,10 @@
 
 The UI foundation for Nuxt applications, in a single module: color themes (including seasonal ones), typography, scrollbar, cursor, icons and interface translations, with UnoCSS and Vuetify integrations.
 
+<p align="center">
+  <img src="./docs/images/readme/theme-switcher.webp" alt="VenixThemeSwitcher going through the dark themes (Carnival, Easter, Christmas, Halloween, Ocean), then light mode and back" width="800">
+</p>
+
 ## Features
 
 * 📝 **Typography and font faces customization**
@@ -102,9 +106,16 @@ The state is shared app-wide (via Nuxt's `useState`): every component calling `u
 
 `<VenixThemeSwitcher>` is an auto-imported dropdown with a **Mode** section (Automatic, Dark, Light) and a **Theme** section (Automatic, Venix Sistemas and the seasonal themes), followed, below a divider, by the themes your project adds itself. It has no dependency on Vuetify or any other UI kit:
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="./docs/images/readme/switcher-light.png">
+    <img src="./docs/images/readme/switcher-dark.png" alt="VenixThemeSwitcher open next to the page: Mode, Theme and Custom theme sections" width="800">
+  </picture>
+</p>
+
 ```vue
 <template>
-  <VenixThemeSwitcher label="Color theme" />
+  <VenixThemeSwitcher label="Website color" />
 </template>
 ```
 
@@ -135,6 +146,12 @@ Jade is a set of independent modules, each configured under its own key in `veni
 | [Vuetify](#vuetify)         | `vuetify`     | `false` | Registers the color themes with Vuetify and keeps it in sync          |
 
 ## Colors
+
+Every theme has a light and a dark palette, exposed as CSS variables (`--color-primary`, `--color-background2`…):
+
+<p align="center">
+  <img src="./docs/images/readme/palettes.png" alt="Color palettes: Venix Sistemas dark and light, Halloween dark, Christmas light" width="800">
+</p>
 
 | Option           | Type                        | Default  | Description                                                   |
 | ---------------- | --------------------------- | -------- | ------------------------------------------------------------- |
@@ -342,6 +359,10 @@ Keep it off with `@nuxtjs/i18n` or similar: that module follows the current rout
 
 ## Icons
 
+<p align="center">
+  <img src="./docs/images/readme/icons.png" alt="VenixIcon rendering an animated Iconify icon, an emoji, inline SVG and aliases" width="800">
+</p>
+
 Installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon), so every [Iconify](https://icon-sets.iconify.design/) icon is available in your app.
 
 **For regular icons, use `@nuxt/icon`'s own `<Icon>`** — Jade doesn't replace it, and the Iconify aliases from `icon.aliases` work there too:
@@ -444,6 +465,10 @@ A theme's `icon` (shown by pickers such as `<VenixThemeSwitcher>`) is either a p
 
 Sets the base font for the whole app: `--font-family-base` and `--font-size-base` on `:root`, plus an `@font-face` rule for each custom font.
 
+<p align="center">
+  <img src="./docs/images/readme/typography.png" alt="The Iceberg font at several sizes" width="800">
+</p>
+
 ```typescript
 venixTheme: {
   typography: {
@@ -462,6 +487,10 @@ Custom fonts come first in `--font-family-base`, with `defaultFonts` as the fall
 
 A custom scrollbar whose colors follow the active theme. The values below are the defaults:
 
+<p align="center">
+  <img src="./docs/images/readme/scrollbar.png" alt="Vertical and horizontal scrollbars in the theme colors" width="800">
+</p>
+
 ```typescript
 venixTheme: {
   scrollbar: {
@@ -477,6 +506,10 @@ venixTheme: {
 ## Cursor
 
 Replaces the default, pointer and text cursors with images. On by default, using the module's own cursor images; point it at yours to customize, or set `cursor: false` to keep the browser's cursors:
+
+<p align="center">
+  <img src="./docs/images/readme/cursor.png" alt="The default, pointer and text cursors" width="800">
+</p>
 
 ```typescript
 venixTheme: {
