@@ -1,9 +1,9 @@
 // runtime/plugins/theme-init.server.ts
 import { defineNuxtPlugin, useRuntimeConfig, useCookie, useHead } from '#app'
-import { THEME_PREFERENCE_COOKIE, THEME_RESOLVED_COOKIE, THEME_MODE_COOKIE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_LOCALE } from '../../shared/constants'
+import { THEME_PREFERENCE_COOKIE, THEME_RESOLVED_COOKIE, THEME_MODE_COOKIE, THEME_COOKIE_OPTIONS, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_LOCALE } from '../../shared/constants'
 import { useThemeLocale } from '../composables/useThemeLocale'
 import { buildResolvedTheme } from '../../shared/utils/theme-config'
-import { isColorTheme, resolveThemePreference } from '../../shared/utils/theme-resolve'
+import { resolveServerTheme } from '../../shared/utils/theme-resolve'
 
 export default defineNuxtPlugin({
   name: 'venix-theme-init-server',
@@ -12,21 +12,19 @@ export default defineNuxtPlugin({
     const config = useRuntimeConfig()
     const themeConfig = config.public.venixTheme
 
-    const resolvedCookie = useCookie<string>(THEME_RESOLVED_COOKIE)
-    const preferenceCookie = useCookie<string>(THEME_PREFERENCE_COOKIE)
-    const modeCookie = useCookie<string>(THEME_MODE_COOKIE)
+    const resolvedCookie = useCookie<string>(THEME_RESOLVED_COOKIE, THEME_COOKIE_OPTIONS)
+    const preferenceCookie = useCookie<string>(THEME_PREFERENCE_COOKIE, THEME_COOKIE_OPTIONS)
+    const modeCookie = useCookie<string>(THEME_MODE_COOKIE, THEME_COOKIE_OPTIONS)
 
     const theme = buildResolvedTheme(themeConfig)
 
-    // No `matchMedia` on the server: `resolveThemePreference` doesn't know
-    // whether the user prefers light/dark when the mode is 'system' (i.e.
-    // "Automatic"), so it assumes dark — the pre-hydration script
-    // (`runtime/scripts/theme-init.ts`) corrects it on the client before the
-    // first paint, if needed. 'system' is never a variant id itself (no CSS is
-    // generated for it), so it can't end up in `data-theme`.
-    const resolvedTheme = resolvedCookie.value && isColorTheme(theme.colors.themes[resolvedCookie.value])
-      ? resolvedCookie.value
-      : resolveThemePreference(preferenceCookie.value, modeCookie.value, theme.colors, true)
+    // No `matchMedia` on the server: for mode 'system' (i.e. "Automatic") the
+    // resolved cookie only hints light/dark (see `resolveServerTheme`), and
+    // the pre-hydration script (`runtime/scripts/theme-init.ts`) corrects it
+    // on the client before the first paint, if needed. 'system' is never a
+    // variant id itself (no CSS is generated for it), so it can't end up in
+    // `data-theme`.
+    const resolvedTheme = resolveServerTheme(preferenceCookie.value, modeCookie.value, resolvedCookie.value, theme.colors)
 
     const htmlAttrs: Record<string, string> = {
       'data-theme': resolvedTheme,
@@ -38,7 +36,7 @@ export default defineNuxtPlugin({
     // comment in useVenixTheme.ts): if the project already uses a routing
     // i18n module, that one should own this attribute.
     if (themeConfig?.enabled?.manageHtmlLang) {
-      const localeCookie = useCookie<string>(themeConfig?.localeCookie || DEFAULT_LOCALE_COOKIE_NAME)
+      const localeCookie = useCookie<string>(themeConfig?.localeCookie || DEFAULT_LOCALE_COOKIE_NAME, THEME_COOKIE_OPTIONS)
       const locale = useThemeLocale(theme, localeCookie, {
         enabled: themeConfig?.enabled?.translation !== false,
         forcedLocale: themeConfig?.locale,

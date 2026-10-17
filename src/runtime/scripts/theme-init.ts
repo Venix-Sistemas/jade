@@ -229,14 +229,10 @@ export default function initTheme(themeData: ThemeConfig, options: InitThemeOpti
 
   const selection = normalizeThemeSelection(preference, modePreference)
 
-  let theme: string
-
-  if (resolvedCookie && isColorTheme(themes[resolvedCookie])) {
-    theme = resolvedCookie
-  }
-  else {
-    theme = resolveThemeSelection(selection, systemPrefersDark)
-  }
+  // Always recomputed, never taken from the resolved cookie: with theme or
+  // mode 'system' that cookie can be from another season or from before the
+  // OS switched modes. The cookie is only refreshed below.
+  const theme = resolveThemeSelection(selection, systemPrefersDark)
 
   html.classList.add(theme)
   html.setAttribute('data-theme', theme)

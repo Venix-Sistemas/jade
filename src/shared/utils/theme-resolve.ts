@@ -255,3 +255,23 @@ export function resolveThemePreference(
 ): string {
   return resolveThemeSelection(normalizeThemeSelection(themePreference, modePreference, colors), colors, prefersDark, now)
 }
+
+/**
+ * Best guess at the theme to render where `matchMedia` doesn't exist (SSR):
+ * the resolved cookie (the variant last applied on the client) only hints
+ * whether the OS prefers dark, for mode `'system'`. It's never returned as
+ * is: with theme `'system'` that cookie can be from another season, or from
+ * before the OS switched modes, and trusting it kept that stale theme. The
+ * pre-hydration script then corrects the mode guess before the first paint.
+ */
+export function resolveServerTheme(
+  themePreference: string | null | undefined,
+  modePreference: string | null | undefined,
+  resolvedHint: string | null | undefined,
+  colors: ColorModel,
+  now: Date = new Date(),
+): string {
+  const hinted = resolvedHint ? colors.themes[resolvedHint] : undefined
+  const prefersDark = hinted && isColorTheme(hinted) ? hinted.dark !== false : true
+  return resolveThemePreference(themePreference, modePreference, colors, prefersDark, now)
+}

@@ -5,6 +5,15 @@ export const THEME_PREFERENCE_COOKIE = 'venix-theme-preference'
 export const THEME_RESOLVED_COOKIE = 'venix-theme-resolved'
 /** The user's mode choice (`'system'`, `'light'`, `'dark'`); the theme itself stays in `THEME_PREFERENCE_COOKIE`. */
 export const THEME_MODE_COOKIE = 'venix-theme-mode'
+/**
+ * One year, in seconds. Without it `useCookie` writes session cookies, so a
+ * theme picked on the client was forgotten when the browser closed. The
+ * pre-hydration script (`runtime/scripts/theme-init.ts`) hardcodes the same
+ * value, since it can't import this.
+ */
+export const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
+/** Options for every `useCookie` of the theme cookies, so all writers agree. */
+export const THEME_COOKIE_OPTIONS = { maxAge: THEME_COOKIE_MAX_AGE, path: '/', sameSite: 'lax' } as const
 
 // ===== EVENTS =====
 export const COOKIE_PREFERENCES_UPDATED_EVENT = 'venix-cookie-preferences-updated'

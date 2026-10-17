@@ -1,6 +1,6 @@
 // runtime/composables/useVenixTheme.ts
-import { ref, computed, watch, onMounted, onUnmounted, getCurrentInstance } from 'vue'
-import { useRuntimeConfig, useState } from '#app'
+import { computed, effectScope, watch } from 'vue'
+import { onNuxtReady, useNuxtApp, useRuntimeConfig, useState } from '#app'
 import { DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT, SYSTEM_THEME } from '../../shared/constants'
 import { useThemeCookies } from './useThemeCookies'
 import { useThemeLocale } from './useThemeLocale'
@@ -13,7 +13,13 @@ import type { ThemeSelection } from '../../shared/utils/theme-resolve'
 import type { ThemeIconFormat } from '../../shared/utils/icon'
 import type { ThemeMode, ThemeModePreference } from '../../shared/types'
 
-export const useVenixTheme = () => {
+/**
+ * State and actions, with no side effects of its own: every `useVenixTheme()`
+ * call builds one, and they all agree because the state lives in `useState`.
+ * The effects (applying the theme, persisting it, OS/date listeners) are
+ * installed once per app by `installThemeEffects`.
+ */
+function createThemeCore() {
   const config = useRuntimeConfig()
   const themeConfig = config.public.venixTheme
 
@@ -41,23 +47,8 @@ export const useVenixTheme = () => {
     enabled: themeConfig?.enabled?.translation !== false,
     forcedLocale: themeConfig?.locale,
     defaultLocale: themeConfig?.defaultLocale || DEFAULT_LOCALE,
+    canPersist: cookies.canPersist,
   })
-
-  // `lang` needs to reflect the resolved locale (WCAG 3.1.1) — but only when
-  // NOTHING ELSE already owns that attribute. Off by default because, if the
-  // project uses a routing i18n module (e.g. @nuxtjs/i18n), that's the one
-  // that should control `lang`: its locale reflects the current URL, while
-  // ours only reflects the cookie/browser language — the two can diverge
-  // (e.g. user navigates to `/es`, but our cookie still says `pt`), and this
-  // sync would end up fighting with i18n's own. See `translation.manageHtmlLang`.
-  if (themeConfig?.enabled?.manageHtmlLang) {
-    if (typeof document !== 'undefined') {
-      document.documentElement.lang = locale.currentLocale.value
-    }
-    watch(locale.currentLocale, (newLocale) => {
-      if (typeof document !== 'undefined') document.documentElement.lang = newLocale
-    })
-  }
 
   const seasonal = useThemeSeasonal(theme)
 
@@ -80,8 +71,9 @@ export const useVenixTheme = () => {
 
   // Bumped whenever something theme resolution depends on changes outside
   // Vue's reactivity (OS color scheme, the date rolling over to a new day),
-  // so the computeds below don't stay stuck on a stale result.
-  const environmentVersion = ref(0)
+  // so the computeds below don't stay stuck on a stale result. Shared, since
+  // only the effects installed once per app bump it.
+  const environmentVersion = useState<number>('venix-theme-environment', () => 0)
 
   const getPrefersDark = (): boolean => typeof window !== 'undefined'
     ? window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -124,21 +116,18 @@ export const useVenixTheme = () => {
 
     // During the transition, Chromium-based browsers revert to the OS
     // default cursor instead of the custom one. The custom cursor is defined
-    // on `body` (see shared/css/cursor.ts) — pinning the same value via
-    // inline style *on `body` itself* (not on `<html>`: `body` has its own
-    // direct rule, which always wins over the parent element's inheritance,
-    // so pinning it on `<html>` has no effect at all on what's shown inside
-    // body) guarantees, with the highest possible specificity, that the
-    // right cursor keeps showing even if the browser ignores this during the
-    // animation. Elements with their own cursor rule (buttons, links, text
-    // fields) are unaffected — a rule that matches the element directly
-    // always wins over inheritance, with or without `!important` on either side.
+    // on `html` and inherited by `body` (see shared/css/cursor.ts) — pinning
+    // the computed value via inline style on `body` guarantees, with the
+    // highest possible specificity, that the right cursor keeps showing even
+    // if the browser ignores the inherited one during the animation.
+    // Elements with their own cursor rule (buttons, links, text fields) are
+    // unaffected — a rule that matches the element directly always wins over
+    // inheritance, with or without `!important` on either side.
     //
     // `getComputedStyle` forces a synchronous style recalculation — only
     // worth paying that cost (right in the middle of the transition) when
-    // the project actually has a custom cursor configured; otherwise `body`
-    // would never have its own `cursor` rule anyway, so the result would
-    // always be 'auto' and this whole block would be wasted work.
+    // the project actually has a custom cursor configured; otherwise the
+    // result would always be 'auto' and this whole block would be wasted work.
     const body = document.body
     const hasCustomCursor = theme.customCursor?.enabled !== false && !!theme.customCursor?.cursors
     const currentCursor = hasCustomCursor ? getComputedStyle(body).cursor : null
@@ -156,26 +145,6 @@ export const useVenixTheme = () => {
     const transition = document.startViewTransition(() => apply(selection))
     transition.ready.catch(() => {})
     transition.finished.then(restoreCursor).catch(restoreCursor)
-  }
-
-  if (typeof document !== 'undefined' && shouldApplyColors) {
-    // `preference` (`useState`) can hydrate from a stale payload: on a page
-    // that was prerendered/cached (e.g. a static host serving the same HTML
-    // to every visitor), the value baked in at build time was computed with
-    // no request cookie available and never reflects this visitor's actual
-    // choice. `useCookie`, unlike `useState`, always re-reads `document.cookie`
-    // on the client (see Nuxt's `useCookie` internals) — it's never poisoned
-    // by that stale payload, so it's the one to trust whenever the two disagree.
-    if (cookies.preferenceCookie.value || cookies.modeCookie.value) {
-      const fromCookies = readCookieSelection()
-      if (fromCookies.theme !== preference.value) preference.value = fromCookies.theme
-      if (fromCookies.mode !== modePreference.value) modePreference.value = fromCookies.mode
-    }
-
-    // Normally already set by the pre-hydration script (theme-init.ts).
-    if (!document.documentElement.getAttribute('data-theme')) {
-      apply(currentSelection())
-    }
   }
 
   // Re-reads consent and syncs the theme cookies accordingly — called
@@ -206,79 +175,6 @@ export const useVenixTheme = () => {
     syncPersistence()
     window.dispatchEvent(new Event(COOKIE_PREFERENCES_UPDATED_EVENT))
   }
-
-  const grantPersistence = () => setConsent(true)
-  const revokePersistence = () => setConsent(false)
-
-  // `onMounted` requires an active component instance — if `useVenixTheme()`
-  // is called outside a normal synchronous `setup()` (e.g. context lost
-  // under Suspense/async setup in some SSR+i18n flows), it warns "onMounted
-  // is called when there is no active component instance" and the callback
-  // never runs. With an instance, behavior is unchanged; without one, this
-  // runs the same logic as soon as possible on the client instead of simply
-  // failing — the price is not being able to register `onUnmounted` for
-  // automatic cleanup in that specific case (see below).
-  const instance = getCurrentInstance()
-  const runOnClientMount = (fn: () => void) => {
-    if (instance) {
-      onMounted(fn)
-    }
-    else if (typeof window !== 'undefined') {
-      queueMicrotask(fn)
-    }
-  }
-
-  runOnClientMount(() => {
-    // `localStorage` only exists on the client — SSR always initializes
-    // `hasConsent` as `false` (see useState above); here we correct it to
-    // the real value as soon as it hydrates, in case consent was already
-    // granted before.
-    hasConsent.value = hasCookieConsent()
-
-    if (!shouldApplyColors) return
-
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleSystemThemeChange = () => {
-      environmentVersion.value++
-      if (modePreference.value === 'system') applyWithTransition(currentSelection())
-    }
-    mq.addEventListener('change', handleSystemThemeChange)
-
-    // Re-arms itself every midnight — `midnightTimeout` always holds the
-    // *latest* timer id, so the cleanup below cancels the pending one (not
-    // just the first, already-fired timer).
-    let midnightTimeout: ReturnType<typeof setTimeout>
-    const scheduleSeasonalCheck = () => {
-      const now = new Date()
-      const msToMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime()
-
-      midnightTimeout = setTimeout(() => {
-        environmentVersion.value++
-        if (preference.value === SYSTEM_THEME) applyWithTransition(currentSelection())
-        scheduleSeasonalCheck()
-      }, msToMidnight + 1000)
-    }
-
-    scheduleSeasonalCheck()
-
-    window.addEventListener(COOKIE_PREFERENCES_UPDATED_EVENT, syncPersistence)
-
-    if (instance) {
-      onUnmounted(() => {
-        mq.removeEventListener('change', handleSystemThemeChange)
-        clearTimeout(midnightTimeout)
-        window.removeEventListener(COOKIE_PREFERENCES_UPDATED_EVENT, syncPersistence)
-      })
-    }
-  })
-
-  watch([preference, modePreference], () => {
-    if (!shouldApplyColors) return
-
-    const selection = currentSelection()
-    applyWithTransition(selection)
-    cookies.persistIfConsented(selection.theme, selection.mode, getResolvedTheme(selection))
-  })
 
   /** Picks the theme (`'system'` = by date), keeping the current mode. */
   const setTheme = (name: string) => {
@@ -354,37 +250,166 @@ export const useVenixTheme = () => {
   const isSeasonalActive = computed(() => activeSeasonalTheme.value !== null)
 
   return {
+    themeConfig,
+    theme,
+    shouldApplyColors,
+    cookies,
+    hasConsent,
+    locale,
+    colors,
+    preference,
+    modePreference,
+    environmentVersion,
+    readCookieSelection,
+    currentSelection,
+    getResolvedTheme,
+    apply,
+    applyWithTransition,
+    syncPersistence,
+    setConsent,
+    setTheme,
+    setMode,
+    resolvedTheme,
+    resolvedMode,
+    toggleMode,
+    toggle,
+    data,
+    modeData,
+    activeSeasonalTheme,
+    isSeasonalActive,
+  }
+}
+
+type ThemeCore = ReturnType<typeof createThemeCore>
+
+/**
+ * Side effects of the theme state — applying it to `<html>`, persisting it,
+ * reacting to the OS color scheme and the date. Installed once per app (see
+ * `useVenixTheme`): when every call installed its own, a page plus
+ * <VenixThemeSwitcher> started two View Transitions per switch (the second
+ * aborting the first) and doubled every listener and cookie write.
+ */
+function installThemeEffects(core: ThemeCore) {
+  const { themeConfig, shouldApplyColors, cookies, hasConsent, locale, preference, modePreference, environmentVersion } = core
+
+  // `lang` needs to reflect the resolved locale (WCAG 3.1.1) — but only when
+  // NOTHING ELSE already owns that attribute. Off by default because, if the
+  // project uses a routing i18n module (e.g. @nuxtjs/i18n), that's the one
+  // that should control `lang`: its locale reflects the current URL, while
+  // ours only reflects the cookie/browser language — the two can diverge
+  // (e.g. user navigates to `/es`, but our cookie still says `pt`), and this
+  // sync would end up fighting with i18n's own. See `translation.manageHtmlLang`.
+  if (themeConfig?.enabled?.manageHtmlLang) {
+    document.documentElement.lang = locale.currentLocale.value
+    watch(locale.currentLocale, (newLocale) => {
+      document.documentElement.lang = newLocale
+    })
+  }
+
+  if (shouldApplyColors) {
+    // `preference` (`useState`) can hydrate from a stale payload: on a page
+    // that was prerendered/cached (e.g. a static host serving the same HTML
+    // to every visitor), the value baked in at build time was computed with
+    // no request cookie available and never reflects this visitor's actual
+    // choice. `useCookie`, unlike `useState`, always re-reads `document.cookie`
+    // on the client (see Nuxt's `useCookie` internals) — it's never poisoned
+    // by that stale payload, so it's the one to trust whenever the two disagree.
+    if (cookies.preferenceCookie.value || cookies.modeCookie.value) {
+      const fromCookies = core.readCookieSelection()
+      if (fromCookies.theme !== preference.value) preference.value = fromCookies.theme
+      if (fromCookies.mode !== modePreference.value) modePreference.value = fromCookies.mode
+    }
+
+    // Normally already set by the pre-hydration script (theme-init.ts).
+    if (!document.documentElement.getAttribute('data-theme')) {
+      core.apply(core.currentSelection())
+    }
+
+    watch([preference, modePreference], () => {
+      const selection = core.currentSelection()
+      core.applyWithTransition(selection)
+      cookies.persistIfConsented(selection.theme, selection.mode, core.getResolvedTheme(selection))
+    })
+  }
+
+  // After hydration: `localStorage` and the listeners only exist on the
+  // client, and correcting `hasConsent` before hydration would mismatch the
+  // server-rendered markup (SSR always initializes it as `false`).
+  onNuxtReady(() => {
+    hasConsent.value = hasCookieConsent()
+
+    window.addEventListener(COOKIE_PREFERENCES_UPDATED_EVENT, core.syncPersistence)
+
+    if (!shouldApplyColors) return
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      environmentVersion.value++
+      if (modePreference.value === 'system') core.applyWithTransition(core.currentSelection())
+    })
+
+    // Re-arms itself every midnight, so 'system' (by date) picks up a season
+    // starting or ending while the page stays open.
+    const scheduleSeasonalCheck = () => {
+      const now = new Date()
+      const msToMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime()
+
+      setTimeout(() => {
+        environmentVersion.value++
+        if (preference.value === SYSTEM_THEME) core.applyWithTransition(core.currentSelection())
+        scheduleSeasonalCheck()
+      }, msToMidnight + 1000)
+    }
+
+    scheduleSeasonalCheck()
+  })
+}
+
+export const useVenixTheme = () => {
+  const core = createThemeCore()
+
+  // The effects live for the whole app, not for the component that happened
+  // to call this first: a detached scope keeps them running after it
+  // unmounts. Client only — on the server nothing changes after render.
+  if (import.meta.client) {
+    const nuxtApp = useNuxtApp() as ReturnType<typeof useNuxtApp> & { _venixThemeEffects?: boolean }
+    if (!nuxtApp._venixThemeEffects) {
+      nuxtApp._venixThemeEffects = true
+      effectScope(true).run(() => installThemeEffects(createThemeCore()))
+    }
+  }
+
+  return {
     theme: {
-      value: resolvedTheme,
-      preference,
-      data,
-      set: setTheme,
-      toggle,
-      isSeasonalActive,
-      activeSeasonalTheme,
-      shouldApplyColors,
-      colors: theme.colors,
+      value: core.resolvedTheme,
+      preference: core.preference,
+      data: core.data,
+      set: core.setTheme,
+      toggle: core.toggle,
+      isSeasonalActive: core.isSeasonalActive,
+      activeSeasonalTheme: core.activeSeasonalTheme,
+      shouldApplyColors: core.shouldApplyColors,
+      colors: core.theme.colors,
     },
-    themes: colors.themes,
+    themes: core.colors.themes,
     mode: {
-      value: resolvedMode,
-      preference: modePreference,
-      data: modeData,
-      set: setMode,
-      toggle: toggleMode,
+      value: core.resolvedMode,
+      preference: core.modePreference,
+      data: core.modeData,
+      set: core.setMode,
+      toggle: core.toggleMode,
     },
-    modes: colors.modes,
+    modes: core.colors.modes,
     locale: {
-      current: locale.currentLocale,
-      set: locale.setLocale,
-      translate: locale.translate,
+      current: core.locale.currentLocale,
+      set: core.locale.setLocale,
+      translate: core.locale.translate,
     },
     persistence: {
-      hasConsent,
-      grant: grantPersistence,
-      revoke: revokePersistence,
-      enable: () => cookies.persistIfConsented(preference.value, modePreference.value, getResolvedTheme()),
-      disable: cookies.disablePersistence,
+      hasConsent: core.hasConsent,
+      grant: () => core.setConsent(true),
+      revoke: () => core.setConsent(false),
+      enable: () => core.cookies.persistIfConsented(core.preference.value, core.modePreference.value, core.getResolvedTheme()),
+      disable: core.cookies.disablePersistence,
     },
   }
 }

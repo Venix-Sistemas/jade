@@ -7,6 +7,7 @@ import {
   normalizeThemeSelection,
   resolveThemeSelection,
   resolveThemePreference,
+  resolveServerTheme,
 } from '../../src/shared/utils/theme-resolve'
 import type { ColorModel } from '../../src/shared/utils/theme-resolve'
 import { normalizeColorThemes } from '../../src/shared/utils/merge-themes'
@@ -236,5 +237,27 @@ describe('temas sazonais embutidos', () => {
     const easter = new Date('2026-04-05T12:00:00')
     expect(resolveThemeSelection({ theme: 'system', mode: 'light' }, builtIn, true, easter)).toBe('pascoa-light')
     expect(resolveThemeSelection({ theme: 'system', mode: 'dark' }, builtIn, false, easter)).toBe('pascoa-dark')
+  })
+})
+
+describe('resolveServerTheme (SSR, sem matchMedia)', () => {
+  it('não devolve um tema sazonal salvo em outra época: recalcula pela data', () => {
+    // Cookie resolvido de fevereiro (carnaval); em junho o automático é o base
+    expect(resolveServerTheme('system', 'system', 'carnaval', seasonal, jun1)).toBe('dark')
+    expect(resolveServerTheme('system', 'system', 'carnaval', seasonal, feb5)).toBe('carnaval')
+  })
+
+  it('usa o cookie resolvido só como pista de claro/escuro no modo automático', () => {
+    expect(resolveServerTheme('venix', 'system', 'light', base, jun1)).toBe('light')
+    expect(resolveServerTheme('venix', 'system', 'dark', base, jun1)).toBe('dark')
+  })
+
+  it('o modo escolhido explicitamente vence a pista', () => {
+    expect(resolveServerTheme('venix', 'dark', 'light', base, jun1)).toBe('dark')
+  })
+
+  it('sem pista válida, assume escuro', () => {
+    expect(resolveServerTheme('venix', 'system', undefined, base, jun1)).toBe('dark')
+    expect(resolveServerTheme('venix', 'system', 'inexistente', base, jun1)).toBe('dark')
   })
 })

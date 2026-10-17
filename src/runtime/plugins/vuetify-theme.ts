@@ -1,9 +1,9 @@
 // runtime/plugins/vuetify-theme.ts
 import { defineNuxtPlugin, useRuntimeConfig, useCookie } from '#app'
 import type { NuxtApp } from '#app'
-import { THEME_PREFERENCE_COOKIE, THEME_RESOLVED_COOKIE, THEME_MODE_COOKIE, THEME_APPLIED_EVENT } from '../../shared/constants'
+import { THEME_PREFERENCE_COOKIE, THEME_RESOLVED_COOKIE, THEME_MODE_COOKIE, THEME_COOKIE_OPTIONS, THEME_APPLIED_EVENT } from '../../shared/constants'
 import { buildResolvedTheme } from '../../shared/utils/theme-config'
-import { resolveThemePreference } from '../../shared/utils/theme-resolve'
+import { resolveServerTheme } from '../../shared/utils/theme-resolve'
 
 interface VuetifyBeforeCreateContext {
   vuetifyOptions?: {
@@ -106,9 +106,9 @@ export default defineNuxtPlugin({
     const config = useRuntimeConfig()
     const themeConfig = config.public.venixTheme
 
-    const resolvedCookie = useCookie<string>(THEME_RESOLVED_COOKIE)
-    const preferenceCookie = useCookie<string>(THEME_PREFERENCE_COOKIE)
-    const modeCookie = useCookie<string>(THEME_MODE_COOKIE)
+    const resolvedCookie = useCookie<string>(THEME_RESOLVED_COOKIE, THEME_COOKIE_OPTIONS)
+    const preferenceCookie = useCookie<string>(THEME_PREFERENCE_COOKIE, THEME_COOKIE_OPTIONS)
+    const modeCookie = useCookie<string>(THEME_MODE_COOKIE, THEME_COOKIE_OPTIONS)
 
     const theme = buildResolvedTheme(themeConfig)
 
@@ -121,11 +121,11 @@ export default defineNuxtPlugin({
       const themes = vuetifyOptions?.theme?.themes
       if (!vuetifyOptions?.theme || !themes) return
 
-      // Same rule as the SSR plugin (`theme-init.server.ts`), so Vuetify's
-      // first render matches `data-theme`.
-      const resolved = resolvedCookie.value && themes[resolvedCookie.value]
-        ? resolvedCookie.value
-        : resolveThemePreference(preferenceCookie.value, modeCookie.value, theme.colors, true)
+      // So Vuetify's first render matches `data-theme`: on the client, the
+      // theme the pre-hydration script already applied; on the server, the
+      // same guess as the SSR plugin (`theme-init.server.ts`).
+      const resolved = (import.meta.client && window.__VENIX_INITIAL_THEME__)
+        || resolveServerTheme(preferenceCookie.value, modeCookie.value, resolvedCookie.value, theme.colors)
 
       // Vuetify throws (taking the whole render down) on a theme name it
       // doesn't have — e.g. a theme added after its themes were registered

@@ -4,6 +4,7 @@ import {
   THEME_PREFERENCE_COOKIE,
   THEME_RESOLVED_COOKIE,
   THEME_MODE_COOKIE,
+  THEME_COOKIE_OPTIONS,
   DEFAULT_LOCALE_COOKIE_NAME,
 } from '../../shared/constants'
 import { hasCookieConsent } from '../../shared/utils/consent'
@@ -21,10 +22,10 @@ export interface UseThemeCookiesOptions {
 export const useThemeCookies = (options: UseThemeCookiesOptions = {}) => {
   const { localeCookieName = DEFAULT_LOCALE_COOKIE_NAME, requireConsent = true } = options
 
-  const preferenceCookie = useCookie<string>(THEME_PREFERENCE_COOKIE)
-  const resolvedCookie = useCookie<string>(THEME_RESOLVED_COOKIE)
-  const modeCookie = useCookie<string>(THEME_MODE_COOKIE)
-  const localeCookie = useCookie<string>(localeCookieName)
+  const preferenceCookie = useCookie<string>(THEME_PREFERENCE_COOKIE, THEME_COOKIE_OPTIONS)
+  const resolvedCookie = useCookie<string>(THEME_RESOLVED_COOKIE, THEME_COOKIE_OPTIONS)
+  const modeCookie = useCookie<string>(THEME_MODE_COOKIE, THEME_COOKIE_OPTIONS)
+  const localeCookie = useCookie<string>(localeCookieName, THEME_COOKIE_OPTIONS)
 
   const removeCookie = (name: string) => {
     if (typeof document !== 'undefined') {

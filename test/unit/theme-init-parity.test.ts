@@ -82,3 +82,28 @@ describe('initTheme × resolveThemePreference (paridade)', () => {
     }
   }
 })
+
+describe('initTheme com cookie resolvido desatualizado', () => {
+  it('recalcula o tema por data em vez de manter o tema sazonal salvo em outra época', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-10-17T12:00:00'))
+
+    // Salvo numa visita em dezembro; hoje (outubro) o automático é Halloween
+    const cookie = 'venix-theme-preference=system; venix-theme-mode=system; venix-theme-resolved=natal'
+    const expected = resolveThemePreference('system', 'system', theme.colors, true)
+
+    expect(expected).not.toBe('natal')
+    expect(runInitTheme(cookie, true)).toBe(expected)
+  })
+
+  it('recalcula o modo quando o sistema operacional mudou desde a última visita', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-06-15T12:00:00'))
+
+    // Salvo com o SO no escuro; agora o SO está no claro
+    const cookie = 'venix-theme-preference=venix; venix-theme-mode=system; venix-theme-resolved=dark'
+
+    expect(runInitTheme(cookie, false)).toBe(resolveThemePreference('venix', 'system', theme.colors, false))
+    expect(runInitTheme(cookie, false)).not.toBe('dark')
+  })
+})

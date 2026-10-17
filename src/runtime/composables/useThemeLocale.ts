@@ -12,6 +12,11 @@ export interface UseThemeLocaleOptions {
   enabled?: boolean
   forcedLocale?: string
   defaultLocale?: string
+  /**
+   * Whether the locale cookie may be written — `useThemeCookies().canPersist`,
+   * so it honors `color.requireConsent` like the theme cookies.
+   */
+  canPersist?: () => boolean
 }
 
 export const useThemeLocale = (
@@ -19,7 +24,7 @@ export const useThemeLocale = (
   localeCookie: Ref<string | undefined>,
   options: UseThemeLocaleOptions = {},
 ) => {
-  const { enabled = true, forcedLocale, defaultLocale } = options
+  const { enabled = true, forcedLocale, defaultLocale, canPersist = hasCookieConsent } = options
   const headers = useRequestHeaders(['accept-language'])
   const route = useRoute()
   const fallbackLocale = defaultLocale || DEFAULT_LOCALE
@@ -147,7 +152,7 @@ export const useThemeLocale = (
     // `useThemeCookies.persistIfConsented`) — without this, the locale cookie
     // used to be written unconditionally, inconsistent with the rest of the
     // module's privacy posture.
-    if (enabled && !forcedLocale && hasCookieConsent()) {
+    if (enabled && !forcedLocale && canPersist()) {
       localeCookie.value = normalized
     }
   }
