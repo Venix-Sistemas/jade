@@ -422,7 +422,9 @@ const ModuleHeader = defineComponent({
         ` ${t(`modules.${props.id}.title`)}`,
         h('code', { class: 'module__key' }, `venixTheme.${props.id}`),
       ]),
-      h('p', { class: 'module__description' }, t(`modules.${props.id}.description`)),
+      // Component names go in as a parameter: written in the message itself,
+      // vue-i18n warns about HTML in it (it's rendered as text either way).
+      h('p', { class: 'module__description' }, t(`modules.${props.id}.description`, { component: '<VenixIcon>' })),
     ])
   },
 })

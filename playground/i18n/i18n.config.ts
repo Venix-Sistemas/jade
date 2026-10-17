@@ -12,7 +12,7 @@ export default defineI18nConfig(() => ({
       modules: {
         color: { title: 'Colors', description: 'Themes in light and dark mode, seasonal themes, CSS variables and cookie persistence.' },
         translation: { title: 'Translation', description: 'Detects the user\'s locale and translates theme and mode names.' },
-        icon: { title: 'Icons', description: '<VenixIcon> renders an emoji, an Iconify icon or an inline SVG from a single value.' },
+        icon: { title: 'Icons', description: '{component} renders an emoji, an Iconify icon or an inline SVG from a single value.' },
         typography: { title: 'Typography', description: 'Base font family, font size and {\'@\'}font-face rules for custom fonts.' },
         scrollbar: { title: 'Scrollbar', description: 'A custom scrollbar that follows the active theme\'s colors.' },
         cursor: { title: 'Cursor', description: 'Custom cursor images for default, clickable and text areas.' },
@@ -73,7 +73,7 @@ export default defineI18nConfig(() => ({
       modules: {
         color: { title: 'Cores', description: 'Temas nos modos claro e escuro, temas sazonais, variáveis CSS e persistência em cookies.' },
         translation: { title: 'Tradução', description: 'Detecta o idioma do usuário e traduz os nomes de temas e modos.' },
-        icon: { title: 'Ícones', description: '<VenixIcon> renderiza um emoji, um ícone do Iconify ou um SVG inline a partir de um único valor.' },
+        icon: { title: 'Ícones', description: '{component} renderiza um emoji, um ícone do Iconify ou um SVG inline a partir de um único valor.' },
         typography: { title: 'Tipografia', description: 'Família e tamanho da fonte base, e regras {\'@\'}font-face para fontes próprias.' },
         scrollbar: { title: 'Scrollbar', description: 'Uma barra de rolagem personalizada que segue as cores do tema ativo.' },
         cursor: { title: 'Cursor', description: 'Imagens de cursor próprias para áreas comuns, clicáveis e de texto.' },
@@ -134,7 +134,7 @@ export default defineI18nConfig(() => ({
       modules: {
         color: { title: 'Colores', description: 'Temas en modo claro y oscuro, temas de temporada, variables CSS y persistencia en cookies.' },
         translation: { title: 'Traducción', description: 'Detecta el idioma del usuario y traduce los nombres de temas y modos.' },
-        icon: { title: 'Iconos', description: '<VenixIcon> renderiza un emoji, un icono de Iconify o un SVG en línea a partir de un solo valor.' },
+        icon: { title: 'Iconos', description: '{component} renderiza un emoji, un icono de Iconify o un SVG en línea a partir de un solo valor.' },
         typography: { title: 'Tipografía', description: 'Familia y tamaño de la fuente base, y reglas {\'@\'}font-face para fuentes propias.' },
         scrollbar: { title: 'Scrollbar', description: 'Una barra de desplazamiento personalizada que sigue los colores del tema activo.' },
         cursor: { title: 'Cursor', description: 'Imágenes de cursor propias para áreas normales, clicables y de texto.' },
