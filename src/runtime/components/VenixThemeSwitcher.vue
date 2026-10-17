@@ -115,7 +115,6 @@
             :aria-label="section.heading"
           >
             <div
-              v-if="section.showHeading"
               class="venix-theme-switcher__subheading"
               aria-hidden="true"
             >
@@ -168,27 +167,27 @@ import VenixIcon from './VenixIcon.vue'
 // locale mechanism (`locale.translate`). An explicit `label` prop always
 // takes priority.
 const LABEL_TRANSLATIONS: Record<string, string> = {
-  'pt-BR': 'Tema de cor',
-  'en-US': 'Color theme',
-  'es-ES': 'Tema de color',
-  'fr-FR': 'Thème de couleur',
-  'de-DE': 'Farbthema',
-  'it-IT': 'Tema colore',
-  'ja-JP': 'カラーテーマ',
-  'ko-KR': '색상 테마',
-  'zh-CN': '颜色主题',
+  'pt-BR': 'Cores do site',
+  'en-US': 'Website color',
+  'es-ES': 'Color del sitio',
+  'fr-FR': 'Couleur du site',
+  'de-DE': 'Website-Farbe',
+  'it-IT': 'Colore del sito',
+  'ja-JP': 'サイトの色',
+  'ko-KR': '사이트 색상',
+  'zh-CN': '网站颜色',
 }
 
 const CHANGED_ANNOUNCEMENT_TRANSLATIONS: Record<string, string> = {
-  'pt-BR': 'Tema de cor alterado para {theme}',
-  'en-US': 'Color theme changed to {theme}',
-  'es-ES': 'Tema de color cambiado a {theme}',
-  'fr-FR': 'Thème de couleur changé pour {theme}',
-  'de-DE': 'Farbthema geändert zu {theme}',
-  'it-IT': 'Tema colore cambiato in {theme}',
-  'ja-JP': 'カラーテーマが{theme}に変更されました',
-  'ko-KR': '색상 테마가 {theme}(으)로 변경되었습니다',
-  'zh-CN': '颜色主题已更改为{theme}',
+  'pt-BR': 'Cores do site alteradas para {theme}',
+  'en-US': 'Website color changed to {theme}',
+  'es-ES': 'Color del sitio cambiado a {theme}',
+  'fr-FR': 'Couleur du site changée pour {theme}',
+  'de-DE': 'Website-Farbe geändert zu {theme}',
+  'it-IT': 'Colore del sito cambiato in {theme}',
+  'ja-JP': 'サイトの色が{theme}に変更されました',
+  'ko-KR': '사이트 색상이 {theme}(으)로 변경되었습니다',
+  'zh-CN': '网站颜色已更改为{theme}',
 }
 
 const MODE_HEADING_TRANSLATIONS: Record<string, string> = {
@@ -216,15 +215,15 @@ const THEME_HEADING_TRANSLATIONS: Record<string, string> = {
 }
 
 const CUSTOM_HEADING_TRANSLATIONS: Record<string, string> = {
-  'pt-BR': 'Personalizado',
-  'en-US': 'Custom',
-  'es-ES': 'Personalizado',
-  'fr-FR': 'Personnalisé',
-  'de-DE': 'Benutzerdefiniert',
-  'it-IT': 'Personalizzato',
-  'ja-JP': 'カスタム',
-  'ko-KR': '사용자 지정',
-  'zh-CN': '自定义',
+  'pt-BR': 'Tema personalizado',
+  'en-US': 'Custom theme',
+  'es-ES': 'Tema personalizado',
+  'fr-FR': 'Thème personnalisé',
+  'de-DE': 'Eigenes Thema',
+  'it-IT': 'Tema personalizzato',
+  'ja-JP': 'カスタムテーマ',
+  'ko-KR': '사용자 지정 테마',
+  'zh-CN': '自定义主题',
 }
 
 const MODE_CHANGED_ANNOUNCEMENT_TRANSLATIONS: Record<string, string> = {
@@ -248,15 +247,14 @@ const props = defineProps<{
 
 const { theme, themes, mode, modes, locale } = useVenixTheme()
 
-const resolvedLabel = computed(() => props.label ?? locale.translate(LABEL_TRANSLATIONS, 'Color theme'))
+const resolvedLabel = computed(() => props.label ?? locale.translate(LABEL_TRANSLATIONS, 'Website color'))
 const modeHeading = computed(() => locale.translate(MODE_HEADING_TRANSLATIONS, 'Mode'))
 const themeHeading = computed(() => locale.translate(THEME_HEADING_TRANSLATIONS, 'Theme'))
 // Built-in themes (and "Automatic") first; the project's own themes, if
-// any, below a divider. Their heading is only announced to screen readers
-// (the group's aria-label), not shown.
+// any, below a divider under their own heading.
 const themeSections = computed(() => [
-  { key: 'built-in', heading: themeHeading.value, showHeading: true, items: themes.value.filter(item => !item.custom) },
-  { key: 'custom', heading: locale.translate(CUSTOM_HEADING_TRANSLATIONS, 'Custom'), showHeading: false, items: themes.value.filter(item => item.custom) },
+  { key: 'built-in', heading: themeHeading.value, items: themes.value.filter(item => !item.custom) },
+  { key: 'custom', heading: locale.translate(CUSTOM_HEADING_TRANSLATIONS, 'Custom theme'), items: themes.value.filter(item => item.custom) },
 ].filter(section => section.items.length > 0))
 const triggerLabel = computed(() => [theme.data.value?.name, mode.data.value?.name].filter(Boolean).join(' · '))
 
@@ -312,7 +310,7 @@ const selectTheme = (value: string) => {
   const selected = themes.value.find(item => item.value === value)
   theme.set(value)
 
-  const template = locale.translate(CHANGED_ANNOUNCEMENT_TRANSLATIONS, 'Color theme changed to {theme}')
+  const template = locale.translate(CHANGED_ANNOUNCEMENT_TRANSLATIONS, 'Website color changed to {theme}')
   announcement.value = template.replace('{theme}', selected?.name ?? value)
 
   close({ restoreFocus: true })
