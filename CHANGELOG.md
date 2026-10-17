@@ -1,6 +1,54 @@
 # Changelog
 
 
+## v1.2.0
+
+[compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.1.0...v1.2.0)
+
+### 🚀 Enhancements
+
+- **color:** RequireConsent option and dev warning for unsaved themes ([99d206d](https://github.com/Venix-Sistemas/jade/commit/99d206d))
+- **theme:** Softer dark palettes for the seasonal themes ([650a3ff](https://github.com/Venix-Sistemas/jade/commit/650a3ff))
+- **color:** Choose theme and light/dark mode separately ([1bed1be](https://github.com/Venix-Sistemas/jade/commit/1bed1be))
+- **color:** Built-in Easter theme and color.seasonal option ([34d6e13](https://github.com/Venix-Sistemas/jade/commit/34d6e13))
+- **switcher:** Menu follows the light/dark mode ([b0d9111](https://github.com/Venix-Sistemas/jade/commit/b0d9111))
+- **switcher:** "Website color" label and a visible custom themes heading ([396522e](https://github.com/Venix-Sistemas/jade/commit/396522e))
+- **playground:** List custom themes apart from the built-in ones ([bb3be6d](https://github.com/Venix-Sistemas/jade/commit/bb3be6d))
+
+### 🔥 Performance
+
+- **theme:** Memoize buildResolvedTheme per config object ([069b29a](https://github.com/Venix-Sistemas/jade/commit/069b29a))
+
+### 🩹 Fixes
+
+- **icon:** Keep VenixThemeSwitcher working with icon: false, smarter theme icon fallback ([f5778df](https://github.com/Venix-Sistemas/jade/commit/f5778df))
+- **switcher:** Center the Mode and Theme headings wherever it's placed ([937b1d9](https://github.com/Venix-Sistemas/jade/commit/937b1d9))
+- **cursor:** Correct default hotspots and cover browser-default elements ([ae4878e](https://github.com/Venix-Sistemas/jade/commit/ae4878e))
+- **theme:** Persist cookies, recompute stale themes, run effects once ([43203b7](https://github.com/Venix-Sistemas/jade/commit/43203b7))
+- **security:** Escape the inline theme script and support CSP nonces ([168f923](https://github.com/Venix-Sistemas/jade/commit/168f923))
+- **playground:** Pass <VenixIcon> as a message parameter ([724da96](https://github.com/Venix-Sistemas/jade/commit/724da96))
+
+### 💅 Refactors
+
+- Remove dead code ([9fa37ae](https://github.com/Venix-Sistemas/jade/commit/9fa37ae))
+- **theme:** Single source for the theme-resolution rule ([186906e](https://github.com/Venix-Sistemas/jade/commit/186906e))
+
+### 📖 Documentation
+
+- Present Jade as a UI foundation organized by module ([2dbe9f5](https://github.com/Venix-Sistemas/jade/commit/2dbe9f5))
+- Update stale comments and README ([96d57e1](https://github.com/Venix-Sistemas/jade/commit/96d57e1))
+- Add screenshots and a theme-switching animation to the README ([c05404b](https://github.com/Venix-Sistemas/jade/commit/c05404b))
+- Center the README description within the image width ([eda38a0](https://github.com/Venix-Sistemas/jade/commit/eda38a0))
+
+### 🏡 Chore
+
+- Check npm login before starting a release ([b692a87](https://github.com/Venix-Sistemas/jade/commit/b692a87))
+- Run CI on master and drop module-starter leftovers ([f4fb549](https://github.com/Venix-Sistemas/jade/commit/f4fb549))
+
+### ❤️ Contributors
+
+- Vinicius ([@VBviniciusVB](https://github.com/VBviniciusVB))
+
 ## v1.1.0
 
 [compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.0.1...v1.1.0)

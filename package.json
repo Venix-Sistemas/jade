@@ -1,6 +1,6 @@
 {
   "name": "@venix-sistemas/jade",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "UI foundation for Nuxt in a single module: color themes (seasonal, SSR, cookie consent), typography, scrollbar, cursor, icons, i18n, plus UnoCSS and Vuetify integrations.",
   "keywords": [
     "nuxt",
