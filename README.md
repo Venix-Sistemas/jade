@@ -13,7 +13,10 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
 </p>
 
-The UI foundation for Nuxt applications, in a single module: color themes (including seasonal ones), typography, scrollbar, cursor, icons and interface translations, with UnoCSS and Vuetify integrations.
+<p align="center">
+  The UI foundation for Nuxt applications, in a single module: color themes (including seasonal ones),<br>
+  typography, scrollbar, cursor, icons and interface translations, with UnoCSS and Vuetify integrations.
+</p>
 
 <p align="center">
   <img src="./docs/images/readme/theme-switcher.webp" alt="VenixThemeSwitcher going through the dark themes (Carnival, Easter, Christmas, Halloween, Ocean), then light mode and back" width="800">
