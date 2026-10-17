@@ -1,5 +1,15 @@
 // runtime/scripts/theme-init.ts
-import type { ThemeConfig, ThemeColors, ThemeMode, ThemeModePreference, ResolvedThemeGroup } from '../../shared/types'
+import type { ThemeConfig } from '../../shared/types'
+import { createThemeResolver } from '../../shared/utils/theme-resolver'
+import type { ThemeResolver } from '../../shared/utils/theme-resolver'
+import { toInlineScriptJson } from '../../shared/utils/inline-script'
+import {
+  THEME_PREFERENCE_COOKIE,
+  THEME_MODE_COOKIE,
+  THEME_RESOLVED_COOKIE,
+  THEME_COOKIE_MAX_AGE,
+  COOKIE_CONSENT_STORAGE_KEY,
+} from '../../shared/constants'
 
 declare global {
   interface Window {
@@ -7,42 +17,44 @@ declare global {
   }
 }
 
+export interface InitThemeOptions {
+  /** See `color.requireConsent` — when `false`, the theme cookies are always written. */
+  requireConsent: boolean
+  cookies: { preference: string, mode: string, resolved: string }
+  /** In seconds. */
+  cookieMaxAge: number
+  consentStorageKey: string
+}
+
 /**
  * Runs as an inline script in `<head>`, injected via Nitro's `render:html`
  * hook by the `runtime/nitro/theme-init.ts` plugin (see
  * `setup/register-plugins.ts`) — BEFORE the Vue bundle, to avoid a
  * wrong-theme flash before hydration (SSR doesn't know the user's real
- * light/dark preference when the preference is 'system', nor does it have
+ * light/dark preference when the mode is 'system', nor does it have
  * `matchMedia`).
  *
  * Because it runs this way, this function (only this function — the rest of
  * the file, including the type imports, is erased by TypeScript and never
  * reaches the browser) has to be 100% self-contained: `initTheme.toString()`
- * gets serialized and executed as a standalone IIFE, so any import from
- * another module would become a `ReferenceError` on the client. That's why
- * the cookie names below and the theme-resolution rule
- * (`normalizeThemeSelection`/`resolveThemeSelection`) are deliberately
- * duplicated — the canonical implementation, shared between the composable
- * and the SSR plugin, lives in `shared/constants.ts` and
- * `shared/utils/theme-resolve.ts`. Keep the two sides in sync when changing
- * either one.
+ * gets serialized and executed as a standalone IIFE, so anything from another
+ * module would be a `ReferenceError` on the client. Everything it needs comes
+ * in as arguments instead: the theme-resolution rule as the (equally
+ * self-contained) `createThemeResolver` factory, and the cookie names and
+ * settings from `shared/constants.ts` in `options`.
  */
-export interface InitThemeOptions {
-  /** See `color.requireConsent` — when `false`, the theme cookies are always written. */
-  requireConsent?: boolean
-}
-
-export default function initTheme(themeData: ThemeConfig, options: InitThemeOptions = {}): void {
-  const requireConsent = options.requireConsent !== false
-  const THEME_PREFERENCE_COOKIE = 'venix-theme-preference'
-  const THEME_RESOLVED_COOKIE = 'venix-theme-resolved'
-  const THEME_MODE_COOKIE = 'venix-theme-mode'
-  const COOKIE_CONSENT_STORAGE_KEY = 'venix-cookie-consent'
+export default function initTheme(
+  createThemeResolver: () => ThemeResolver,
+  themeData: ThemeConfig,
+  options: InitThemeOptions,
+): void {
+  const resolver = createThemeResolver()
+  const { requireConsent, cookies, cookieMaxAge, consentStorageKey } = options
 
   function hasCookieConsent(): boolean {
     if (typeof localStorage === 'undefined') return false
 
-    const consentData = localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY)
+    const consentData = localStorage.getItem(consentStorageKey)
     if (!consentData) return false
 
     try {
@@ -63,190 +75,58 @@ export default function initTheme(themeData: ThemeConfig, options: InitThemeOpti
 
   function setCookieIfConsented(name: string, value: string): void {
     if (!requireConsent || hasCookieConsent()) {
-      document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax`
+      document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${cookieMaxAge}; SameSite=Lax`
     }
   }
 
-  function isColorTheme(themeConfig: ThemeColors | undefined): boolean {
-    if (!themeConfig) return false
-    return !!themeConfig.primary || !!themeConfig.background
-  }
-
-  function getEasterSunday(year: number): Date {
-    const a = year % 19
-    const b = Math.floor(year / 100)
-    const c = year % 100
-    const d = Math.floor(b / 4)
-    const e = b % 4
-    const f = Math.floor((b + 8) / 25)
-    const g = Math.floor((b - f + 1) / 3)
-    const h = (19 * a + b - d - g + 15) % 30
-    const i = Math.floor(c / 4)
-    const k = c % 4
-    const l = (32 + 2 * e + 2 * i - h - k) % 7
-    const m = Math.floor((a + 11 * h + 22 * l) / 451)
-    const month = Math.floor((h + l - 7 * m + 114) / 31)
-    const day = ((h + l - 7 * m + 114) % 31) + 1
-
-    return new Date(year, month - 1, day)
-  }
-
-  function parseDatePart(value: string, year: number): number | null {
-    const easter = /^easter([+-]\d+)?$/.exec(value.trim())
-    if (easter) {
-      const date = getEasterSunday(year)
-      date.setDate(date.getDate() + Number(easter[1] ?? 0))
-      return (date.getMonth() + 1) * 100 + date.getDate()
-    }
-
-    const parts = value.split('-').map(Number)
-    if (parts.length !== 2) return null
-
-    const [month, day] = parts
-    if (month === undefined || day === undefined) return null
-
-    return month * 100 + day
-  }
-
-  function isDateInSeasonalRange(group: ResolvedThemeGroup, now: Date): boolean {
-    if (group.seasonal !== true || !group.dateRange) return false
-
-    const year = now.getFullYear()
-    const startNum = parseDatePart(group.dateRange.start, year)
-    const endNum = parseDatePart(group.dateRange.end, year)
-    if (startNum === null || endNum === null) return false
-
-    const current = (now.getMonth() + 1) * 100 + now.getDate()
-
-    return startNum <= endNum
-      ? current >= startNum && current <= endNum
-      : current >= startNum || current <= endNum
-  }
-
-  const themes = themeData.colors?.themes || {}
-  const groups = themeData.colors?.groups || {}
-
-  function isModePreference(value: unknown): value is ThemeModePreference {
-    return value === 'system' || value === 'light' || value === 'dark'
-  }
-
-  function isSelectableGroup(name: string): boolean {
-    const group = groups[name]
-    if (!group || name === 'system') return false
-    return Object.values(group.variants).some(id => !!id && isColorTheme(themes[id]))
-  }
-
-  function findVariantOwner(id: string): { theme: string, mode: ThemeMode } | null {
-    for (const [name, group] of Object.entries(groups)) {
-      if (group.variants.dark === id) return { theme: name, mode: 'dark' }
-      if (group.variants.light === id) return { theme: name, mode: 'light' }
-    }
-    return null
-  }
-
-  function getDefaultSelection(): { theme: string, mode: ThemeModePreference, fallbackTheme: string } {
-    const selectable = Object.keys(groups).filter(isSelectableGroup)
-    const firstRegular = selectable.find(name => groups[name]?.seasonal !== true) ?? selectable[0] ?? ''
-
-    const defaultColor = themeData.colors?.defaultColor || 'dark'
-    if (isSelectableGroup(defaultColor)) {
-      return { theme: defaultColor, mode: 'system', fallbackTheme: defaultColor }
-    }
-
-    const owner = findVariantOwner(defaultColor)
-    if (owner && isSelectableGroup(owner.theme)) {
-      return { ...owner, fallbackTheme: owner.theme }
-    }
-
-    return { theme: 'system', mode: 'system', fallbackTheme: firstRegular }
-  }
-
-  function normalizeThemeSelection(themePreference: string | null, modePreference: string | null): { theme: string, mode: ThemeModePreference } {
-    const defaults = getDefaultSelection()
-    let theme = defaults.theme
-    let impliedMode: ThemeModePreference = defaults.mode
-
-    if (themePreference === 'system') {
-      theme = 'system'
-      impliedMode = 'system'
-    }
-    else if (themePreference && isSelectableGroup(themePreference)) {
-      theme = themePreference
-    }
-    else if (themePreference) {
-      const owner = findVariantOwner(themePreference)
-      if (owner && isSelectableGroup(owner.theme)) {
-        theme = owner.theme
-        impliedMode = owner.mode
-      }
-    }
-
-    const hasSeasonal = Object.values(groups).some(group => group.seasonal === true)
-    if (theme === 'system' && !hasSeasonal && defaults.fallbackTheme) theme = defaults.fallbackTheme
-
-    return { theme, mode: isModePreference(modePreference) ? modePreference : impliedMode }
-  }
-
-  function getActiveSeasonalTheme(mode: ThemeMode, now: Date): string | null {
-    for (const [name, group] of Object.entries(groups)) {
-      if (name === 'system') continue
-      if (!group.variants.dark && !group.variants.light) continue
-      if (!isDateInSeasonalRange(group, now)) continue
-      if (!group.variants[mode]) continue
-      return name
-    }
-
-    return null
-  }
-
-  function resolveThemeSelection(selection: { theme: string, mode: ThemeModePreference }, prefersDark: boolean): string {
-    const mode: ThemeMode = selection.mode === 'system' ? (prefersDark ? 'dark' : 'light') : selection.mode
-    const { fallbackTheme } = getDefaultSelection()
-
-    const theme = selection.theme === 'system'
-      ? getActiveSeasonalTheme(mode, new Date()) ?? fallbackTheme
-      : selection.theme
-
-    const pick = (name: string): string | null => {
-      const variants = groups[name]?.variants
-      const id = variants?.[mode] ?? variants?.[mode === 'dark' ? 'light' : 'dark']
-      return id && isColorTheme(themes[id]) ? id : null
-    }
-
-    return pick(theme)
-      ?? pick(fallbackTheme)
-      ?? Object.keys(themes).find(id => isColorTheme(themes[id]))
-      ?? 'dark'
+  const colors = {
+    themes: themeData.colors?.themes || {},
+    groups: themeData.colors?.groups || {},
+    defaultColor: themeData.colors?.defaultColor,
   }
 
   const html = document.documentElement
 
-  const preference = getCookie(THEME_PREFERENCE_COOKIE)
-  const modePreference = getCookie(THEME_MODE_COOKIE)
-  const resolvedCookie = getCookie(THEME_RESOLVED_COOKIE)
+  const preference = getCookie(cookies.preference)
+  const modePreference = getCookie(cookies.mode)
+  const resolvedCookie = getCookie(cookies.resolved)
   const systemPrefersDark = typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-color-scheme: dark)').matches
 
-  const selection = normalizeThemeSelection(preference, modePreference)
+  const selection = resolver.normalizeThemeSelection(preference, modePreference, colors)
 
   // Always recomputed, never taken from the resolved cookie: with theme or
   // mode 'system' that cookie can be from another season or from before the
   // OS switched modes. The cookie is only refreshed below.
-  const theme = resolveThemeSelection(selection, systemPrefersDark)
+  const theme = resolver.resolveThemeSelection(selection, colors, systemPrefersDark)
 
   html.classList.add(theme)
   html.setAttribute('data-theme', theme)
   window.__VENIX_INITIAL_THEME__ = theme
 
-  if (!resolvedCookie || resolvedCookie !== theme) {
-    setCookieIfConsented(THEME_RESOLVED_COOKIE, theme)
+  if (resolvedCookie !== theme) {
+    setCookieIfConsented(cookies.resolved, theme)
   }
 
   if (!preference) {
-    setCookieIfConsented(THEME_PREFERENCE_COOKIE, selection.theme)
+    setCookieIfConsented(cookies.preference, selection.theme)
   }
 
   if (!modePreference) {
-    setCookieIfConsented(THEME_MODE_COOKIE, selection.mode)
+    setCookieIfConsented(cookies.mode, selection.mode)
   }
+}
+
+export function createInitThemeOptions(requireConsent: boolean): InitThemeOptions {
+  return {
+    requireConsent,
+    cookies: { preference: THEME_PREFERENCE_COOKIE, mode: THEME_MODE_COOKIE, resolved: THEME_RESOLVED_COOKIE },
+    cookieMaxAge: THEME_COOKIE_MAX_AGE,
+    consentStorageKey: COOKIE_CONSENT_STORAGE_KEY,
+  }
+}
+
+/** The inline script's source: `initTheme` as an IIFE, with its arguments serialized. */
+export function renderInitThemeScript(themeData: ThemeConfig, options: InitThemeOptions): string {
+  return `(${initTheme.toString()})(${createThemeResolver.toString()}, ${toInlineScriptJson(themeData)}, ${toInlineScriptJson(options)})`
 }

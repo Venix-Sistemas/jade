@@ -1,9 +1,7 @@
 // runtime/nitro/theme-init.ts
 import { defineNitroPlugin, useRuntimeConfig } from 'nitropack/runtime'
-import initTheme from '../scripts/theme-init'
-import type { InitThemeOptions } from '../scripts/theme-init'
+import { createInitThemeOptions, renderInitThemeScript } from '../scripts/theme-init'
 import { buildResolvedTheme } from '../../shared/utils/theme-config'
-import { toInlineScriptJson } from '../../shared/utils/inline-script'
 
 interface RenderHtmlContext {
   head: string[]
@@ -14,30 +12,17 @@ interface RenderHtmlMeta {
 }
 
 export default defineNitroPlugin((nitroApp) => {
-  // Same merge `theme-init.server.ts`/`useVenixTheme.ts` use — the static
-  // theme.json overridden by any `color.themes` customizations from
-  // `nuxt.config.ts` (resolved into runtimeConfig at build time). Using the
-  // static theme.json alone here (as before) meant a consumer's own custom
-  // themes (e.g. a project-only seasonal one) weren't recognized by this
-  // script: their `venix-theme-resolved`/`venix-theme-preference` cookies
-  // would fail the `isColorTheme` check against the *static* theme set and
-  // silently fall back to the default theme on every full reload, undoing
-  // the selection right before hydration.
-  //
-  // Computed once when the plugin registers (Nitro startup, after
-  // runtimeConfig is ready) and reused for every request — public
-  // runtimeConfig doesn't vary per request, so there's no need to redo this
-  // per response.
+  // The same resolved theme the rest of the module uses (theme.json plus the
+  // `color.themes` customizations from `nuxt.config.ts`), so the script
+  // recognizes a project's own themes too. Built once at Nitro startup:
+  // public runtimeConfig doesn't vary per request.
   const themeConfig = useRuntimeConfig().public.venixTheme
   const theme = buildResolvedTheme(themeConfig)
-  const initOptions: InitThemeOptions = { requireConsent: themeConfig?.requireConsent !== false }
 
-  // Serializes `initTheme` (has to be 100% self-contained — see the comment
-  // in that file) into an IIFE and injects it into the HTML response's
-  // `<head>`, before the Vue bundle — that's what avoids the
-  // wrong-theme/locale flash before hydration (the previous project did
-  // this manually via `app.head.script` pointing at a static public file).
-  const scriptBody = `(${initTheme.toString()})(${toInlineScriptJson(theme)}, ${toInlineScriptJson(initOptions)})`
+  // The pre-hydration script (see `runtime/scripts/theme-init.ts`), injected
+  // inline at the top of `<head>`, before the Vue bundle — that's what avoids
+  // the wrong-theme flash before hydration.
+  const scriptBody = renderInitThemeScript(theme, createInitThemeOptions(themeConfig?.requireConsent !== false))
 
   // `render:html` is added by Nuxt's own Nitro integration, it isn't part of
   // "plain" nitropack's `NitroRuntimeHooks` — cast needed for the same

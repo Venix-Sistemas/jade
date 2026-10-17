@@ -1,14 +1,16 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import initTheme from '../../src/runtime/scripts/theme-init'
-import type { InitThemeOptions } from '../../src/runtime/scripts/theme-init'
+import { createInitThemeOptions, renderInitThemeScript } from '../../src/runtime/scripts/theme-init'
 import { buildResolvedTheme } from '../../src/shared/utils/theme-config'
+import { THEME_COOKIE_MAX_AGE } from '../../src/shared/constants'
 
 // `color.requireConsent` no script de pré-hidratação: com `true` (padrão) ele
 // só grava os cookies de tema depois do consentimento; com `false` grava sempre.
 
 const theme = buildResolvedTheme()
+let lastWrites: string[] = []
 
-function runInitTheme(options: InitThemeOptions | undefined, consent: boolean): string[] {
+// Roda o script serializado, como o navegador recebe no <head>
+function runInitTheme(requireConsent: boolean, consent: boolean): string[] {
   const writes: string[] = []
   vi.stubGlobal('document', {
     get cookie() { return '' },
@@ -20,7 +22,8 @@ function runInitTheme(options: InitThemeOptions | undefined, consent: boolean): 
     getItem: () => (consent ? JSON.stringify({ functionality: true }) : null),
   })
 
-  initTheme(theme, options)
+  new Function(renderInitThemeScript(theme, createInitThemeOptions(requireConsent)))()
+  lastWrites = writes
   return writes.map(write => write.split('=')[0]!)
 }
 
@@ -29,19 +32,20 @@ afterEach(() => {
 })
 
 describe('initTheme × color.requireConsent', () => {
-  it('sem consentimento, não grava cookies por padrão', () => {
-    expect(runInitTheme(undefined, false)).toEqual([])
-  })
-
   it('sem consentimento, não grava cookies com requireConsent: true', () => {
-    expect(runInitTheme({ requireConsent: true }, false)).toEqual([])
+    expect(runInitTheme(true, false)).toEqual([])
   })
 
   it('com consentimento, grava os três cookies', () => {
-    expect(runInitTheme(undefined, true)).toEqual(['venix-theme-resolved', 'venix-theme-preference', 'venix-theme-mode'])
+    expect(runInitTheme(true, true)).toEqual(['venix-theme-resolved', 'venix-theme-preference', 'venix-theme-mode'])
   })
 
   it('com requireConsent: false, grava os três cookies mesmo sem consentimento', () => {
-    expect(runInitTheme({ requireConsent: false }, false)).toEqual(['venix-theme-resolved', 'venix-theme-preference', 'venix-theme-mode'])
+    expect(runInitTheme(false, false)).toEqual(['venix-theme-resolved', 'venix-theme-preference', 'venix-theme-mode'])
+  })
+
+  it('grava os cookies com a mesma validade de THEME_COOKIE_MAX_AGE, não como cookies de sessão', () => {
+    runInitTheme(false, false)
+    for (const write of lastWrites) expect(write).toContain(`max-age=${THEME_COOKIE_MAX_AGE}`)
   })
 })

@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import initTheme from '../../src/runtime/scripts/theme-init'
+import { createInitThemeOptions, renderInitThemeScript } from '../../src/runtime/scripts/theme-init'
 import { resolveThemePreference } from '../../src/shared/utils/theme-resolve'
 import { buildResolvedTheme } from '../../src/shared/utils/theme-config'
 import type { ThemeConfig } from '../../src/shared/types'
 
-// `runtime/scripts/theme-init.ts` duplica de propósito a regra de
-// `normalizeThemeSelection`/`resolveThemeSelection` (precisa rodar como IIFE
-// autocontida, sem imports). Este teste garante que as duas implementações
-// não divirjam: para cada combinação de tema × modo salvos × modo do sistema
-// × data, o tema aplicado pelo script tem que ser o mesmo que a versão
-// compartilhada resolve.
+// O script de pré-hidratação recebe a regra de resolução serializada
+// (`createThemeResolver.toString()`) e roda como IIFE no <head>. Este teste
+// executa o script serializado de verdade e garante que ele aplica o mesmo
+// tema que a versão chamada normalmente, para cada combinação de tema × modo
+// salvos × modo do sistema × data — o que também pega qualquer referência
+// externa que quebraria o script fora do bundle.
 
 const theme: ThemeConfig = buildResolvedTheme({
   colorThemes: {
@@ -47,7 +47,8 @@ function runInitTheme(cookie: string, prefersDark: boolean): string | null {
   vi.stubGlobal('document', { cookie, documentElement })
   vi.stubGlobal('window', { matchMedia: () => ({ matches: prefersDark }) })
 
-  initTheme(theme)
+  // O script serializado, como o navegador recebe no <head>
+  new Function(renderInitThemeScript(theme, createInitThemeOptions(true)))()
   return attrs['data-theme'] ?? null
 }
 
