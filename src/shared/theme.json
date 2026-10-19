@@ -48,7 +48,8 @@
         "themeCursors": {
             "venix": "base"
         },
-        "_comment": "defaultCursors: default | pointer | text --- themeCursors: <themename>: themed | base | none | { default, pointer, text }"
+        "_comment": "defaultCursors: default | pointer | text --- themeCursors: <themename>: themed | base | none | { default, pointer, text }",
+        "_deprecated": "DEPRECATED: the fire images in defaultCursors (src/runtime/public/images/ui/cursor) are removed in 2.0.0, with no warning to users. See docs/v2.0.0.md."
     },
     "colors": {
         "enabled": true,
