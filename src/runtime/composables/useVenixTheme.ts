@@ -126,14 +126,18 @@ function createThemeCore() {
     //
     // `getComputedStyle` forces a synchronous style recalculation — only
     // worth paying that cost (right in the middle of the transition) when
-    // the project actually has a custom cursor configured; otherwise the
+    // the project actually has a custom cursor enabled; otherwise the
     // result would always be 'auto' and this whole block would be wasted work.
+    // (Read from the runtime config: `theme.customCursor` is `theme.json`'s
+    // own, without the module options.)
     const body = document.body
-    const hasCustomCursor = theme.customCursor?.enabled !== false && !!theme.customCursor?.cursors
-    const currentCursor = hasCustomCursor ? getComputedStyle(body).cursor : null
-    if (currentCursor && currentCursor !== 'auto') {
-      body.style.setProperty('cursor', currentCursor, 'important')
+    const hasCustomCursor = themeConfig?.enabled?.cursor !== false
+    const pinCursor = () => {
+      body.style.removeProperty('cursor')
+      const cursor = getComputedStyle(body).cursor
+      if (cursor && cursor !== 'auto') body.style.setProperty('cursor', cursor, 'important')
     }
+    if (hasCustomCursor) pinCursor()
 
     const restoreCursor = () => body.style.removeProperty('cursor')
 
@@ -142,7 +146,12 @@ function createThemeCore() {
     // finishes, or the tab is hidden) — an expected outcome, not a real
     // error; without the `.catch()`s, this turns into "Uncaught (in
     // promise)" in the console.
-    const transition = document.startViewTransition(() => apply(selection))
+    const transition = document.startViewTransition(() => {
+      apply(selection)
+      // The cursor is drawn in the theme's color: pin the new theme's one,
+      // so it changes along with the colors rather than when the animation ends.
+      if (hasCustomCursor) pinCursor()
+    })
     transition.ready.catch(() => {})
     transition.finished.then(restoreCursor).catch(restoreCursor)
   }

@@ -1,7 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { processTheme } from '../../src/shared/css'
 import { generateThemeVars } from '../../src/shared/css/colors'
+import { generateCustomCursorCSS } from '../../src/shared/css/cursor'
+import { generateCursorSVG } from '../../src/shared/css/cursor-svg'
 import { loadTheme } from '../../src/shared/utils/load'
+import { customizeTheme } from '../../src/setup/customize-theme'
+import type { CursorConfig } from '../../src/shared/types'
 
 describe('processTheme', () => {
   const theme = loadTheme()
@@ -43,6 +47,108 @@ describe('processTheme', () => {
   it('deve desligar pointer-events em toda a árvore de pseudo-elementos da transição, para não travar cursor/hover do conteúdo real', () => {
     const css = processTheme(theme)
     expect(css).toMatch(/::view-transition,\n::view-transition-group\(\*\),\n::view-transition-image-pair\(\*\),\n::view-transition-old\(\*\),\n::view-transition-new\(\*\)\s*\{[^}]*pointer-events:\s*none\s*!important/)
+  })
+})
+
+describe('generateCustomCursorCSS', () => {
+  const base = loadTheme()
+  const theme = { ...base, customCursor: { ...base.customCursor, enabled: true } }
+  const withCursor = (cursor: Partial<CursorConfig>) => generateCustomCursorCSS({ ...theme, customCursor: { ...theme.customCursor, ...cursor } })
+  const block = (css: string, id: string) => css.match(new RegExp(`:root\\[data-theme='${id}'\\] \\{([^}]*)\\}`))?.[1]
+
+  it('deve desenhar os cursores na cor primary de cada variante de tema', () => {
+    const css = generateCustomCursorCSS(theme)
+    const halloween = block(css, 'halloween') ?? ''
+    for (const type of ['default', 'pointer', 'text']) {
+      expect(halloween).toMatch(new RegExp(`--cursor-${type}: url\\("data:image/svg\\+xml,[^"]+"\\) \\d+ \\d+, url\\('[^']+'\\)`))
+    }
+    expect(decodeURIComponent(halloween)).toContain('#FF8A3D')
+    // `#` e `<`/`>` cortariam ou invalidariam a URI no `url()`
+    for (const [, uri] of halloween.matchAll(/url\("data:image\/svg\+xml,([^"]+)"\)/g)) {
+      expect(uri).not.toMatch(/[#<>]/)
+    }
+    expect(css).not.toContain('data-theme=\'system\'')
+  })
+
+  it('deve usar as imagens como valor padrão, para quando o tema não tem cursor desenhado', () => {
+    const css = generateCustomCursorCSS(theme)
+    expect(css).toMatch(/:root \{\n {2}--cursor-default: url\('\/images\/ui\/cursor\/cursor\.png'\) 4 0, default;/)
+    expect(css).toContain('cursor: var(--cursor-default);')
+    expect(css).toContain('cursor: var(--cursor-pointer) !important;')
+    expect(css).toContain('cursor: var(--cursor-text) !important;')
+  })
+
+  it('deve manter as imagens no tema Venix Sistemas, nas duas variantes', () => {
+    const css = generateCustomCursorCSS(theme)
+    expect(block(css, 'dark')).toBeUndefined()
+    expect(block(css, 'light')).toBeUndefined()
+  })
+
+  it('não deve desenhar cursores com themed: false', () => {
+    const css = withCursor({ themed: false })
+    expect(css).not.toContain('data:image/svg+xml')
+    expect(css).toContain('--cursor-default: url(\'/images/ui/cursor/cursor.png\') 4 0, default;')
+  })
+
+  it('deve aceitar imagens próprias por tema, desenhando os cursores que ficaram de fora', () => {
+    const css = withCursor({ themeCursors: { halloween: { pointer: { path: '/abobora.png', hotspot: '8 0' } } } })
+    expect(block(css, 'halloween')).toContain('--cursor-pointer: url(\'/abobora.png\') 8 0, pointer;')
+    expect(block(css, 'halloween')).toMatch(/--cursor-default: url\("data:image\/svg\+xml,/)
+    expect(block(css, 'halloween-light')).toContain('--cursor-pointer: url(\'/abobora.png\') 8 0, pointer;')
+  })
+
+  it('deve usar os cursores do sistema operacional com \'none\'', () => {
+    const css = withCursor({ themeCursors: { natal: 'none' } })
+    expect(block(css, 'natal')).toBe('\n  --cursor-default: default;\n  --cursor-pointer: pointer;\n  --cursor-text: text;\n')
+  })
+
+  it('deve priorizar o id da variante sobre o nome do tema', () => {
+    const css = withCursor({ themeCursors: { 'carnaval': 'none', 'carnaval-light': 'themed' } })
+    expect(block(css, 'carnaval')).toContain('--cursor-pointer: pointer;')
+    expect(block(css, 'carnaval-light')).toMatch(/--cursor-pointer: url\("data:image\/svg\+xml,/)
+  })
+
+  it('deve desenhar cursores mesmo sem imagens, caindo no cursor do sistema', () => {
+    const css = withCursor({ defaultCursors: {} })
+    expect(css).toContain('--cursor-pointer: pointer;')
+    expect(css).toMatch(/--cursor-pointer: url\("data:image\/svg\+xml,[^"]+"\) \d+ \d+, pointer;/)
+  })
+
+  it('não deve gerar nada sem imagens e sem cores', () => {
+    const css = generateCustomCursorCSS({
+      ...theme,
+      customCursor: { ...theme.customCursor, defaultCursors: {} },
+      colors: { ...theme.colors, enabled: false },
+    })
+    expect(css).toBe('')
+  })
+})
+
+describe('generateCursorSVG', () => {
+  it('deve mostrar o cursor em 28×28, com o hotspot na mesma escala do desenho', () => {
+    const { url, hotspot } = generateCursorSVG('pointer', '#FF0000')
+    expect(url).toContain('width=\'28\' height=\'28\' viewBox=\'0 0 32 32\'')
+    expect(hotspot).toBe('10 1')
+    expect(generateCursorSVG('text', '#FF0000').hotspot).toBe('14 14')
+  })
+})
+
+describe('customizeTheme (cursor)', () => {
+  it('deve juntar os cursores por tema do projeto com os do módulo', () => {
+    const theme = customizeTheme(loadTheme(), { cursor: { themeCursors: { halloween: 'none' } } })
+    expect(theme.customCursor.themeCursors).toEqual({ ...loadTheme().customCursor.themeCursors, halloween: 'none' })
+  })
+
+  it('deve deixar o projeto trocar o cursor do tema Venix Sistemas', () => {
+    const theme = customizeTheme(loadTheme(), { cursor: { themeCursors: { venix: 'themed' } } })
+    expect(theme.customCursor.themeCursors?.venix).toBe('themed')
+  })
+
+  it('deve aceitar o nome antigo `cursors` como defaultCursors', () => {
+    const cursors = { pointer: { path: '/mao.png', hotspot: '8 0' } }
+    const theme = customizeTheme(loadTheme(), { cursor: { cursors } })
+    expect(theme.customCursor.defaultCursors).toEqual(cursors)
+    expect(theme.customCursor.cursors).toBeUndefined()
   })
 })
 

@@ -41,7 +41,7 @@ export default defineNuxtConfig({
       enabled: true,
 
       /*
-      cursors: {
+      defaultCursors: {
         default: {
           path: "/images/ui/cursor/cursor.png",
           hotspot: "0 0"

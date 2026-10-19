@@ -12,6 +12,17 @@ export function customizeTheme(baseTheme: ThemeConfig, options: ModuleOptions): 
   customized.customScrollbar = resolveFeatureOption(options.scrollbar, customized.customScrollbar)
   customized.customCursor = resolveFeatureOption(options.cursor, customized.customCursor)
 
+  const cursorOption = typeof options.cursor === 'object' && options.cursor !== null ? options.cursor : undefined
+  // `cursors` is the old name of `defaultCursors` (warned about in module.ts)
+  if (cursorOption?.cursors) {
+    customized.customCursor.defaultCursors = cursorOption.defaultCursors ?? cursorOption.cursors
+  }
+  delete customized.customCursor.cursors
+  // Per theme, so setting one theme's cursor keeps the module's own entries
+  if (cursorOption?.themeCursors) {
+    customized.customCursor.themeCursors = { ...baseTheme.customCursor.themeCursors, ...cursorOption.themeCursors }
+  }
+
   // ===== COLORS =====
   const colorOption = options.color
 

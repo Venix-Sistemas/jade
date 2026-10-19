@@ -2,7 +2,7 @@ import './runtime-config'
 
 export type { FontConfig, TypographyConfig } from './typography'
 export type { ScrollbarConfig } from './scrollbar'
-export type { CursorConfig } from './cursor'
+export type { CursorConfig, CursorType, CursorImage, ThemeCursor } from './cursor'
 export type {
   ThemeColors,
   ThemeTranslations,

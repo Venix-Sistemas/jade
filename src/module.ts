@@ -78,6 +78,9 @@ export default defineNuxtModule<ModuleOptions>({
     for (const message of findDeprecatedThemeEntries(getBaseThemeEntries(), colorOptions.themes)) {
       useLogger('jade').warn(message)
     }
+    if (typeof options.cursor === 'object' && options.cursor?.cursors) {
+      useLogger('jade').warn('`cursor.cursors` is deprecated and stops working in 2.0. Use `cursor.defaultCursors` instead.')
+    }
 
     const shouldApplyColors = colorOptions.enabled && colorOptions.apply && theme.colors?.defaults !== false
 

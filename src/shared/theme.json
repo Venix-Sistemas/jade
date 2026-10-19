@@ -30,7 +30,8 @@
     },
     "customCursor": {
         "enabled": false,
-        "cursors": {
+        "themed": true,
+        "defaultCursors": {
             "default": {
                 "path": "/images/ui/cursor/cursor.png",
                 "hotspot": "4 0"
@@ -44,7 +45,10 @@
                 "hotspot": "12 12"
             }
         },
-        "_comment": "default | pointer | text"
+        "themeCursors": {
+            "venix": "base"
+        },
+        "_comment": "defaultCursors: default | pointer | text --- themeCursors: <themename>: themed | base | none | { default, pointer, text }"
     },
     "colors": {
         "enabled": true,

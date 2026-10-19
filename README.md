@@ -508,24 +508,49 @@ venixTheme: {
 
 ## Cursor
 
-Replaces the default, pointer and text cursors with images. On by default, using the module's own cursor images; point it at yours to customize, or set `cursor: false` to keep the browser's cursors:
+Replaces the default, pointer and text cursors. On by default; set `cursor: false` to keep the system's cursors:
 
 <p align="center">
   <img src="./docs/images/readme/cursor.png" alt="The default, pointer and text cursors" width="800">
 </p>
 
+- **`defaultCursors`**: the default cursors, the module's fire images unless you set your own. They show with `themed: false`, in browsers that can't load the drawn cursors and for themes without a `primary`.
+- **`themed`** (on by default): draws each cursor as an SVG in the active color theme's `primary`, so it changes along with the theme. Custom themes get one too, with nothing to draw.
+- **`themeCursors`**: the cursor of a single color theme, by theme name (both modes) or variant id (just that one, which wins over the theme name). It is merged with the module's own entry, `venix: 'base'`, which keeps the Venix Sistemas theme on the default cursors.
+
+| `themeCursors` value | Cursor shown |
+| --- | --- |
+| `'base'` | the `defaultCursors` (the module's fire cursors, unless you set your own) |
+| `'themed'` | drawn in the theme's `primary` |
+| `'none'` | no custom cursor: the operating system's own |
+| `{ pointer: { path, hotspot } }` | its own images; the cursors left out show as if the theme had no entry |
+
 ```typescript
 venixTheme: {
   cursor: {
+    // `false` shows the default cursors in every theme without an entry in `themeCursors`
+    themed: true,
     // Images served from `public/`; `hotspot` is the click point ("x y")
-    cursors: {
+    defaultCursors: {
       default: { path: '/cursors/default.png', hotspot: '0 0' },
       pointer: { path: '/cursors/pointer.png', hotspot: '0 0' },
       text: { path: '/cursors/text.png', hotspot: '0 0' },
     },
+    themeCursors: {
+      // Its own pointer; default and text are still drawn in its color
+      'halloween': { pointer: { path: '/cursors/pumpkin.png', hotspot: '8 0' } },
+      'natal': 'none',
+      // Drawn in its color, instead of the default cursors
+      'venix': 'themed',
+      // Only the light variant of Carnival
+      'carnaval-light': 'base',
+    },
   },
 }
 ```
+
+> [!NOTE]
+> `defaultCursors` was called `cursors` up to 1.2. The old name still works, with a warning, until 2.0.
 
 > [!NOTE]
 > Keep cursor images at **32×32 pixels or smaller**. Browsers accept larger cursors (Chromium up to 128×128), but Chromium falls back to the system cursor whenever a cursor larger than 32×32 would overlap the browser UI, so it flickers near the edges of the window.
