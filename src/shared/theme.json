@@ -232,8 +232,8 @@
                 },
                 "dark": {
                     "id": "natal",
-                    "primary": "#FF6B6B",
-                    "secondary": "#6FCF7F",
+                    "primary": "#6FCF7F",
+                    "secondary": "#FF6B6B",
                     "accent": "#FFD54F",
                     "error": "#FF6161",
                     "info": "#64B5F6",
@@ -244,8 +244,8 @@
                     "background3": "#172C23"
                 },
                 "light": {
-                    "primary": "#C62828",
-                    "secondary": "#2E7D32",
+                    "primary": "#2E7D32",
+                    "secondary": "#C62828",
                     "accent": "#B8860B",
                     "error": "#D32F2F",
                     "info": "#1976D2",
