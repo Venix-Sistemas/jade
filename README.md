@@ -518,6 +518,10 @@ Replaces the default, pointer and text cursors. On by default; set `cursor: fals
 - **`themed`** (on by default): draws each cursor as an SVG in the active color theme's `primary`, so it changes along with the theme. Custom themes get one too, with nothing to draw.
 - **`themeCursors`**: the cursor of a single color theme, by theme name (both modes) or variant id (just that one, which wins over the theme name). It is merged with the module's own entry, `venix: 'base'`, which keeps the Venix Sistemas theme on the default cursors.
 
+<p align="center">
+  <img src="./docs/images/readme/cursor-themes.png" alt="The cursors of each built-in theme, dark and light: Venix Sistemas on the fire images ('base'), Carnival, Easter, Christmas and Halloween drawn in their own color ('themed')" width="800">
+</p>
+
 | `themeCursors` value | Cursor shown |
 | --- | --- |
 | `'base'` | the `defaultCursors` (the module's fire cursors, unless you set your own) |
