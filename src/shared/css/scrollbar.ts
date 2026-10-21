@@ -39,9 +39,19 @@ export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
   css += `\n::-webkit-scrollbar-thumb:hover {
   background: ${thumbHover};
 }\n`
-  css += `\nhtml {
-  scrollbar-width: ${width === 'auto' ? 'auto' : 'thin'};
-  scrollbar-color: ${thumb} ${track};
+  // Where a vertical and a horizontal scrollbar meet; white otherwise
+  css += `\n::-webkit-scrollbar-corner {
+  background: ${track};
+}\n`
+  // The standard properties only where `::-webkit-scrollbar` doesn't exist
+  // (Firefox): since Chromium 121 either one switches the `::-webkit-scrollbar`
+  // styles off, and `scrollbar-color` is inherited, so the whole page would
+  // lose the border, radius and hover color above.
+  css += `\n@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: ${width === 'auto' ? 'auto' : 'thin'};
+    scrollbar-color: ${thumb} ${track};
+  }
 }\n`
 
   return css

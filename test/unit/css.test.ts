@@ -38,6 +38,16 @@ describe('processTheme', () => {
     expect(css).toContain('::-webkit-scrollbar')
   })
 
+  it('deve aplicar scrollbar-color/scrollbar-width só sem ::-webkit-scrollbar, que o Chromium desliga quando eles existem', () => {
+    const css = processTheme(theme)
+    expect(css).toMatch(/@supports not selector\(::-webkit-scrollbar\) \{\n {2}html \{\n {4}scrollbar-width: [^;]+;\n {4}scrollbar-color: [^;]+;\n {2}\}\n\}/)
+    expect(css.replace(/@supports not selector\(::-webkit-scrollbar\) \{[\s\S]*?\n\}\n/, '')).not.toContain('scrollbar-color')
+  })
+
+  it('deve pintar o canto entre as duas scrollbars com a cor da trilha', () => {
+    expect(processTheme(theme)).toContain('::-webkit-scrollbar-corner {\n  background: var(--color-background2);\n}')
+  })
+
   it('deve gerar CSS de transição de tema junto com as cores', () => {
     const css = processTheme(theme)
     expect(css).toContain('::view-transition-old(root)')
