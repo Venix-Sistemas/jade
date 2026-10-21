@@ -88,6 +88,33 @@ describe('generateCustomCursorCSS', () => {
     expect(css).toContain('cursor: var(--cursor-text) !important;')
   })
 
+  it('deve mostrar a mão só no que é clicável', () => {
+    const css = generateCustomCursorCSS(theme)
+    const pointer = css.match(/\/\* 2\. [^\n]*\n([^{]*)\{/)?.[1] ?? ''
+    expect(pointer).toContain('a[href], a[href] *')
+    expect(pointer).toContain('.v-icon--clickable')
+    expect(pointer).toContain('.v-list-item--link')
+    expect(pointer).toContain('.v-chip--link')
+    expect(pointer).not.toMatch(/(^|[\s,])a,|\.v-icon,|\.v-list-item,|\.v-chip,/)
+  })
+
+  it('deve usar o cursor de texto também em input sem type e em qualquer contenteditable', () => {
+    const css = generateCustomCursorCSS(theme)
+    const text = css.match(/\/\* 3\. [^\n]*\n([^{]*)\{/)?.[1] ?? ''
+    expect(text).toContain('input:not([type])')
+    expect(text).toContain('[contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"]')
+  })
+
+  it('deve fazer a regra de desabilitado vencer a de texto e a da mão, inclusive nos filhos', () => {
+    const css = generateCustomCursorCSS(theme)
+    const disabled = css.match(/\/\* 4\. [^\n]*\n([^{]*)\{/)?.[1] ?? ''
+    // `html [disabled]` (0,1,1) empata com `input[type="text"]` e `a[href] *` e vem depois
+    expect(disabled).toContain('html :disabled, html :disabled *')
+    expect(disabled).toContain('html [disabled], html [disabled] *')
+    expect(disabled).toContain('html [aria-disabled="true"]')
+    expect(css.indexOf('/* 4.')).toBeGreaterThan(css.indexOf('/* 3.'))
+  })
+
   it('deve manter as imagens no tema Venix Sistemas, nas duas variantes', () => {
     const css = generateCustomCursorCSS(theme)
     expect(block(css, 'dark')).toBeUndefined()

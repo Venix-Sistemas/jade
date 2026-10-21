@@ -85,16 +85,20 @@ input[type="range"], input[type="color"], input[type="file"] {
   }
 
   if (types.includes('pointer')) {
+    // Only what is actually clickable: a link needs an `href`, and Vuetify
+    // marks clickable icons, list items and chips with their own class (a
+    // plain `.v-icon` or `.v-list-item` is often just decoration or text).
     css += '\n/* 2. Pointer cursor for clickable elements */\n'
-    css += `a, a *,
+    css += `a[href], a[href] *,
 button, button *,
-[role="button"],
+summary,
+[role="button"], [role="link"], [role="tab"],
 input[type="button"], input[type="submit"], input[type="reset"],
 .v-btn:not(.v-btn--disabled),
-.v-list-item,
-.v-icon,
+.v-icon--clickable,
+.v-list-item--link,
+.v-chip--link,
 .v-tab,
-.v-chip,
 .v-card--link,
 .v-breadcrumbs-item--link,
 .v-pagination__item {
@@ -104,7 +108,8 @@ input[type="button"], input[type="submit"], input[type="reset"],
 
   if (types.includes('text')) {
     css += '\n/* 3. Text cursor (i-beam) for editable fields only */\n'
-    css += `input[type="text"],
+    css += `input:not([type]),
+input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="number"],
@@ -117,16 +122,22 @@ input[type="month"],
 input[type="week"],
 input[type="time"],
 textarea,
-[contenteditable="true"] {
+[contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"] {
   cursor: var(--cursor-text) !important;
 }\n`
   }
 
   if (types.includes('default')) {
-    css += '\n/* 4. Disabled elements */\n'
-    css += `.v-btn--disabled,
-[disabled],
-.disabled {
+    // `html ` raises these to the specificity of the rules above (e.g.
+    // `input[type="text"]`), so, coming later, they win over them: a disabled
+    // text field or a disabled button's icon shows the arrow. `:disabled` also
+    // catches the fields of a disabled `<fieldset>`, which have no attribute.
+    css += '\n/* 4. Disabled elements, and what they contain */\n'
+    css += `html :disabled, html :disabled *,
+html [disabled], html [disabled] *,
+html [aria-disabled="true"], html [aria-disabled="true"] *,
+html .disabled,
+html .v-btn--disabled, html .v-btn--disabled * {
   cursor: var(--cursor-default) !important;
 }\n`
   }
