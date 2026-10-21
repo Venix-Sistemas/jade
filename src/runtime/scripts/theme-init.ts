@@ -1,5 +1,5 @@
 // runtime/scripts/theme-init.ts
-import type { ThemeConfig } from '../../shared/types'
+import type { ResolvedTheme } from '../../shared/types'
 import { createThemeResolver } from '../../shared/utils/theme-resolver'
 import type { ThemeResolver } from '../../shared/utils/theme-resolver'
 import { toInlineScriptJson } from '../../shared/utils/inline-script'
@@ -45,7 +45,7 @@ export interface InitThemeOptions {
  */
 export default function initTheme(
   createThemeResolver: () => ThemeResolver,
-  themeData: ThemeConfig,
+  themeData: ResolvedTheme,
   options: InitThemeOptions,
 ): void {
   const resolver = createThemeResolver()
@@ -127,6 +127,6 @@ export function createInitThemeOptions(requireConsent: boolean): InitThemeOption
 }
 
 /** The inline script's source: `initTheme` as an IIFE, with its arguments serialized. */
-export function renderInitThemeScript(themeData: ThemeConfig, options: InitThemeOptions): string {
+export function renderInitThemeScript(themeData: ResolvedTheme, options: InitThemeOptions): string {
   return `(${initTheme.toString()})(${createThemeResolver.toString()}, ${toInlineScriptJson(themeData)}, ${toInlineScriptJson(options)})`
 }

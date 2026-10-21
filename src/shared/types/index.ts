@@ -18,7 +18,7 @@ export type {
   ResolvedThemeGroup,
   ThemeModeLabel,
 } from './colors'
-export type { ThemeConfig } from './theme'
+export type { ThemeConfig, ResolvedTheme } from './theme'
 export type { TranslationConfig } from './translation'
 export type { ColorOptions } from './color-options'
 export type { VuetifyOptions } from './vuetify'

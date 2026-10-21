@@ -1,6 +1,6 @@
 // runtime/composables/useThemeColors.ts
 import { computed } from 'vue'
-import type { ThemeConfig } from '../../shared/types'
+import type { ResolvedTheme } from '../../shared/types'
 import { SYSTEM_THEME } from '../../shared/constants'
 import { resolveThemeIcon } from '../../shared/utils/icon'
 import type { ThemeIconFormat } from '../../shared/utils/icon'
@@ -9,7 +9,7 @@ import { isSelectableGroup } from '../../shared/utils/theme-resolve'
 const MODE_ORDER = ['system', 'dark', 'light'] as const
 
 export const useThemeColors = (
-  theme: ThemeConfig,
+  theme: ResolvedTheme,
   translate: (translations?: Record<string, string>, fallback?: string) => string,
   iconFormat: ThemeIconFormat = 'svg',
 ) => {

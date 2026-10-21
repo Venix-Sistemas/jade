@@ -1,6 +1,6 @@
 // src/shared/utils/theme-config.ts
 import themeData from '../theme.json' with { type: 'json' }
-import type { ThemeConfig, ThemeEntry, ThemeModeLabel } from '../types'
+import type { ResolvedTheme, ThemeEntry, ThemeModeLabel } from '../types'
 import { DEFAULT_THEME } from '../constants'
 import { mergeColorThemes, normalizeColorThemes } from './merge-themes'
 
@@ -25,10 +25,10 @@ export function getBaseThemeEntries(): Record<string, ThemeEntry> {
   return ((themeData.colors as RawColors | undefined)?.themes ?? {}) as Record<string, ThemeEntry>
 }
 
-const resolvedThemeCache = new WeakMap<VenixRuntimeThemeConfig, ThemeConfig>()
+const resolvedThemeCache = new WeakMap<VenixRuntimeThemeConfig, ResolvedTheme>()
 
 /**
- * Rebuilds the full `ThemeConfig` at runtime, layering `theme.json`
+ * Rebuilds the color themes at runtime, layering `theme.json`
  * (bundled with the module, with the "base" themes) with the customizations
  * from `runtimeConfig.public.venixTheme` (resolved at build time from the
  * module options in `nuxt.config`, see `module.ts`). Single implementation —
@@ -40,7 +40,7 @@ const resolvedThemeCache = new WeakMap<VenixRuntimeThemeConfig, ThemeConfig>()
  * (merge + normalization of every theme) each time was wasted work. The
  * result is shared, so callers must treat it as read-only.
  */
-export function buildResolvedTheme(runtimeThemeConfig?: VenixRuntimeThemeConfig): ThemeConfig {
+export function buildResolvedTheme(runtimeThemeConfig?: VenixRuntimeThemeConfig): ResolvedTheme {
   if (!runtimeThemeConfig) return resolveTheme()
 
   let resolved = resolvedThemeCache.get(runtimeThemeConfig)
@@ -51,7 +51,7 @@ export function buildResolvedTheme(runtimeThemeConfig?: VenixRuntimeThemeConfig)
   return resolved
 }
 
-function resolveTheme(runtimeThemeConfig?: VenixRuntimeThemeConfig): ThemeConfig {
+function resolveTheme(runtimeThemeConfig?: VenixRuntimeThemeConfig): ResolvedTheme {
   const rawColors = (themeData.colors as RawColors | undefined) ?? {}
 
   // `colorThemes` holds the raw overrides from `nuxt.config` (only the keys
@@ -76,7 +76,6 @@ function resolveTheme(runtimeThemeConfig?: VenixRuntimeThemeConfig): ThemeConfig
   }
 
   return {
-    ...(themeData as unknown as ThemeConfig),
     colors: {
       enabled: rawColors.enabled ?? true,
       defaults: rawColors.defaults ?? true,

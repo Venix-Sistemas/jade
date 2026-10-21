@@ -2,7 +2,7 @@
 import { watch } from 'vue'
 import type { Ref } from 'vue'
 import { useRequestHeaders, useState, useRoute } from '#app'
-import type { ThemeConfig } from '../../shared/types'
+import type { ResolvedTheme } from '../../shared/types'
 import { DEFAULT_LOCALE } from '../../shared/constants'
 import { normalizeLocale, extractFirstLocale } from '../../shared/utils/normalize'
 import { extractLocales } from '../../shared/utils/load'
@@ -20,7 +20,7 @@ export interface UseThemeLocaleOptions {
 }
 
 export const useThemeLocale = (
-  theme: ThemeConfig,
+  theme: ResolvedTheme,
   localeCookie: Ref<string | undefined>,
   options: UseThemeLocaleOptions = {},
 ) => {

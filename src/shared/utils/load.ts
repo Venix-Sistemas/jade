@@ -1,4 +1,5 @@
-import type { ThemeConfig } from '../types'
+import themeData from '../theme.json' with { type: 'json' }
+import type { ResolvedTheme, ThemeConfig } from '../types'
 import { normalizeLocale } from './normalize'
 import { buildResolvedTheme } from './theme-config'
 
@@ -8,10 +9,13 @@ import { buildResolvedTheme } from './theme-config'
 // adds themes on top of this default theme). The parameter is reserved for
 // when this gets implemented.
 export function loadTheme(_path?: string): ThemeConfig {
-  return buildResolvedTheme()
+  // The full config, for build time: `theme.json`'s typography, scrollbar and
+  // cursor, which `customizeTheme` layers the module options over, plus the
+  // resolved colors.
+  return { ...(themeData as unknown as ThemeConfig), colors: buildResolvedTheme().colors }
 }
 
-export function extractLocales(theme: ThemeConfig): string[] {
+export function extractLocales(theme: ResolvedTheme): string[] {
   const locales = new Set<string>()
 
   const labelled = [...Object.values(theme.colors?.groups || {}), ...Object.values(theme.colors?.modes || {})]

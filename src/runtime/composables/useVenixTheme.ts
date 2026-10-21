@@ -128,8 +128,7 @@ function createThemeCore() {
     // worth paying that cost (right in the middle of the transition) when
     // the project actually has a custom cursor enabled; otherwise the
     // result would always be 'auto' and this whole block would be wasted work.
-    // (Read from the runtime config: `theme.customCursor` is `theme.json`'s
-    // own, without the module options.)
+    // (Read from the runtime config: the cursor options only exist at build time.)
     const body = document.body
     const hasCustomCursor = themeConfig?.enabled?.cursor !== false
     const pinCursor = () => {

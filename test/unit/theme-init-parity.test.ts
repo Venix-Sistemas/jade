@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { createInitThemeOptions, renderInitThemeScript } from '../../src/runtime/scripts/theme-init'
 import { resolveThemePreference } from '../../src/shared/utils/theme-resolve'
 import { buildResolvedTheme } from '../../src/shared/utils/theme-config'
-import type { ThemeConfig } from '../../src/shared/types'
+import type { ResolvedTheme } from '../../src/shared/types'
 
 // O script de pré-hidratação recebe a regra de resolução serializada
 // (`createThemeResolver.toString()`) e roda como IIFE no <head>. Este teste
@@ -11,7 +11,7 @@ import type { ThemeConfig } from '../../src/shared/types'
 // salvos × modo do sistema × data — o que também pega qualquer referência
 // externa que quebraria o script fora do bundle.
 
-const theme: ThemeConfig = buildResolvedTheme({
+const theme: ResolvedTheme = buildResolvedTheme({
   colorThemes: {
     // Faixa que atravessa a virada do ano (dez → jan)
     reveillon: {
