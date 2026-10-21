@@ -478,11 +478,13 @@ venixTheme: {
     defaultFonts: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", // default
     fontSize: '16px', // default
     customFonts: [
-      { name: 'MyFont', sources: { woff2: '/fonts/MyFont.woff2' }, weight: 'normal', style: 'normal' },
+      { name: 'MyFont', sources: { woff2: '/fonts/MyFont.woff2' }, weight: 'normal', style: 'normal', preload: true },
     ],
   },
 }
 ```
+
+`preload: true` adds a `<link rel="preload">` for the font's first source to the page `<head>`, so it downloads with the page instead of after the CSS, avoiding a flash of the fallback font. The module's own Iceberg font is preloaded.
 
 Custom fonts come first in `--font-family-base`, with `defaultFonts` as the fallback. The same font list also goes to Vuetify's `--v-font-body`/`--v-font-heading`, since Vuetify components don't inherit `font-family` from the page.
 

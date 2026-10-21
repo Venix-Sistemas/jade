@@ -1,6 +1,7 @@
 export interface FontConfig {
   name: string
-  preload: boolean
+  /** Adds a `<link rel="preload">` for its first source, so it loads with the page. Default: `false`. */
+  preload?: boolean
   sources: {
     woff2: string
   }

@@ -10,6 +10,7 @@ import { registerPublicAssets } from './setup/register-assets'
 import { registerThemeComponents } from './setup/register-components'
 import { registerThemePlugins } from './setup/register-plugins'
 import { registerThemeCSS } from './setup/register-css'
+import { registerFontPreloads } from './setup/register-fonts'
 import { registerThemeVuetify } from './setup/register-vuetify'
 import { registerThemeIcon } from './setup/register-icon'
 
@@ -94,6 +95,7 @@ export default defineNuxtModule<ModuleOptions>({
 
     // 5. Register CSS
     registerThemeCSS(nuxt, theme)
+    registerFontPreloads(nuxt, theme)
 
     // 6. Register plugins
     registerThemePlugins(nuxt, resolver, shouldApplyColors)
