@@ -164,7 +164,9 @@ function createThemeCore() {
     // result would always be 'auto' and this whole block would be wasted work.
     // (Read from the runtime config: the cursor options only exist at build time.)
     const body = document.body
+    // (And not on a touch-only device, which shows no cursor at all.)
     const hasCustomCursor = cursorAvailable && cursorEnabled.value
+      && window.matchMedia('(any-pointer: fine)').matches
     const pinCursor = () => {
       body.style.removeProperty('cursor')
       const cursor = getComputedStyle(body).cursor

@@ -46,6 +46,8 @@
         v-show="open"
         ref="menuRef"
         class="venix-theme-switcher__menu"
+        :class="{ 'venix-theme-switcher__menu--above': placeAbove }"
+        :style="menuStyle"
         role="menu"
         tabindex="-1"
         :aria-label="resolvedLabel"
@@ -562,7 +564,7 @@ const settingsOptions = computed(() => {
     })
   }
 
-  if (cursor.available) {
+  if (cursor.available && hasFinePointer.value) {
     options.push({
       key: 'cursor',
       icon: resolveThemeIcon(SWITCHER_ICONS.cursor, iconFormat),
@@ -595,6 +597,51 @@ const announcement = ref('')
 const rootRef = ref<HTMLElement | null>(null)
 const triggerRef = ref<HTMLButtonElement | null>(null)
 const menuRef = ref<HTMLElement | null>(null)
+const placeAbove = ref(false)
+const menuStyle = ref<Record<string, string>>({})
+
+// Space kept between the menu and the edges of the screen, and between the
+// menu and the button (the CSS's 0.5rem).
+const SCREEN_MARGIN = 8
+const MENU_GAP = 8
+
+// Fits the open menu on screen, which matters on phones: below the button,
+// or above when there's more room there (a button at the bottom of the
+// screen); no taller than that room, scrolling inside instead; and shifted
+// sideways if it would go past an edge (a button near the left).
+const updatePlacement = () => {
+  const trigger = triggerRef.value
+  const menu = menuRef.value
+  if (!trigger || !menu) return
+
+  const button = trigger.getBoundingClientRect()
+  const screenWidth = document.documentElement.clientWidth
+  const below = window.innerHeight - button.bottom - MENU_GAP - SCREEN_MARGIN
+  const above = button.top - MENU_GAP - SCREEN_MARGIN
+  placeAbove.value = below < menu.scrollHeight && above > below
+
+  // Layout sizes, not getBoundingClientRect(): those would include the
+  // opening animation's scale.
+  const width = Math.min(menu.offsetWidth, screenWidth - 2 * SCREEN_MARGIN)
+  const left = button.right - width
+  const shift = Math.min(Math.max(left, SCREEN_MARGIN), screenWidth - SCREEN_MARGIN - width) - left
+
+  menuStyle.value = {
+    maxHeight: `${Math.max(placeAbove.value ? above : below, 0)}px`,
+    right: `${-shift}px`,
+    // The opening animation grows from the button, wherever it ends up
+    transformOrigin: `${Math.round(width - shift - button.width / 2)}px ${placeAbove.value ? '100%' : '0'}`,
+  }
+}
+
+const handleResize = () => {
+  if (open.value) updatePlacement()
+}
+
+// The custom cursor means nothing on a touch-only device (phones): its
+// switch is only offered with a mouse or trackpad around. Read after
+// mounting, so the server render (which can't know) and hydration agree.
+const hasFinePointer = ref(true)
 
 // The button shows what's in effect: a seasonal or explicitly chosen theme's
 // own icon, or — on the base theme — the mode's (sun, moon, light/dark).
@@ -627,6 +674,7 @@ const toggleOpen = async () => {
 
   view.value = 'main'
   await nextTick()
+  updatePlacement()
   const items = getMenuItems()
   ;(items.find(el => el.getAttribute('aria-checked') === 'true') ?? items[0])?.focus()
 }
@@ -718,18 +766,21 @@ const handleMouseDown = (event: MouseEvent) => {
   if (isTransitionHitOnMenu(event)) event.preventDefault()
 }
 
-// By the path the click took, not `contains(target)`: the settings and back
-// buttons leave the DOM (Vue re-renders between listeners) before the click
-// reaches `document`, and a detached target would read as a click outside.
-const handleClickOutside = (event: MouseEvent) => {
-  if (isTransitionHitOnMenu(event)) {
-    const control = getMenuItems().find(el => isInside(el.getBoundingClientRect(), event))
-    control?.focus()
-    control?.click()
-    return
-  }
-
+// Closes on a press outside — at `pointerdown`, not `click`: iOS Safari
+// doesn't send `click` for a tap on something that isn't clickable (most of
+// the page), so a tap outside would never close it. By the path the event
+// took, not `contains(target)`, so a target that's left the DOM since still
+// counts as inside.
+const handlePointerDown = (event: PointerEvent) => {
+  if (isTransitionHitOnMenu(event)) return
   if (!rootRef.value || !event.composedPath().includes(rootRef.value)) close()
+}
+
+const handleClick = (event: MouseEvent) => {
+  if (!isTransitionHitOnMenu(event)) return
+  const control = getMenuItems().find(el => isInside(el.getBoundingClientRect(), event))
+  control?.focus()
+  control?.click()
 }
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -745,17 +796,22 @@ onMounted(() => {
     })
   })
 
+  hasFinePointer.value = window.matchMedia('(any-pointer: fine)').matches
   today.value = new Date()
 
+  document.addEventListener('pointerdown', handlePointerDown)
   document.addEventListener('mousedown', handleMouseDown, true)
-  document.addEventListener('click', handleClickOutside)
+  document.addEventListener('click', handleClick)
   document.addEventListener('keydown', handleKeydown)
+  window.addEventListener('resize', handleResize)
 })
 
 onUnmounted(() => {
+  document.removeEventListener('pointerdown', handlePointerDown)
   document.removeEventListener('mousedown', handleMouseDown, true)
-  document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('click', handleClick)
   document.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -763,6 +819,16 @@ onUnmounted(() => {
 .venix-theme-switcher {
   position: relative;
   display: inline-block;
+}
+
+/* Not left to the site: with `content-box`, the menu's padding and border
+   would go past the height it's given to fit the screen, and the full-width
+   options would overflow it. */
+.venix-theme-switcher,
+.venix-theme-switcher *,
+.venix-theme-switcher *::before,
+.venix-theme-switcher *::after {
+  box-sizing: border-box;
 }
 
 .venix-theme-switcher__sr-only {
@@ -797,9 +863,16 @@ onUnmounted(() => {
   opacity: 1;
 }
 
-.venix-theme-switcher__trigger:hover,
 .venix-theme-switcher__trigger:focus-visible {
   background: var(--color-background3, rgba(128, 128, 128, 0.15));
+}
+
+/* Hover only where there is one: on a touch screen, `:hover` sticks to the
+   last thing tapped and would look selected. Same for the menu below. */
+@media (hover: hover) {
+  .venix-theme-switcher__trigger:hover {
+    background: var(--color-background3, rgba(128, 128, 128, 0.15));
+  }
 }
 
 .venix-theme-switcher__trigger-label {
@@ -812,8 +885,16 @@ onUnmounted(() => {
   right: 0;
   z-index: 50;
   /* Fits the settings' one-line titles too, so the menu keeps its width when
-     switching views. */
-  min-width: 16rem;
+     switching views; never wider than the screen. */
+  min-width: min(16rem, calc(100vw - 1rem));
+  max-width: calc(100vw - 1rem);
+  /* `max-height` comes from updatePlacement(): what doesn't fit on a small
+     screen scrolls inside the menu, without scrolling the page behind it. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--venix-switcher-border) transparent;
   margin: 0;
   padding: 0.375rem;
   border-radius: 0.75rem;
@@ -839,10 +920,25 @@ onUnmounted(() => {
   --venix-switcher-knob-off: #9a9ca5;
   --venix-switcher-switch-on: #f5f5f7;
   --venix-switcher-shadow: rgba(0, 0, 0, 0.25);
+  --venix-switcher-icon-button: 1.75rem;
   background: var(--venix-switcher-bg);
   border: 1px solid var(--venix-switcher-border);
   box-shadow: 0 8px 24px var(--venix-switcher-shadow);
   transform-origin: top right;
+}
+
+/* Opening upward, when there's more room above the button. */
+.venix-theme-switcher__menu--above {
+  top: auto;
+  bottom: calc(100% + 0.5rem);
+}
+
+/* Touch: no gray flash on tap, and no wait for a possible double-tap zoom. */
+.venix-theme-switcher__trigger,
+.venix-theme-switcher__icon-button,
+.venix-theme-switcher__item {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 /* Focusable (tabindex="-1") only so a click on a heading, separator or the
@@ -928,7 +1024,7 @@ onUnmounted(() => {
    settings button on the right. */
 .venix-theme-switcher__header {
   display: grid;
-  grid-template-columns: 1.75rem 1fr 1.75rem;
+  grid-template-columns: var(--venix-switcher-icon-button) 1fr var(--venix-switcher-icon-button);
   align-items: center;
   gap: 0.25rem;
 }
@@ -946,8 +1042,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: var(--venix-switcher-icon-button);
+  height: var(--venix-switcher-icon-button);
   padding: 0;
   border: none;
   border-radius: 0.5rem;
@@ -958,10 +1054,16 @@ onUnmounted(() => {
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.venix-theme-switcher__icon-button:hover,
 .venix-theme-switcher__icon-button:focus-visible {
   background: var(--venix-switcher-hover);
   color: var(--venix-switcher-text-strong);
+}
+
+@media (hover: hover) {
+  .venix-theme-switcher__icon-button:hover {
+    background: var(--venix-switcher-hover);
+    color: var(--venix-switcher-text-strong);
+  }
 }
 
 .venix-theme-switcher__heading {
@@ -1025,10 +1127,28 @@ onUnmounted(() => {
   font-size: 1.125rem;
 }
 
-.venix-theme-switcher__item:hover,
 .venix-theme-switcher__item:focus-visible {
   background: var(--venix-switcher-hover);
   color: var(--venix-switcher-text-strong);
+}
+
+@media (hover: hover) {
+  .venix-theme-switcher__item:hover {
+    background: var(--venix-switcher-hover);
+    color: var(--venix-switcher-text-strong);
+  }
+}
+
+/* Touch screens: bigger targets for a finger (about 40px tall, from 36px),
+   and a header button you can actually hit (40px, from 28px). */
+@media (pointer: coarse) {
+  .venix-theme-switcher__menu {
+    --venix-switcher-icon-button: 2.5rem;
+  }
+
+  .venix-theme-switcher__item {
+    padding-block: 0.625rem;
+  }
 }
 
 .venix-theme-switcher__item--active {

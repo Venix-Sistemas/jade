@@ -140,7 +140,8 @@ Without any of them, the gear isn't shown. At the bottom, in small faint print, 
 - **Always legible:** the menu uses fixed neutral colors (dark surface, light text) instead of the active theme's, so every option stays readable whatever theme is applied. The button itself follows the active theme.
 - **Seasons at a glance:** each seasonal theme shows its dates in small faint print beside its name (e.g. `01/10 a 31/10` in Portuguese, `10/01 – 10/31` in English) — the running occurrence, or the next one once this year's is over, so themes relative to Easter show the right year's dates.
 - **Lively:** animated icons (e.g. `line-md`) replay on every switch, and the button fades in on mount. The button shows the mode's icon on the base theme, and the theme's own icon when a seasonal or other theme is in effect.
-- **Quick:** picking a mode or a theme keeps the menu open, so both can be set in one go; it closes on the button, a click outside or Esc.
+- **Quick:** picking a mode or a theme keeps the menu open, so both can be set in one go; it closes on the button, a click or tap outside, or Esc.
+- **Fits on phones:** the menu always stays on screen: it opens upward when there's more room above the button, shifts sideways near an edge, and scrolls inside itself when it's taller than the space left (refitted when the screen rotates). On touch screens its targets are bigger, hover highlights are off, and the custom cursor's switch is hidden, since there's no cursor to show.
 
 It ships with minimal CSS of its own. To restyle it, target `.venix-theme-switcher`, `.venix-theme-switcher__trigger`, `.venix-theme-switcher__menu`, `.venix-theme-switcher__subheading`, `.venix-theme-switcher__item` (`--mode` for the mode buttons, `--toggle` for the settings), `.venix-theme-switcher__icon-button` (the gear and back buttons) and `.venix-theme-switcher__switch` (see [`VenixThemeSwitcher.vue`](./src/runtime/components/VenixThemeSwitcher.vue)).
 
