@@ -1,6 +1,7 @@
 import type { CursorImage, CursorType, ThemeConfig } from '../types'
 import { isColorTheme } from '../utils/theme-resolve'
 import { generateCursorSVG } from './cursor-svg'
+import { CURSOR_ATTRIBUTE } from '../constants'
 
 const CURSOR_TYPES: CursorType[] = ['default', 'pointer', 'text']
 
@@ -69,6 +70,10 @@ export function generateCustomCursorCSS(theme: ThemeConfig): string {
     const vars = types.filter(type => values[type]).map(type => `  --cursor-${type}: ${values[type]};`)
     css += `:root[data-theme='${id}'] {\n${vars.join('\n')}\n}\n`
   }
+  // The visitor turned the custom cursor off (see `cursor.set()`): the
+  // system's cursors, as with `'none'`, whatever the theme. Same specificity
+  // as the theme blocks above, so it wins by coming after them.
+  css += `:root[${CURSOR_ATTRIBUTE}='off'] {\n${types.map(type => `  --cursor-${type}: ${type};`).join('\n')}\n}\n`
 
   if (types.includes('default')) {
     css += '\n/* 1. Default cursor on everything */\n'

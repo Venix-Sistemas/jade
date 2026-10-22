@@ -6,6 +6,8 @@ import {
   THEME_MODE_COOKIE,
   THEME_COOKIE_OPTIONS,
   DEFAULT_LOCALE_COOKIE_NAME,
+  SCROLLBAR_COOKIE,
+  CURSOR_COOKIE,
 } from '../../shared/constants'
 import { hasCookieConsent } from '../../shared/utils/consent'
 
@@ -26,6 +28,8 @@ export const useThemeCookies = (options: UseThemeCookiesOptions = {}) => {
   const resolvedCookie = useCookie<string>(THEME_RESOLVED_COOKIE, THEME_COOKIE_OPTIONS)
   const modeCookie = useCookie<string>(THEME_MODE_COOKIE, THEME_COOKIE_OPTIONS)
   const localeCookie = useCookie<string>(localeCookieName, THEME_COOKIE_OPTIONS)
+  const scrollbarCookie = useCookie<string>(SCROLLBAR_COOKIE, THEME_COOKIE_OPTIONS)
+  const cursorCookie = useCookie<string>(CURSOR_COOKIE, THEME_COOKIE_OPTIONS)
 
   const removeCookie = (name: string) => {
     if (typeof document !== 'undefined') {
@@ -58,10 +62,19 @@ export const useThemeCookies = (options: UseThemeCookiesOptions = {}) => {
     resolvedCookie.value = resolved
   }
 
+  // The custom scrollbar/cursor switches, under the same consent rule.
+  const persistTogglesIfConsented = (scrollbar: boolean, cursor: boolean) => {
+    if (!canPersist()) return
+    scrollbarCookie.value = scrollbar ? 'on' : 'off'
+    cursorCookie.value = cursor ? 'on' : 'off'
+  }
+
   const disablePersistence = () => {
     removeCookie(THEME_PREFERENCE_COOKIE)
     removeCookie(THEME_RESOLVED_COOKIE)
     removeCookie(THEME_MODE_COOKIE)
+    removeCookie(SCROLLBAR_COOKIE)
+    removeCookie(CURSOR_COOKIE)
   }
 
   return {
@@ -69,8 +82,11 @@ export const useThemeCookies = (options: UseThemeCookiesOptions = {}) => {
     resolvedCookie,
     modeCookie,
     localeCookie,
+    scrollbarCookie,
+    cursorCookie,
     canPersist,
     persistIfConsented,
+    persistTogglesIfConsented,
     disablePersistence,
   }
 }

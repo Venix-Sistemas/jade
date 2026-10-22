@@ -28,7 +28,7 @@
 * 🖱️ **Cursor customization**
 * 📜 **Scrollbar customization**
 * 🎨 **Color customization**, with dark and light themes included
-* 🌗 **Theme and mode picked separately**: any theme (Venix Sistemas, Carnival, Christmas…) in light or dark, each following the system or fixed
+* 🌗 **Theme and mode picked separately**: any theme (Venix, Carnival, Christmas…) in light or dark, each following the system or fixed
 * 🖥️ **System preference detection**, including seasonal themes by date
 * 🎃 **Seasonal themes**: Carnival, Halloween, Christmas and more
 * 💾 **Cookie-consent-aware persistence**: nothing is written until the user opts in
@@ -73,7 +73,7 @@ Every module except Vuetify is on by default with built-in values, so you only c
 
 The auto-imported `useVenixTheme()` composable gives access to the theme. It isn't called `useTheme` to avoid colliding with UI libraries (like Vuetify) that auto-import a composable with that name.
 
-The **theme** (Venix Sistemas, Carnival, Christmas…) and the **mode** (light or dark) are chosen independently; the applied colors are the theme's variant for that mode. Either can be `'system'`: an automatic theme follows the calendar ([seasonal themes](#seasonal-themes)), an automatic mode follows the OS.
+The **theme** (Venix, Carnival, Christmas…) and the **mode** (light or dark) are chosen independently; the applied colors are the theme's variant for that mode. Either can be `'system'`: an automatic theme follows the calendar ([seasonal themes](#seasonal-themes)), an automatic mode follows the OS.
 
 ```vue
 <template>
@@ -91,15 +91,16 @@ It returns:
 
 - `theme` — the theme choice:
   - `preference`: the chosen theme (`'system'`, `'venix'`, `'carnaval'`…)
-  - `value`: the variant actually applied, as in `data-theme` (e.g. `'natal-light'`, or `'dark'` for Venix Sistemas in dark mode)
+  - `value`: the variant actually applied, as in `data-theme` (e.g. `'natal-light'`, or `'dark'` for Venix in dark mode)
   - `data`: the chosen theme's `{ value, name, icon }`
   - `set(name)`: picks a theme, keeping the mode
-  - `toggle(name?)`: kept for compatibility — without a name switches the mode; `'dark'`/`'light'` select Venix Sistemas in that mode; `'system'` makes both theme and mode automatic
+  - `toggle(name?)`: kept for compatibility — without a name switches the mode; `'dark'`/`'light'` select Venix in that mode; `'system'` makes both theme and mode automatic
   - `isSeasonalActive`, `activeSeasonalTheme`: whether a [seasonal theme](#seasonal-themes) is currently in effect, and which one
   - `shouldApplyColors`, `colors`: whether the module applies colors, and the resolved color config
 - `themes` — every selectable theme as `{ value, name, icon, custom }`, ready to render a picker (see [Theme icons](#theme-icons)); `custom` is `true` for themes your project added in `color.themes`.
 - `mode` — the mode choice: `preference` (`'system'`, `'light'`, `'dark'`), `value` (the mode applied, `'light'` or `'dark'`), `data`, `set(mode)` and `toggle()`.
 - `modes` — the three mode options with names and icons, ready to render.
+- `scrollbar` / `cursor` — the visitor's switch for the custom [scrollbar](#scrollbar) and [cursor](#cursor): `available` (the project has it on), `enabled` (a `Ref<boolean>`, `true` unless the visitor turned it off) and `set(enabled)`.
 - `locale` — `current`, `set()` and `translate()` (see [Translation](#translation)).
 - `persistence` — cookie consent controls (see [Saving the theme](#saving-the-theme-cookie-consent)).
 
@@ -107,7 +108,7 @@ The state is shared app-wide (via Nuxt's `useState`): every component calling `u
 
 ### 3. Ready-made component
 
-`<VenixThemeSwitcher>` is an auto-imported dropdown with a **Mode** section (Automatic, Dark, Light) and a **Theme** section (Automatic, Venix Sistemas and the seasonal themes), followed, below a divider, by the themes your project adds itself. It has no dependency on Vuetify or any other UI kit:
+`<VenixThemeSwitcher>` is an auto-imported dropdown with a **Mode** section (Automatic, Dark, Light) and a **Theme** section (Automatic, Venix and the seasonal themes), followed, below a divider, by the themes your project adds itself. It has no dependency on Vuetify or any other UI kit:
 
 <p align="center">
   <picture>
@@ -126,13 +127,21 @@ The state is shared app-wide (via Nuxt's `useState`): every component calling `u
 | ----------- | --------- | ----------------------- | --------------------------------------------------- |
 | `label`     | `string`  | translated, per locale  | Accessible label for the button and the menu        |
 | `showLabel` | `boolean` | `false`                 | Show the theme and mode names next to the icon      |
+| `hideConsent` | `boolean` | `false`               | Leave "Save changes" out of the settings, when your own cookie banner already asks |
+
+The gear next to the title opens the **settings**, a few switches for the visitor:
+
+- **Save changes** — whether their choices are remembered on the next visit: it grants or revokes [cookie consent](#saving-the-theme-cookie-consent) (`persistence.grant()`/`revoke()`). Shown only while `color.requireConsent` is on, and not with `hideConsent`.
+- **Custom scrollbar** and **Custom cursor** — turn the module's [scrollbar](#scrollbar) or [cursor](#cursor) off and back on (`scrollbar.set()`/`cursor.set()`). Each shown only when the project has that module on.
+
+Without any of them, the gear isn't shown.
 
 - **Accessible:** arrow keys, Home/End and Esc navigate the menu, focus returns to the button on close, and each change is announced to screen readers.
 - **Always legible:** the menu uses fixed neutral colors (dark surface, light text) instead of the active theme's, so every option stays readable whatever theme is applied. The button itself follows the active theme.
 - **Lively:** animated icons (e.g. `line-md`) replay on every switch, and the button fades in on mount. The button shows the mode's icon on the base theme, and the theme's own icon when a seasonal or other theme is in effect.
-- **Quick:** picking a mode keeps the menu open, so mode and theme can be set in one go; picking a theme closes it.
+- **Quick:** picking a mode or a theme keeps the menu open, so both can be set in one go; it closes on the button, a click outside or Esc.
 
-It ships with minimal CSS of its own. To restyle it, target `.venix-theme-switcher`, `.venix-theme-switcher__trigger`, `.venix-theme-switcher__menu`, `.venix-theme-switcher__subheading` and `.venix-theme-switcher__item` (`--mode` for the mode buttons) (see [`VenixThemeSwitcher.vue`](./src/runtime/components/VenixThemeSwitcher.vue)).
+It ships with minimal CSS of its own. To restyle it, target `.venix-theme-switcher`, `.venix-theme-switcher__trigger`, `.venix-theme-switcher__menu`, `.venix-theme-switcher__subheading`, `.venix-theme-switcher__item` (`--mode` for the mode buttons, `--toggle` for the settings), `.venix-theme-switcher__icon-button` (the gear and back buttons) and `.venix-theme-switcher__switch` (see [`VenixThemeSwitcher.vue`](./src/runtime/components/VenixThemeSwitcher.vue)).
 
 ## Modules
 
@@ -153,7 +162,7 @@ Jade is a set of independent modules, each configured under its own key in `veni
 Every theme has a light and a dark palette, exposed as CSS variables (`--color-primary`, `--color-background2`…):
 
 <p align="center">
-  <img src="./docs/images/readme/palettes.png" alt="Color palettes: Venix Sistemas dark and light, Halloween dark, Christmas light" width="800">
+  <img src="./docs/images/readme/palettes.png" alt="Color palettes: Venix dark and light, Halloween dark, Christmas light" width="800">
 </p>
 
 | Option           | Type                        | Default  | Description                                                   |
@@ -167,7 +176,7 @@ Every theme has a light and a dark palette, exposed as CSS variables (`--color-p
 
 ### Themes
 
-Each theme has a `light` and a `dark` variant, plus a name (`translations`) and an `icon` shared by both. The module ships with **Venix Sistemas** (`venix`) and the [seasonal themes](#seasonal-themes), all in both modes. `color.themes` extends that set:
+Each theme has a `light` and a `dark` variant, plus a name (`translations`) and an `icon` shared by both. The module ships with **Venix** (`venix`) and the [seasonal themes](#seasonal-themes), all in both modes. `color.themes` extends that set:
 
 - An **existing** name overrides only the properties you set; the rest of the theme (the other variant, other colors, translations, icon) stays as shipped.
 - A **new** name adds a theme that works like a built-in one: its own CSS variables, an entry in `useVenixTheme().themes` (so it appears in `<VenixThemeSwitcher>`), and UnoCSS/Vuetify support when enabled. A theme with only one variant uses it in both modes.
@@ -193,7 +202,7 @@ color: {
 
 Available colors: `primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`, `background`, `background2`, `background3`. Each becomes a `--color-<name>` CSS variable, plus `--color-inverse` (white on dark variants, black on light ones).
 
-Each variant is applied as `<html data-theme="<id>">`, and the id is also its Vuetify theme name. It defaults to `<theme>-<mode>` (`summerSale-light`); set `id` on a variant to choose it. The built-in themes keep the ids they had before light/dark became separate: `dark` and `light` for Venix Sistemas, `carnaval`, `natal` and `halloween` for the dark seasonal variants (their light ones are `carnaval-light` and so on). Easter, added later, uses the default `pascoa-light` and `pascoa-dark`.
+Each variant is applied as `<html data-theme="<id>">`, and the id is also its Vuetify theme name. It defaults to `<theme>-<mode>` (`summerSale-light`); set `id` on a variant to choose it. The built-in themes keep the ids they had before light/dark became separate: `dark` and `light` for Venix, `carnaval`, `natal` and `halloween` for the dark seasonal variants (their light ones are `carnaval-light` and so on). Easter, added later, uses the default `pascoa-light` and `pascoa-dark`.
 
 #### Flat format (deprecated)
 
@@ -243,6 +252,7 @@ Three cookies remember the user's choice between visits, for a year:
 | `venix-theme-preference` | The chosen theme (`'system'`, `'venix'`, a custom theme…)                                               |
 | `venix-theme-mode`       | The chosen mode (`'system'`, `'light'`, `'dark'`)                                                        |
 | `venix-theme-resolved`   | The variant last applied (e.g. `'natal-light'`) — lets SSR guess light or dark when the mode is `'system'` |
+| `venix-scrollbar`, `venix-cursor` | `'off'` when the visitor turned the custom scrollbar or cursor off, `'on'` otherwise |
 
 The theme itself is always recomputed from the first two (with `'system'`, by today's date and the OS color scheme), so a saved seasonal theme never outlives its season.
 
@@ -264,6 +274,7 @@ const { persistence } = useVenixTheme()
 </template>
 ```
 
+- `persistence.required` — `color.requireConsent`: whether anything waits for consent at all.
 - `persistence.hasConsent` — reactive `Ref<boolean>`, shared app-wide.
 - `persistence.grant()` — records consent and saves the current theme to the cookies right away.
 - `persistence.revoke()` — records the refusal and deletes the theme cookies right away.
@@ -508,9 +519,11 @@ venixTheme: {
 }
 ```
 
+Visitors can turn it off in the [switcher's settings](#3-ready-made-component), or you can with `scrollbar.set(false)` from `useVenixTheme()`: the module then sets `data-venix-scrollbar="off"` on `<html>` and the browser's own scrollbar comes back.
+
 ## Cursor
 
-Replaces the default, pointer and text cursors. On by default; set `cursor: false` to keep the system's cursors:
+Replaces the default, pointer and text cursors. On by default; set `cursor: false` to keep the system's cursors. Visitors can also turn it off for themselves in the [switcher's settings](#3-ready-made-component) (or you with `cursor.set(false)`), which sets `data-venix-cursor="off"` on `<html>`:
 
 <p align="center">
   <img src="./docs/images/readme/cursor.png" alt="The default, pointer and text cursors" width="800">
@@ -518,10 +531,10 @@ Replaces the default, pointer and text cursors. On by default; set `cursor: fals
 
 - **`defaultCursors`**: the default cursors, the module's fire images unless you set your own. They show with `themed: false`, in browsers that can't load the drawn cursors and for themes without a `primary`.
 - **`themed`** (on by default): draws each cursor as an SVG in the active color theme's `primary`, so it changes along with the theme. Custom themes get one too, with nothing to draw.
-- **`themeCursors`**: the cursor of a single color theme, by theme name (both modes) or variant id (just that one, which wins over the theme name). It is merged with the module's own entry, `venix: 'base'`, which keeps the Venix Sistemas theme on the default cursors.
+- **`themeCursors`**: the cursor of a single color theme, by theme name (both modes) or variant id (just that one, which wins over the theme name). It is merged with the module's own entry, `venix: 'base'`, which keeps the Venix theme on the default cursors.
 
 <p align="center">
-  <img src="./docs/images/readme/cursor-themes.png" alt="The cursors of each built-in theme, dark and light: Venix Sistemas on the fire images ('base'), Carnival, Easter, Christmas and Halloween drawn in their own color ('themed')" width="800">
+  <img src="./docs/images/readme/cursor-themes.png" alt="The cursors of each built-in theme, dark and light: Venix on the fire images ('base'), Carnival, Easter, Christmas and Halloween drawn in their own color ('themed')" width="800">
 </p>
 
 | `themeCursors` value | Cursor shown |

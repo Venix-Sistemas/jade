@@ -10,6 +10,7 @@ import type { ModuleOptions as NuxtIconOptions } from '@nuxt/icon'
 import { getIcons } from '@iconify/utils'
 import type { IconOptions, ColorsConfig } from '../shared/types'
 import { extractIconRefs } from '../shared/utils'
+import { SWITCHER_ICONS } from '../shared/constants'
 
 // Extracted from @nuxt/icon's public type (there's no subpath exported just
 // for `ServerBundleOptions`) to type the collections without depending on
@@ -80,7 +81,11 @@ export async function registerThemeIcon(nuxt: Nuxt, resolver: Resolver, options:
   const explicit = new Set(options.collections)
   const collections: IconCollectionEntry[] = options.collections.map(name => loadFullCollection(name, projectRequire))
 
-  const labelled = [...Object.values(colors.groups ?? {}), ...Object.values(colors.modes ?? {})]
+  const labelled = [
+    ...Object.values(colors.groups ?? {}),
+    ...Object.values(colors.modes ?? {}),
+    ...Object.values(SWITCHER_ICONS).map(icon => ({ icon })),
+  ]
   const refs = extractIconRefs(labelled, options.aliases)
   for (const [name, iconNames] of refs) {
     if (explicit.has(name)) continue // already bundled whole above

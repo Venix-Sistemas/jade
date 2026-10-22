@@ -1,4 +1,12 @@
 import type { ThemeConfig } from '../types'
+import { SCROLLBAR_ATTRIBUTE } from '../constants'
+
+// Every rule only applies while `<html>` doesn't have the attribute set to
+// 'off' (the visitor's choice, see `scrollbar.set()`), which brings back the
+// browser's own scrollbar. Both forms: the page's own scrollbar is `html`'s,
+// the others belong to its descendants.
+const ON = `:root:not([${SCROLLBAR_ATTRIBUTE}='off'])`
+const on = (pseudo: string): string => `${ON}${pseudo},\n${ON} ${pseudo}`
 
 export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
   const scrollbar = theme.customScrollbar
@@ -24,23 +32,23 @@ export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
   let css = '\n/* ============================================ */\n'
   css += '/* Custom Scrollbar                             */\n'
   css += '/* ============================================ */\n'
-  css += `\n::-webkit-scrollbar {
+  css += `\n${on('::-webkit-scrollbar')} {
   width: ${width};
   height: ${width};
 }\n`
-  css += `\n::-webkit-scrollbar-track {
+  css += `\n${on('::-webkit-scrollbar-track')} {
   background: ${track};
 }\n`
-  css += `\n::-webkit-scrollbar-thumb {
+  css += `\n${on('::-webkit-scrollbar-thumb')} {
   background: ${thumb};
   border-radius: ${borderRadius};
   border: ${borderWidth} solid ${border};
 }\n`
-  css += `\n::-webkit-scrollbar-thumb:hover {
+  css += `\n${on('::-webkit-scrollbar-thumb:hover')} {
   background: ${thumbHover};
 }\n`
   // Where a vertical and a horizontal scrollbar meet; white otherwise
-  css += `\n::-webkit-scrollbar-corner {
+  css += `\n${on('::-webkit-scrollbar-corner')} {
   background: ${track};
 }\n`
   // The standard properties only where `::-webkit-scrollbar` doesn't exist
@@ -48,7 +56,7 @@ export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
   // styles off, and `scrollbar-color` is inherited, so the whole page would
   // lose the border, radius and hover color above.
   css += `\n@supports not selector(::-webkit-scrollbar) {
-  html {
+  ${ON} {
     scrollbar-width: ${width === 'auto' ? 'auto' : 'thin'};
     scrollbar-color: ${thumb} ${track};
   }

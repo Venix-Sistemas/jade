@@ -40,8 +40,19 @@ describe('processTheme', () => {
 
   it('deve aplicar scrollbar-color/scrollbar-width só sem ::-webkit-scrollbar, que o Chromium desliga quando eles existem', () => {
     const css = processTheme(theme)
-    expect(css).toMatch(/@supports not selector\(::-webkit-scrollbar\) \{\n {2}html \{\n {4}scrollbar-width: [^;]+;\n {4}scrollbar-color: [^;]+;\n {2}\}\n\}/)
+    expect(css).toMatch(/@supports not selector\(::-webkit-scrollbar\) \{\n {2}:root:not\(\[data-venix-scrollbar='off'\]\) \{\n {4}scrollbar-width: [^;]+;\n {4}scrollbar-color: [^;]+;\n {2}\}\n\}/)
     expect(css.replace(/@supports not selector\(::-webkit-scrollbar\) \{[\s\S]*?\n\}\n/, '')).not.toContain('scrollbar-color')
+  })
+
+  it('deve aplicar a scrollbar só enquanto o visitante não a desligou, na da página e nas dos elementos', () => {
+    const css = processTheme(theme)
+    const selectors = [...css.matchAll(/^(?!@)([^\n{]*::-webkit-scrollbar[^{]*)\{/gm)].map(match => match[1]!)
+    expect(selectors).toHaveLength(5)
+    for (const selector of selectors) {
+      const [page, elements] = selector.trim().split(',\n')
+      expect(page).toMatch(/^:root:not\(\[data-venix-scrollbar='off'\]\)::-webkit-scrollbar/)
+      expect(elements).toMatch(/^:root:not\(\[data-venix-scrollbar='off'\]\) ::-webkit-scrollbar/)
+    }
   })
 
   it('deve pintar o canto entre as duas scrollbars com a cor da trilha', () => {
@@ -115,7 +126,7 @@ describe('generateCustomCursorCSS', () => {
     expect(css.indexOf('/* 4.')).toBeGreaterThan(css.indexOf('/* 3.'))
   })
 
-  it('deve manter as imagens no tema Venix Sistemas, nas duas variantes', () => {
+  it('deve manter as imagens no tema Venix, nas duas variantes', () => {
     const css = generateCustomCursorCSS(theme)
     expect(block(css, 'dark')).toBeUndefined()
     expect(block(css, 'light')).toBeUndefined()
@@ -137,6 +148,14 @@ describe('generateCustomCursorCSS', () => {
   it('deve usar os cursores do sistema operacional com \'none\'', () => {
     const css = withCursor({ themeCursors: { natal: 'none' } })
     expect(block(css, 'natal')).toBe('\n  --cursor-default: default;\n  --cursor-pointer: pointer;\n  --cursor-text: text;\n')
+  })
+
+  it('deve voltar aos cursores do sistema quando o visitante desliga o cursor, depois dos blocos de tema', () => {
+    const css = generateCustomCursorCSS(theme)
+    const off = css.match(/:root\[data-venix-cursor='off'\] \{([^}]*)\}/)?.[1]
+    expect(off).toBe('\n  --cursor-default: default;\n  --cursor-pointer: pointer;\n  --cursor-text: text;\n')
+    // Mesma especificidade de `:root[data-theme='…']`: vence por vir depois
+    expect(css.indexOf('data-venix-cursor')).toBeGreaterThan(css.lastIndexOf(':root[data-theme='))
   })
 
   it('deve priorizar o id da variante sobre o nome do tema', () => {
@@ -176,7 +195,7 @@ describe('customizeTheme (cursor)', () => {
     expect(theme.customCursor.themeCursors).toEqual({ ...loadTheme().customCursor.themeCursors, halloween: 'none' })
   })
 
-  it('deve deixar o projeto trocar o cursor do tema Venix Sistemas', () => {
+  it('deve deixar o projeto trocar o cursor do tema Venix', () => {
     const theme = customizeTheme(loadTheme(), { cursor: { themeCursors: { venix: 'themed' } } })
     expect(theme.customCursor.themeCursors?.venix).toBe('themed')
   })

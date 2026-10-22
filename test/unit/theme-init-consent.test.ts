@@ -49,3 +49,31 @@ describe('initTheme × color.requireConsent', () => {
     for (const write of lastWrites) expect(write).toContain(`max-age=${THEME_COOKIE_MAX_AGE}`)
   })
 })
+
+describe('initTheme × scrollbar/cursor desligados pelo visitante', () => {
+  // Os atributos que o script põe no <html> a partir dos cookies
+  function runWithCookies(cookie: string): Record<string, string> {
+    const attributes: Record<string, string> = {}
+    vi.stubGlobal('document', {
+      cookie,
+      documentElement: { classList: { add: () => {} }, setAttribute: (name: string, value: string) => { attributes[name] = value } },
+    })
+    vi.stubGlobal('window', { matchMedia: () => ({ matches: true }) })
+    vi.stubGlobal('localStorage', { getItem: () => null })
+
+    new Function(renderInitThemeScript(theme, createInitThemeOptions(true)))()
+    return attributes
+  }
+
+  it('desliga antes da primeira pintura o que o cookie marca como off', () => {
+    const attributes = runWithCookies('venix-scrollbar=off; venix-cursor=off')
+    expect(attributes['data-venix-scrollbar']).toBe('off')
+    expect(attributes['data-venix-cursor']).toBe('off')
+  })
+
+  it('mantém ligados sem cookie ou com on', () => {
+    const attributes = runWithCookies('venix-scrollbar=on')
+    expect(attributes).not.toHaveProperty('data-venix-scrollbar')
+    expect(attributes).not.toHaveProperty('data-venix-cursor')
+  })
+})

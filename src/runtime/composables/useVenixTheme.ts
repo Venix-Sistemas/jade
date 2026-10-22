@@ -1,7 +1,7 @@
 // runtime/composables/useVenixTheme.ts
 import { computed, effectScope, watch } from 'vue'
 import { onNuxtReady, useNuxtApp, useRuntimeConfig, useState } from '#app'
-import { DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT, SYSTEM_THEME } from '../../shared/constants'
+import { DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT, SYSTEM_THEME, SCROLLBAR_ATTRIBUTE, CURSOR_ATTRIBUTE } from '../../shared/constants'
 import { useThemeCookies } from './useThemeCookies'
 import { useThemeLocale } from './useThemeLocale'
 import { useThemeSeasonal } from './useThemeSeasonal'
@@ -69,6 +69,29 @@ function createThemeCore() {
 
   const currentSelection = (): ThemeSelection => ({ theme: preference.value, mode: modePreference.value })
 
+  // The custom scrollbar and cursor: on unless the visitor turned them off,
+  // and only switchable when the project has them on (`scrollbar`/`cursor`
+  // modules). Shared via useState like `preference`.
+  const requireConsent = themeConfig?.requireConsent !== false
+  const scrollbarAvailable = themeConfig?.enabled?.scrollbar !== false
+  const cursorAvailable = themeConfig?.enabled?.cursor !== false
+  const scrollbarEnabled = useState<boolean>('venix-scrollbar', () => cookies.scrollbarCookie.value !== 'off')
+  const cursorEnabled = useState<boolean>('venix-cursor', () => cookies.cursorCookie.value !== 'off')
+
+  // Turned off = the attribute set to 'off' on `<html>`, which the generated
+  // CSS checks (see shared/css/scrollbar.ts and cursor.ts).
+  const applyToggles = () => {
+    if (typeof document === 'undefined') return
+    const html = document.documentElement
+    const flags: Array<[string, boolean]> = [[SCROLLBAR_ATTRIBUTE, scrollbarEnabled.value], [CURSOR_ATTRIBUTE, cursorEnabled.value]]
+    for (const [attribute, enabled] of flags) {
+      if (enabled) html.removeAttribute(attribute)
+      else html.setAttribute(attribute, 'off')
+    }
+  }
+
+  const persistToggles = () => cookies.persistTogglesIfConsented(scrollbarEnabled.value, cursorEnabled.value)
+
   // Bumped whenever something theme resolution depends on changes outside
   // Vue's reactivity (OS color scheme, the date rolling over to a new day),
   // so the computeds below don't stay stuck on a stale result. Shared, since
@@ -130,7 +153,7 @@ function createThemeCore() {
     // result would always be 'auto' and this whole block would be wasted work.
     // (Read from the runtime config: the cursor options only exist at build time.)
     const body = document.body
-    const hasCustomCursor = themeConfig?.enabled?.cursor !== false
+    const hasCustomCursor = cursorAvailable && cursorEnabled.value
     const pinCursor = () => {
       body.style.removeProperty('cursor')
       const cursor = getComputedStyle(body).cursor
@@ -166,6 +189,7 @@ function createThemeCore() {
 
     if (cookies.canPersist()) {
       cookies.persistIfConsented(preference.value, modePreference.value, getResolvedTheme())
+      persistToggles()
     }
     else {
       cookies.disablePersistence()
@@ -262,7 +286,14 @@ function createThemeCore() {
     theme,
     shouldApplyColors,
     cookies,
+    requireConsent,
     hasConsent,
+    scrollbarAvailable,
+    cursorAvailable,
+    scrollbarEnabled,
+    cursorEnabled,
+    applyToggles,
+    persistToggles,
     locale,
     colors,
     preference,
@@ -298,7 +329,7 @@ type ThemeCore = ReturnType<typeof createThemeCore>
  * aborting the first) and doubled every listener and cookie write.
  */
 function installThemeEffects(core: ThemeCore) {
-  const { themeConfig, shouldApplyColors, cookies, hasConsent, locale, preference, modePreference, environmentVersion } = core
+  const { themeConfig, shouldApplyColors, cookies, hasConsent, locale, preference, modePreference, environmentVersion, scrollbarEnabled, cursorEnabled } = core
 
   // `lang` needs to reflect the resolved locale (WCAG 3.1.1) — but only when
   // NOTHING ELSE already owns that attribute. Off by default because, if the
@@ -339,6 +370,18 @@ function installThemeEffects(core: ThemeCore) {
       cookies.persistIfConsented(selection.theme, selection.mode, core.getResolvedTheme(selection))
     })
   }
+
+  // The custom scrollbar/cursor switches: the cookies win over a stale
+  // payload, as with the theme above. Normally already applied by the
+  // pre-hydration script, which doesn't run when the colors are off.
+  scrollbarEnabled.value = cookies.scrollbarCookie.value !== 'off'
+  cursorEnabled.value = cookies.cursorCookie.value !== 'off'
+  core.applyToggles()
+
+  watch([scrollbarEnabled, cursorEnabled], () => {
+    core.applyToggles()
+    core.persistToggles()
+  })
 
   // After hydration: `localStorage` and the listeners only exist on the
   // client, and correcting `hasConsent` before hydration would mismatch the
@@ -407,16 +450,33 @@ export const useVenixTheme = () => {
       toggle: core.toggleMode,
     },
     modes: core.colors.modes,
+    /** The custom scrollbar: `available` when the project has it on, `enabled` unless the visitor turned it off. */
+    scrollbar: {
+      available: core.scrollbarAvailable,
+      enabled: core.scrollbarEnabled,
+      set: (enabled: boolean) => { core.scrollbarEnabled.value = enabled },
+    },
+    /** The custom cursor, same as `scrollbar`. */
+    cursor: {
+      available: core.cursorAvailable,
+      enabled: core.cursorEnabled,
+      set: (enabled: boolean) => { core.cursorEnabled.value = enabled },
+    },
     locale: {
       current: core.locale.currentLocale,
       set: core.locale.setLocale,
       translate: core.locale.translate,
     },
     persistence: {
+      /** `color.requireConsent`: whether changes are only saved after consent. */
+      required: core.requireConsent,
       hasConsent: core.hasConsent,
       grant: () => core.setConsent(true),
       revoke: () => core.setConsent(false),
-      enable: () => core.cookies.persistIfConsented(core.preference.value, core.modePreference.value, core.getResolvedTheme()),
+      enable: () => {
+        core.cookies.persistIfConsented(core.preference.value, core.modePreference.value, core.getResolvedTheme())
+        core.persistToggles()
+      },
       disable: core.cookies.disablePersistence,
     },
   }

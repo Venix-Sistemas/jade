@@ -9,6 +9,10 @@ import {
   THEME_RESOLVED_COOKIE,
   THEME_COOKIE_MAX_AGE,
   COOKIE_CONSENT_STORAGE_KEY,
+  SCROLLBAR_COOKIE,
+  CURSOR_COOKIE,
+  SCROLLBAR_ATTRIBUTE,
+  CURSOR_ATTRIBUTE,
 } from '../../shared/constants'
 
 declare global {
@@ -20,10 +24,12 @@ declare global {
 export interface InitThemeOptions {
   /** See `color.requireConsent` — when `false`, the theme cookies are always written. */
   requireConsent: boolean
-  cookies: { preference: string, mode: string, resolved: string }
+  cookies: { preference: string, mode: string, resolved: string, scrollbar: string, cursor: string }
   /** In seconds. */
   cookieMaxAge: number
   consentStorageKey: string
+  /** The `<html>` attributes that switch the custom scrollbar and cursor off. */
+  attributes: { scrollbar: string, cursor: string }
 }
 
 /**
@@ -49,7 +55,7 @@ export default function initTheme(
   options: InitThemeOptions,
 ): void {
   const resolver = createThemeResolver()
-  const { requireConsent, cookies, cookieMaxAge, consentStorageKey } = options
+  const { requireConsent, cookies, cookieMaxAge, consentStorageKey, attributes } = options
 
   function hasCookieConsent(): boolean {
     if (typeof localStorage === 'undefined') return false
@@ -104,6 +110,11 @@ export default function initTheme(
   html.setAttribute('data-theme', theme)
   window.__VENIX_INITIAL_THEME__ = theme
 
+  // The custom scrollbar/cursor the visitor turned off, before the first
+  // paint too, so they don't show for a moment and then disappear.
+  if (getCookie(cookies.scrollbar) === 'off') html.setAttribute(attributes.scrollbar, 'off')
+  if (getCookie(cookies.cursor) === 'off') html.setAttribute(attributes.cursor, 'off')
+
   if (resolvedCookie !== theme) {
     setCookieIfConsented(cookies.resolved, theme)
   }
@@ -120,9 +131,16 @@ export default function initTheme(
 export function createInitThemeOptions(requireConsent: boolean): InitThemeOptions {
   return {
     requireConsent,
-    cookies: { preference: THEME_PREFERENCE_COOKIE, mode: THEME_MODE_COOKIE, resolved: THEME_RESOLVED_COOKIE },
+    cookies: {
+      preference: THEME_PREFERENCE_COOKIE,
+      mode: THEME_MODE_COOKIE,
+      resolved: THEME_RESOLVED_COOKIE,
+      scrollbar: SCROLLBAR_COOKIE,
+      cursor: CURSOR_COOKIE,
+    },
     cookieMaxAge: THEME_COOKIE_MAX_AGE,
     consentStorageKey: COOKIE_CONSENT_STORAGE_KEY,
+    attributes: { scrollbar: SCROLLBAR_ATTRIBUTE, cursor: CURSOR_ATTRIBUTE },
   }
 }
 
