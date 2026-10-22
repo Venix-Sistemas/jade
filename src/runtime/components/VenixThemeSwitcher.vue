@@ -428,6 +428,18 @@ const CURSOR_TITLE_TRANSLATIONS: Record<string, string> = {
   'zh-CN': '自定义光标',
 }
 
+const FONT_TITLE_TRANSLATIONS: Record<string, string> = {
+  'pt-BR': 'Fonte personalizada',
+  'en-US': 'Custom font',
+  'es-ES': 'Fuente personalizada',
+  'fr-FR': 'Police stylisée',
+  'de-DE': 'Eigene Schriftart',
+  'it-IT': 'Font personalizzato',
+  'ja-JP': 'カスタムフォント',
+  'ko-KR': '사용자 지정 글꼴',
+  'zh-CN': '自定义字体',
+}
+
 const props = defineProps<{
   /** Accessible label for the button and the menu. Without a value, uses the component's own translation based on the current locale. */
   label?: string
@@ -437,7 +449,7 @@ const props = defineProps<{
   hideConsent?: boolean
 }>()
 
-const { theme, themes, mode, modes, locale, persistence, scrollbar, cursor } = useVenixTheme()
+const { theme, themes, mode, modes, locale, persistence, scrollbar, cursor, font } = useVenixTheme()
 
 const resolvedLabel = computed(() => props.label ?? locale.translate(LABEL_TRANSLATIONS, 'Website color'))
 const modeHeading = computed(() => locale.translate(MODE_HEADING_TRANSLATIONS, 'Mode'))
@@ -469,8 +481,8 @@ interface SettingsOption {
 }
 
 // Only what applies to this site: "Save changes" when changes need consent
-// to be saved (`color.requireConsent`), and the scrollbar/cursor when the
-// project has them on. With none, the gear isn't shown.
+// to be saved (`color.requireConsent`), and the scrollbar/cursor/font when
+// the project has them on. With none, the gear isn't shown.
 const settingsOptions = computed(() => {
   const options: SettingsOption[] = []
 
@@ -502,6 +514,16 @@ const settingsOptions = computed(() => {
       title: locale.translate(CURSOR_TITLE_TRANSLATIONS, 'Custom cursor'),
       enabled: cursor.enabled.value,
       toggle: () => cursor.set(!cursor.enabled.value),
+    })
+  }
+
+  if (font.available) {
+    options.push({
+      key: 'font',
+      icon: resolveThemeIcon(SWITCHER_ICONS.font, iconFormat),
+      title: locale.translate(FONT_TITLE_TRANSLATIONS, 'Custom font'),
+      enabled: font.enabled.value,
+      toggle: () => font.set(!font.enabled.value),
     })
   }
 

@@ -18,6 +18,7 @@ declare module '@nuxt/schema' {
       }
       enabled: {
         typography: boolean
+        customFont: boolean
         scrollbar: boolean
         cursor: boolean
         color: boolean

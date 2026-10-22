@@ -131,6 +131,8 @@ export default defineNuxtModule<ModuleOptions>({
       },
       enabled: {
         typography: theme.typography?.enabled !== false,
+        // Something for the visitor to turn off (`font.available`)
+        customFont: theme.typography?.enabled !== false && !!theme.typography?.customFonts?.length,
         scrollbar: theme.customScrollbar?.enabled !== false,
         cursor: theme.customCursor?.enabled !== false,
         color: colorOptions.enabled,

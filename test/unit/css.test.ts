@@ -55,6 +55,22 @@ describe('processTheme', () => {
     }
   })
 
+  it('deve deixar só as fontes padrão quando o visitante desliga a fonte personalizada', () => {
+    const off = processTheme(theme).match(/:root\[data-venix-font='off'\] \{([^}]*)\}/)?.[1]
+    const defaults = theme.typography.defaultFonts
+    expect(off).toBe(`\n  --font-family-base: ${defaults};\n  --v-font-body: ${defaults};\n  --v-font-heading: ${defaults};\n`)
+  })
+
+  it('deve usar initial sem fontes padrão, para o var() cair no fallback do site', () => {
+    const css = processTheme({ ...theme, typography: { ...theme.typography, defaultFonts: '' } })
+    expect(css).toContain(':root[data-venix-font=\'off\'] {\n  --font-family-base: initial;')
+  })
+
+  it('não deve gerar a regra de fonte desligada sem fontes personalizadas', () => {
+    const css = processTheme({ ...theme, typography: { ...theme.typography, customFonts: [] } })
+    expect(css).not.toContain('data-venix-font')
+  })
+
   it('deve pintar o canto entre as duas scrollbars com a cor da trilha', () => {
     expect(processTheme(theme)).toContain('::-webkit-scrollbar-corner {\n  background: var(--color-background2);\n}')
   })

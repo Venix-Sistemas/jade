@@ -18,12 +18,16 @@ export const THEME_COOKIE_OPTIONS = { maxAge: THEME_COOKIE_MAX_AGE, path: '/', s
 export const SCROLLBAR_COOKIE = 'venix-scrollbar'
 /** Same as `SCROLLBAR_COOKIE`, for the custom cursor (`cursor.set(false)`). */
 export const CURSOR_COOKIE = 'venix-cursor'
+/** Same as `SCROLLBAR_COOKIE`, for the custom font (`font.set(false)`). */
+export const FONT_COOKIE = 'venix-font'
 
 // ===== HTML ATTRIBUTES =====
 /** `'off'` on `<html>` switches the custom scrollbar off: its CSS only applies without it (see shared/css/scrollbar.ts). */
 export const SCROLLBAR_ATTRIBUTE = 'data-venix-scrollbar'
 /** `'off'` on `<html>` puts the browser's own cursors back (see shared/css/cursor.ts). */
 export const CURSOR_ATTRIBUTE = 'data-venix-cursor'
+/** `'off'` on `<html>` leaves only the `defaultFonts` in the font variables (see shared/css/typography.ts). */
+export const FONT_ATTRIBUTE = 'data-venix-font'
 
 // ===== EVENTS =====
 export const COOKIE_PREFERENCES_UPDATED_EVENT = 'venix-cookie-preferences-updated'
@@ -71,7 +75,7 @@ export const THEME_MODES = ['light', 'dark'] as const
 /**
  * The icons of <VenixThemeSwitcher>'s own controls, in the same formats as a
  * theme's icon. Listed here so `setup/register-icon.ts` bundles them along
- * with the themes' (line-md has no save, scroll or cursor icon, hence `mdi`).
+ * with the themes' (line-md has no save, scroll, cursor or font icon, hence `mdi`).
  */
 export const SWITCHER_ICONS = {
   settings: { emote: '⚙️', css: 'mdi:cog-outline', svg: 'line-md:cog' },
@@ -79,6 +83,7 @@ export const SWITCHER_ICONS = {
   save: { emote: '💾', css: 'mdi:content-save-outline' },
   scrollbar: { emote: '↕️', css: 'mdi:mouse-scroll-wheel' },
   cursor: { emote: '🖱️', css: 'mdi:cursor-default-outline' },
+  font: { emote: '🔤', css: 'mdi:format-font' },
 } as const
 
 // ===== COLOR PROPERTIES =====

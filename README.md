@@ -100,7 +100,7 @@ It returns:
 - `themes` — every selectable theme as `{ value, name, icon, custom }`, ready to render a picker (see [Theme icons](#theme-icons)); `custom` is `true` for themes your project added in `color.themes`.
 - `mode` — the mode choice: `preference` (`'system'`, `'light'`, `'dark'`), `value` (the mode applied, `'light'` or `'dark'`), `data`, `set(mode)` and `toggle()`.
 - `modes` — the three mode options with names and icons, ready to render.
-- `scrollbar` / `cursor` — the visitor's switch for the custom [scrollbar](#scrollbar) and [cursor](#cursor): `available` (the project has it on), `enabled` (a `Ref<boolean>`, `true` unless the visitor turned it off) and `set(enabled)`.
+- `scrollbar` / `cursor` / `font` — the visitor's switch for the custom [scrollbar](#scrollbar), [cursor](#cursor) and [font](#typography): `available` (the project has it on), `enabled` (a `Ref<boolean>`, `true` unless the visitor turned it off) and `set(enabled)`.
 - `locale` — `current`, `set()` and `translate()` (see [Translation](#translation)).
 - `persistence` — cookie consent controls (see [Saving the theme](#saving-the-theme-cookie-consent)).
 
@@ -132,7 +132,7 @@ The state is shared app-wide (via Nuxt's `useState`): every component calling `u
 The gear next to the title opens the **settings**, a few switches for the visitor:
 
 - **Save changes** — whether their choices are remembered on the next visit: it grants or revokes [cookie consent](#saving-the-theme-cookie-consent) (`persistence.grant()`/`revoke()`). Shown only while `color.requireConsent` is on, and not with `hideConsent`.
-- **Custom scrollbar** and **Custom cursor** — turn the module's [scrollbar](#scrollbar) or [cursor](#cursor) off and back on (`scrollbar.set()`/`cursor.set()`). Each shown only when the project has that module on.
+- **Custom scrollbar**, **Custom cursor** and **Custom font** — turn the module's [scrollbar](#scrollbar), [cursor](#cursor) or [custom fonts](#typography) off and back on (`scrollbar.set()`/`cursor.set()`/`font.set()`). Each shown only when the project has it on (for the font: `typography` with at least one `customFonts` entry).
 
 Without any of them, the gear isn't shown.
 
@@ -252,7 +252,7 @@ Three cookies remember the user's choice between visits, for a year:
 | `venix-theme-preference` | The chosen theme (`'system'`, `'venix'`, a custom theme…)                                               |
 | `venix-theme-mode`       | The chosen mode (`'system'`, `'light'`, `'dark'`)                                                        |
 | `venix-theme-resolved`   | The variant last applied (e.g. `'natal-light'`) — lets SSR guess light or dark when the mode is `'system'` |
-| `venix-scrollbar`, `venix-cursor` | `'off'` when the visitor turned the custom scrollbar or cursor off, `'on'` otherwise |
+| `venix-scrollbar`, `venix-cursor`, `venix-font` | `'off'` when the visitor turned the custom scrollbar, cursor or font off, `'on'` otherwise |
 
 The theme itself is always recomputed from the first two (with `'system'`, by today's date and the OS color scheme), so a saved seasonal theme never outlives its season.
 
@@ -498,6 +498,8 @@ venixTheme: {
 `preload: true` adds a `<link rel="preload">` for the font's first source to the page `<head>`, so it downloads with the page instead of after the CSS, avoiding a flash of the fallback font. The module's own Iceberg font is preloaded.
 
 Custom fonts come first in `--font-family-base`, with `defaultFonts` as the fallback. The same font list also goes to Vuetify's `--v-font-body`/`--v-font-heading`, since Vuetify components don't inherit `font-family` from the page.
+
+Visitors can turn the custom fonts off in the [switcher's settings](#3-ready-made-component), or you can with `font.set(false)`: the module sets `data-venix-font="off"` on `<html>`, and those three variables keep only the `defaultFonts` (or become unset without them, so your `var(--font-family-base, …)` fallback applies).
 
 ## Scrollbar
 

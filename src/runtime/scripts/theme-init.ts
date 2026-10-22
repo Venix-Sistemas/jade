@@ -11,8 +11,10 @@ import {
   COOKIE_CONSENT_STORAGE_KEY,
   SCROLLBAR_COOKIE,
   CURSOR_COOKIE,
+  FONT_COOKIE,
   SCROLLBAR_ATTRIBUTE,
   CURSOR_ATTRIBUTE,
+  FONT_ATTRIBUTE,
 } from '../../shared/constants'
 
 declare global {
@@ -24,12 +26,12 @@ declare global {
 export interface InitThemeOptions {
   /** See `color.requireConsent` — when `false`, the theme cookies are always written. */
   requireConsent: boolean
-  cookies: { preference: string, mode: string, resolved: string, scrollbar: string, cursor: string }
+  cookies: { preference: string, mode: string, resolved: string, scrollbar: string, cursor: string, font: string }
   /** In seconds. */
   cookieMaxAge: number
   consentStorageKey: string
-  /** The `<html>` attributes that switch the custom scrollbar and cursor off. */
-  attributes: { scrollbar: string, cursor: string }
+  /** The `<html>` attributes that switch the custom scrollbar, cursor and font off. */
+  attributes: { scrollbar: string, cursor: string, font: string }
 }
 
 /**
@@ -110,10 +112,11 @@ export default function initTheme(
   html.setAttribute('data-theme', theme)
   window.__VENIX_INITIAL_THEME__ = theme
 
-  // The custom scrollbar/cursor the visitor turned off, before the first
-  // paint too, so they don't show for a moment and then disappear.
-  if (getCookie(cookies.scrollbar) === 'off') html.setAttribute(attributes.scrollbar, 'off')
-  if (getCookie(cookies.cursor) === 'off') html.setAttribute(attributes.cursor, 'off')
+  // The custom scrollbar/cursor/font the visitor turned off, before the
+  // first paint too, so they don't show for a moment and then disappear.
+  for (const toggle of ['scrollbar', 'cursor', 'font'] as const) {
+    if (getCookie(cookies[toggle]) === 'off') html.setAttribute(attributes[toggle], 'off')
+  }
 
   if (resolvedCookie !== theme) {
     setCookieIfConsented(cookies.resolved, theme)
@@ -137,10 +140,11 @@ export function createInitThemeOptions(requireConsent: boolean): InitThemeOption
       resolved: THEME_RESOLVED_COOKIE,
       scrollbar: SCROLLBAR_COOKIE,
       cursor: CURSOR_COOKIE,
+      font: FONT_COOKIE,
     },
     cookieMaxAge: THEME_COOKIE_MAX_AGE,
     consentStorageKey: COOKIE_CONSENT_STORAGE_KEY,
-    attributes: { scrollbar: SCROLLBAR_ATTRIBUTE, cursor: CURSOR_ATTRIBUTE },
+    attributes: { scrollbar: SCROLLBAR_ATTRIBUTE, cursor: CURSOR_ATTRIBUTE, font: FONT_ATTRIBUTE },
   }
 }
 

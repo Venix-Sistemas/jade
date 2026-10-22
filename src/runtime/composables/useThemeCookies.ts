@@ -8,6 +8,7 @@ import {
   DEFAULT_LOCALE_COOKIE_NAME,
   SCROLLBAR_COOKIE,
   CURSOR_COOKIE,
+  FONT_COOKIE,
 } from '../../shared/constants'
 import { hasCookieConsent } from '../../shared/utils/consent'
 
@@ -30,6 +31,7 @@ export const useThemeCookies = (options: UseThemeCookiesOptions = {}) => {
   const localeCookie = useCookie<string>(localeCookieName, THEME_COOKIE_OPTIONS)
   const scrollbarCookie = useCookie<string>(SCROLLBAR_COOKIE, THEME_COOKIE_OPTIONS)
   const cursorCookie = useCookie<string>(CURSOR_COOKIE, THEME_COOKIE_OPTIONS)
+  const fontCookie = useCookie<string>(FONT_COOKIE, THEME_COOKIE_OPTIONS)
 
   const removeCookie = (name: string) => {
     if (typeof document !== 'undefined') {
@@ -62,11 +64,12 @@ export const useThemeCookies = (options: UseThemeCookiesOptions = {}) => {
     resolvedCookie.value = resolved
   }
 
-  // The custom scrollbar/cursor switches, under the same consent rule.
-  const persistTogglesIfConsented = (scrollbar: boolean, cursor: boolean) => {
+  // The custom scrollbar/cursor/font switches, under the same consent rule.
+  const persistTogglesIfConsented = (toggles: { scrollbar: boolean, cursor: boolean, font: boolean }) => {
     if (!canPersist()) return
-    scrollbarCookie.value = scrollbar ? 'on' : 'off'
-    cursorCookie.value = cursor ? 'on' : 'off'
+    scrollbarCookie.value = toggles.scrollbar ? 'on' : 'off'
+    cursorCookie.value = toggles.cursor ? 'on' : 'off'
+    fontCookie.value = toggles.font ? 'on' : 'off'
   }
 
   const disablePersistence = () => {
@@ -75,6 +78,7 @@ export const useThemeCookies = (options: UseThemeCookiesOptions = {}) => {
     removeCookie(THEME_MODE_COOKIE)
     removeCookie(SCROLLBAR_COOKIE)
     removeCookie(CURSOR_COOKIE)
+    removeCookie(FONT_COOKIE)
   }
 
   return {
@@ -84,6 +88,7 @@ export const useThemeCookies = (options: UseThemeCookiesOptions = {}) => {
     localeCookie,
     scrollbarCookie,
     cursorCookie,
+    fontCookie,
     canPersist,
     persistIfConsented,
     persistTogglesIfConsented,

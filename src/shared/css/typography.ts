@@ -1,4 +1,5 @@
 import type { ThemeConfig } from '../types/index'
+import { FONT_ATTRIBUTE } from '../constants'
 
 export function generateFontFaces(theme: ThemeConfig): string {
   if (!theme.typography?.customFonts) return ''
@@ -81,6 +82,18 @@ export function generateRootVars(theme: ThemeConfig): string {
   }
 
   vars += '}\n'
+
+  // The visitor turned the custom font off (see `font.set()`): only the
+  // `defaultFonts`, or, without them, `initial`, which makes `var()` use its
+  // own fallback (the site's, or Vuetify's).
+  if (theme.typography?.customFonts?.length) {
+    const fallback = theme.typography.defaultFonts || 'initial'
+    vars += `:root[${FONT_ATTRIBUTE}='off'] {\n`
+    vars += `  --font-family-base: ${fallback};\n`
+    vars += `  --v-font-body: ${fallback};\n`
+    vars += `  --v-font-heading: ${fallback};\n`
+    vars += '}\n'
+  }
 
   return vars
 }

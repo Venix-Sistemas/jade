@@ -1,7 +1,7 @@
 // runtime/composables/useVenixTheme.ts
 import { computed, effectScope, watch } from 'vue'
 import { onNuxtReady, useNuxtApp, useRuntimeConfig, useState } from '#app'
-import { DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT, SYSTEM_THEME, SCROLLBAR_ATTRIBUTE, CURSOR_ATTRIBUTE } from '../../shared/constants'
+import { DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT, SYSTEM_THEME, SCROLLBAR_ATTRIBUTE, CURSOR_ATTRIBUTE, FONT_ATTRIBUTE } from '../../shared/constants'
 import { useThemeCookies } from './useThemeCookies'
 import { useThemeLocale } from './useThemeLocale'
 import { useThemeSeasonal } from './useThemeSeasonal'
@@ -69,28 +69,39 @@ function createThemeCore() {
 
   const currentSelection = (): ThemeSelection => ({ theme: preference.value, mode: modePreference.value })
 
-  // The custom scrollbar and cursor: on unless the visitor turned them off,
-  // and only switchable when the project has them on (`scrollbar`/`cursor`
-  // modules). Shared via useState like `preference`.
+  // The custom scrollbar, cursor and font: on unless the visitor turned them
+  // off, and only switchable when the project has them on (`scrollbar`/
+  // `cursor` modules, `typography` with custom fonts). Shared via useState
+  // like `preference`.
   const requireConsent = themeConfig?.requireConsent !== false
   const scrollbarAvailable = themeConfig?.enabled?.scrollbar !== false
   const cursorAvailable = themeConfig?.enabled?.cursor !== false
+  const fontAvailable = themeConfig?.enabled?.customFont === true
   const scrollbarEnabled = useState<boolean>('venix-scrollbar', () => cookies.scrollbarCookie.value !== 'off')
   const cursorEnabled = useState<boolean>('venix-cursor', () => cookies.cursorCookie.value !== 'off')
+  const fontEnabled = useState<boolean>('venix-font', () => cookies.fontCookie.value !== 'off')
 
   // Turned off = the attribute set to 'off' on `<html>`, which the generated
-  // CSS checks (see shared/css/scrollbar.ts and cursor.ts).
+  // CSS checks (see shared/css/scrollbar.ts, cursor.ts and typography.ts).
   const applyToggles = () => {
     if (typeof document === 'undefined') return
     const html = document.documentElement
-    const flags: Array<[string, boolean]> = [[SCROLLBAR_ATTRIBUTE, scrollbarEnabled.value], [CURSOR_ATTRIBUTE, cursorEnabled.value]]
+    const flags: Array<[string, boolean]> = [
+      [SCROLLBAR_ATTRIBUTE, scrollbarEnabled.value],
+      [CURSOR_ATTRIBUTE, cursorEnabled.value],
+      [FONT_ATTRIBUTE, fontEnabled.value],
+    ]
     for (const [attribute, enabled] of flags) {
       if (enabled) html.removeAttribute(attribute)
       else html.setAttribute(attribute, 'off')
     }
   }
 
-  const persistToggles = () => cookies.persistTogglesIfConsented(scrollbarEnabled.value, cursorEnabled.value)
+  const persistToggles = () => cookies.persistTogglesIfConsented({
+    scrollbar: scrollbarEnabled.value,
+    cursor: cursorEnabled.value,
+    font: fontEnabled.value,
+  })
 
   // Bumped whenever something theme resolution depends on changes outside
   // Vue's reactivity (OS color scheme, the date rolling over to a new day),
@@ -290,8 +301,10 @@ function createThemeCore() {
     hasConsent,
     scrollbarAvailable,
     cursorAvailable,
+    fontAvailable,
     scrollbarEnabled,
     cursorEnabled,
+    fontEnabled,
     applyToggles,
     persistToggles,
     locale,
@@ -329,7 +342,7 @@ type ThemeCore = ReturnType<typeof createThemeCore>
  * aborting the first) and doubled every listener and cookie write.
  */
 function installThemeEffects(core: ThemeCore) {
-  const { themeConfig, shouldApplyColors, cookies, hasConsent, locale, preference, modePreference, environmentVersion, scrollbarEnabled, cursorEnabled } = core
+  const { themeConfig, shouldApplyColors, cookies, hasConsent, locale, preference, modePreference, environmentVersion, scrollbarEnabled, cursorEnabled, fontEnabled } = core
 
   // `lang` needs to reflect the resolved locale (WCAG 3.1.1) — but only when
   // NOTHING ELSE already owns that attribute. Off by default because, if the
@@ -371,14 +384,15 @@ function installThemeEffects(core: ThemeCore) {
     })
   }
 
-  // The custom scrollbar/cursor switches: the cookies win over a stale
+  // The custom scrollbar/cursor/font switches: the cookies win over a stale
   // payload, as with the theme above. Normally already applied by the
   // pre-hydration script, which doesn't run when the colors are off.
   scrollbarEnabled.value = cookies.scrollbarCookie.value !== 'off'
   cursorEnabled.value = cookies.cursorCookie.value !== 'off'
+  fontEnabled.value = cookies.fontCookie.value !== 'off'
   core.applyToggles()
 
-  watch([scrollbarEnabled, cursorEnabled], () => {
+  watch([scrollbarEnabled, cursorEnabled, fontEnabled], () => {
     core.applyToggles()
     core.persistToggles()
   })
@@ -461,6 +475,12 @@ export const useVenixTheme = () => {
       available: core.cursorAvailable,
       enabled: core.cursorEnabled,
       set: (enabled: boolean) => { core.cursorEnabled.value = enabled },
+    },
+    /** The custom font (`typography.customFonts`), same as `scrollbar`: off leaves the `defaultFonts`. */
+    font: {
+      available: core.fontAvailable,
+      enabled: core.fontEnabled,
+      set: (enabled: boolean) => { core.fontEnabled.value = enabled },
     },
     locale: {
       current: core.locale.currentLocale,
