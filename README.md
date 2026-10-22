@@ -134,7 +134,7 @@ The gear next to the title opens the **settings**, a few switches for the visito
 - **Save changes** — whether their choices are remembered on the next visit: it grants or revokes [cookie consent](#saving-the-theme-cookie-consent) (`persistence.grant()`/`revoke()`). Shown only while `color.requireConsent` is on, and not with `hideConsent`.
 - **Custom scrollbar**, **Custom cursor** and **Custom font** — turn the module's [scrollbar](#scrollbar), [cursor](#cursor) or [custom fonts](#typography) off and back on (`scrollbar.set()`/`cursor.set()`/`font.set()`). Each shown only when the project has it on (for the font: `typography` with at least one `customFonts` entry).
 
-Without any of them, the gear isn't shown.
+Without any of them, the gear isn't shown. At the bottom, in small faint print, the settings credit the module with a link to its repository.
 
 - **Accessible:** arrow keys, Home/End and Esc navigate the menu, focus returns to the button on close, and each change is announced to screen readers.
 - **Always legible:** the menu uses fixed neutral colors (dark surface, light text) instead of the active theme's, so every option stays readable whatever theme is applied. The button itself follows the active theme.

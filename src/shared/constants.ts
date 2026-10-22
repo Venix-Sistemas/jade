@@ -86,6 +86,12 @@ export const SWITCHER_ICONS = {
   font: { emote: '🔤', css: 'mdi:format-font' },
 } as const
 
+/** The credit at the bottom of <VenixThemeSwitcher>'s settings. */
+export const SWITCHER_CREDIT = {
+  name: '@venix-sistemas/jade',
+  url: 'https://github.com/Venix-Sistemas/jade',
+} as const
+
 // ===== COLOR PROPERTIES =====
 export const COLOR_PROPERTIES = [
   'primary',

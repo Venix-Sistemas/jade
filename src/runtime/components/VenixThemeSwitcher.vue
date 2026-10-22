@@ -130,6 +130,15 @@
               />
             </button>
           </div>
+
+          <a
+            class="venix-theme-switcher__credit"
+            role="menuitem"
+            tabindex="-1"
+            :href="SWITCHER_CREDIT.url"
+            target="_blank"
+            rel="noopener"
+          >{{ SWITCHER_CREDIT.name }}</a>
         </div>
 
         <div
@@ -270,7 +279,7 @@ import { useVenixTheme } from '../composables/useVenixTheme'
 import { getDefaultSelection } from '../../shared/utils/theme-resolve'
 import { resolveThemeIcon } from '../../shared/utils/icon'
 import type { ResolvedThemeIcon, ThemeIconFormat } from '../../shared/utils/icon'
-import { SWITCHER_ICONS } from '../../shared/constants'
+import { SWITCHER_CREDIT, SWITCHER_ICONS } from '../../shared/constants'
 import type { ThemeModePreference } from '../../shared/types'
 // Imported directly (not auto-imported) so the switcher still works with
 // `icon: false`: <VenixIcon> isn't registered then, and theme icons all
@@ -1042,6 +1051,26 @@ onUnmounted(() => {
 .venix-theme-switcher__item--on .venix-theme-switcher__switch::after {
   background: var(--venix-switcher-bg);
   transform: translateX(0.75rem);
+}
+
+/* Credit to the module: tiny and faint, only noticeable when looked for. */
+.venix-theme-switcher__credit {
+  display: block;
+  margin-top: 0.25rem;
+  padding: 0.125rem 0.25rem;
+  color: var(--venix-switcher-description);
+  font-size: 0.625rem;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.venix-theme-switcher__credit:hover,
+.venix-theme-switcher__credit:focus-visible {
+  opacity: 1;
+  text-decoration: underline;
 }
 
 @media (prefers-reduced-motion: reduce) {
