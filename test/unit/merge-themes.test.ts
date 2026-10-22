@@ -180,7 +180,7 @@ describe('useVenixTheme().themes / modes', () => {
     const { themes } = useThemeColors(buildResolvedTheme({ colorThemes: overrides }), translate)
 
     expect(themes.value.map(t => t.value)).toEqual(['system', 'venix', 'carnaval', 'pascoa', 'natal', 'halloween'])
-    expect(themes.value.map(t => t.name)).toEqual(['Automático', 'Venix Sistemas', 'Carnaval', 'Páscoa', 'Natal', 'Dia das Bruxas'])
+    expect(themes.value.map(t => t.name)).toEqual(['Automático', 'Venix', 'Carnaval', 'Páscoa', 'Natal', 'Dia das Bruxas'])
     expect(themes.value.every(t => !!t.icon)).toBe(true)
   })
 
