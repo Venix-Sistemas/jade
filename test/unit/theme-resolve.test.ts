@@ -3,6 +3,7 @@ import {
   isColorTheme,
   getActiveSeasonalTheme,
   getEasterSunday,
+  getSeasonDates,
   getDefaultSelection,
   normalizeThemeSelection,
   resolveThemeSelection,
@@ -259,5 +260,40 @@ describe('resolveServerTheme (SSR, sem matchMedia)', () => {
   it('sem pista válida, assume escuro', () => {
     expect(resolveServerTheme('venix', 'system', undefined, base, jun1)).toBe('dark')
     expect(resolveServerTheme('venix', 'system', 'inexistente', base, jun1)).toBe('dark')
+  })
+})
+
+describe('getSeasonDates (as datas mostradas no seletor)', () => {
+  const day = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+  const range = (start: string, end: string, now: Date) => {
+    const dates = getSeasonDates({ seasonal: true, dateRange: { start, end } }, now)
+    return dates && [day(dates.start), day(dates.end)]
+  }
+
+  it('dá as datas deste ano enquanto o período não acabou', () => {
+    expect(range('10-01', '10-31', new Date(2026, 9, 22))).toEqual(['2026-10-01', '2026-10-31'])
+    expect(range('10-01', '10-31', new Date(2026, 2, 1))).toEqual(['2026-10-01', '2026-10-31'])
+  })
+
+  it('passa para o próximo ano depois que o período acaba', () => {
+    expect(range('12-01', '12-26', new Date(2026, 11, 27))).toEqual(['2027-12-01', '2027-12-26'])
+  })
+
+  it('calcula as datas relativas à Páscoa do ano certo', () => {
+    // Páscoa de 2027: 28/03 — o Carnaval de 2026 já passou em outubro
+    expect(range('easter-65', 'easter-46', new Date(2026, 9, 22))).toEqual(['2027-01-22', '2027-02-10'])
+    // Páscoa de 2026: 05/04
+    expect(range('easter-7', 'easter+1', new Date(2026, 0, 10))).toEqual(['2026-03-29', '2026-04-06'])
+  })
+
+  it('atravessa a virada do ano', () => {
+    expect(range('12-20', '01-05', new Date(2027, 0, 2))).toEqual(['2026-12-20', '2027-01-05'])
+    expect(range('12-20', '01-05', new Date(2026, 5, 1))).toEqual(['2026-12-20', '2027-01-05'])
+  })
+
+  it('não dá datas para um tema que não é sazonal ou sem dateRange válido', () => {
+    expect(getSeasonDates({ dateRange: { start: '10-01', end: '10-31' } }, new Date(2026, 9, 22))).toBeNull()
+    expect(getSeasonDates({ seasonal: true }, new Date(2026, 9, 22))).toBeNull()
+    expect(range('outubro', '10-31', new Date(2026, 9, 22))).toBeNull()
   })
 })

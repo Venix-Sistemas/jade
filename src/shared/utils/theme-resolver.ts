@@ -257,6 +257,7 @@ export function createThemeResolver() {
     DEFAULT_THEME,
     isColorTheme,
     getEasterSunday,
+    parseDatePart,
     isModePreference,
     isSelectableGroup,
     findVariantOwner,

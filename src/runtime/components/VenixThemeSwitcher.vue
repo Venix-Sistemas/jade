@@ -263,6 +263,10 @@
                   aria-hidden="true"
                 />
                 <span>{{ item.name }}</span>
+                <span
+                  v-if="seasonLabels[item.value]"
+                  class="venix-theme-switcher__item-season"
+                >{{ seasonLabels[item.value] }}</span>
               </button>
             </div>
           </template>
@@ -276,7 +280,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRuntimeConfig } from '#app'
 import { useVenixTheme } from '../composables/useVenixTheme'
-import { getDefaultSelection } from '../../shared/utils/theme-resolve'
+import { getDefaultSelection, getSeasonDates } from '../../shared/utils/theme-resolve'
 import { resolveThemeIcon } from '../../shared/utils/icon'
 import type { ResolvedThemeIcon, ThemeIconFormat } from '../../shared/utils/icon'
 import { SWITCHER_CREDIT, SWITCHER_ICONS } from '../../shared/constants'
@@ -437,6 +441,20 @@ const CURSOR_TITLE_TRANSLATIONS: Record<string, string> = {
   'zh-CN': '自定义光标',
 }
 
+// A seasonal theme's dates, next to its name: day and month in the order
+// and digits of the locale (`Intl`), joined by these.
+const SEASON_RANGE_TRANSLATIONS: Record<string, string> = {
+  'pt-BR': '{start} a {end}',
+  'en-US': '{start} – {end}',
+  'es-ES': '{start} a {end}',
+  'fr-FR': '{start} – {end}',
+  'de-DE': '{start} – {end}',
+  'it-IT': '{start} – {end}',
+  'ja-JP': '{start}～{end}',
+  'ko-KR': '{start}~{end}',
+  'zh-CN': '{start}至{end}',
+}
+
 const FONT_TITLE_TRANSLATIONS: Record<string, string> = {
   'pt-BR': 'Fonte personalizada',
   'en-US': 'Custom font',
@@ -470,6 +488,34 @@ const themeSections = computed(() => [
   { key: 'custom', heading: locale.translate(CUSTOM_HEADING_TRANSLATIONS, 'Custom theme'), items: themes.value.filter(item => item.custom) },
 ].filter(section => section.items.length > 0))
 const triggerLabel = computed(() => [theme.data.value?.name, mode.data.value?.name].filter(Boolean).join(' · '))
+
+// Today's date, read after mounting: the server's date (and time zone) can
+// differ from the visitor's, and the dates of a season relative to Easter
+// depend on which year it is.
+const today = ref<Date | null>(null)
+
+// Each seasonal theme's running or next dates, e.g. "01/10 a 31/10".
+const seasonLabels = computed<Record<string, string>>(() => {
+  if (!today.value) return {}
+  const now = today.value
+
+  let format: Intl.DateTimeFormat
+  try {
+    format = new Intl.DateTimeFormat(locale.current.value, { day: '2-digit', month: '2-digit' })
+  }
+  catch {
+    format = new Intl.DateTimeFormat(undefined, { day: '2-digit', month: '2-digit' })
+  }
+  const template = locale.translate(SEASON_RANGE_TRANSLATIONS, '{start} – {end}')
+
+  const labels: Record<string, string> = {}
+  for (const item of themes.value) {
+    const group = theme.colors.groups[item.value]
+    const dates = group && getSeasonDates(group, now)
+    if (dates) labels[item.value] = template.replace('{start}', format.format(dates.start)).replace('{end}', format.format(dates.end))
+  }
+  return labels
+})
 const settingsHeading = computed(() => locale.translate(SETTINGS_HEADING_TRANSLATIONS, 'Settings'))
 const backLabel = computed(() => locale.translate(BACK_TRANSLATIONS, 'Back'))
 
@@ -698,6 +744,8 @@ onMounted(() => {
       visible.value = true
     })
   })
+
+  today.value = new Date()
 
   document.addEventListener('mousedown', handleMouseDown, true)
   document.addEventListener('click', handleClickOutside)
@@ -991,6 +1039,19 @@ onUnmounted(() => {
 
 .venix-theme-switcher__item-icon {
   flex-shrink: 0;
+}
+
+/* A seasonal theme's dates, on the right: barely there, but still legible
+   up close. Same weight whether or not the theme is selected. */
+.venix-theme-switcher__item-season {
+  margin-left: auto;
+  padding-left: 0.5rem;
+  color: var(--venix-switcher-description);
+  opacity: 0.6;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .venix-theme-switcher__item--on {
