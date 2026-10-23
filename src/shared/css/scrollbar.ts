@@ -4,8 +4,10 @@ import { SCROLLBAR_ATTRIBUTE } from '../constants'
 // Every rule only applies while `<html>` doesn't have the attribute set to
 // 'off' (the visitor's choice, see `scrollbar.set()`), which brings back the
 // browser's own scrollbar. Both forms: the page's own scrollbar is `html`'s,
-// the others belong to its descendants.
-const ON = `:root:not([${SCROLLBAR_ATTRIBUTE}='off'])`
+// the others belong to its descendants. `html`, not `:root`: Chromium never
+// matches `::-webkit-scrollbar-thumb:hover` behind `:root`, so the thumb
+// didn't change color on hover.
+const ON = `html:not([${SCROLLBAR_ATTRIBUTE}='off'])`
 const on = (pseudo: string): string => `${ON}${pseudo},\n${ON} ${pseudo}`
 
 export function generateCustomScrollbarCSS(theme: ThemeConfig): string {

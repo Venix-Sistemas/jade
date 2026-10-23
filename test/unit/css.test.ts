@@ -40,7 +40,7 @@ describe('processTheme', () => {
 
   it('deve aplicar scrollbar-color/scrollbar-width só sem ::-webkit-scrollbar, que o Chromium desliga quando eles existem', () => {
     const css = processTheme(theme)
-    expect(css).toMatch(/@supports not selector\(::-webkit-scrollbar\) \{\n {2}:root:not\(\[data-venix-scrollbar='off'\]\) \{\n {4}scrollbar-width: [^;]+;\n {4}scrollbar-color: [^;]+;\n {2}\}\n\}/)
+    expect(css).toMatch(/@supports not selector\(::-webkit-scrollbar\) \{\n {2}html:not\(\[data-venix-scrollbar='off'\]\) \{\n {4}scrollbar-width: [^;]+;\n {4}scrollbar-color: [^;]+;\n {2}\}\n\}/)
     expect(css.replace(/@supports not selector\(::-webkit-scrollbar\) \{[\s\S]*?\n\}\n/, '')).not.toContain('scrollbar-color')
   })
 
@@ -50,8 +50,8 @@ describe('processTheme', () => {
     expect(selectors).toHaveLength(5)
     for (const selector of selectors) {
       const [page, elements] = selector.trim().split(',\n')
-      expect(page).toMatch(/^:root:not\(\[data-venix-scrollbar='off'\]\)::-webkit-scrollbar/)
-      expect(elements).toMatch(/^:root:not\(\[data-venix-scrollbar='off'\]\) ::-webkit-scrollbar/)
+      expect(page).toMatch(/^html:not\(\[data-venix-scrollbar='off'\]\)::-webkit-scrollbar/)
+      expect(elements).toMatch(/^html:not\(\[data-venix-scrollbar='off'\]\) ::-webkit-scrollbar/)
     }
   })
 
@@ -69,6 +69,12 @@ describe('processTheme', () => {
   it('não deve gerar a regra de fonte desligada sem fontes personalizadas', () => {
     const css = processTheme({ ...theme, typography: { ...theme.typography, customFonts: [] } })
     expect(css).not.toContain('data-venix-font')
+  })
+
+  it('deve qualificar as regras da scrollbar com html, não :root, para o :hover da alça funcionar no Chromium', () => {
+    const css = processTheme(theme)
+    expect(css).toContain('html:not([data-venix-scrollbar=\'off\'])::-webkit-scrollbar-thumb:hover,\nhtml:not([data-venix-scrollbar=\'off\']) ::-webkit-scrollbar-thumb:hover {\n  background: var(--color-secondary);')
+    expect(css).not.toContain(':root:not([data-venix-scrollbar')
   })
 
   it('deve pintar o canto entre as duas scrollbars com a cor da trilha', () => {
