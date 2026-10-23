@@ -296,7 +296,10 @@
             <h3 class="demo__title">
               {{ $t('scrollbar.vertical') }}
             </h3>
-            <div class="scroll-vertical">
+            <div
+              class="scroll-vertical"
+              data-venix-scroll
+            >
               <div
                 v-for="i in 20"
                 :key="`vertical-${i}`"
@@ -310,7 +313,10 @@
             <h3 class="demo__title">
               {{ $t('scrollbar.horizontal') }}
             </h3>
-            <div class="scroll-horizontal">
+            <div
+              class="scroll-horizontal"
+              data-venix-scroll
+            >
               <div
                 v-for="i in 20"
                 :key="`horizontal-${i}`"

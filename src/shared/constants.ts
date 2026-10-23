@@ -24,6 +24,10 @@ export const FONT_COOKIE = 'venix-font'
 // ===== HTML ATTRIBUTES =====
 /** `'off'` on `<html>` switches the custom scrollbar off: its CSS only applies without it (see shared/css/scrollbar.ts). */
 export const SCROLLBAR_ATTRIBUTE = 'data-venix-scrollbar'
+/** On any element that scrolls, gets it the overlay scrollbar too (see runtime/plugins/overlay-scrollbars.client.ts). */
+export const SCROLL_CONTAINER_ATTRIBUTE = 'data-venix-scroll'
+/** The OverlayScrollbars theme the module styles (see shared/css/scrollbar.ts). */
+export const OVERLAY_SCROLLBAR_THEME = 'os-theme-jade'
 /** `'off'` on `<html>` puts the browser's own cursors back (see shared/css/cursor.ts). */
 export const CURSOR_ATTRIBUTE = 'data-venix-cursor'
 /** `'off'` on `<html>` leaves only the `defaultFonts` in the font variables (see shared/css/typography.ts). */

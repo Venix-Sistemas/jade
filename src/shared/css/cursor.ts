@@ -93,6 +93,7 @@ input[type="range"], input[type="color"], input[type="file"] {
     // Only what is actually clickable: a link needs an `href`, and Vuetify
     // marks clickable icons, list items and chips with their own class (a
     // plain `.v-icon` or `.v-list-item` is often just decoration or text).
+    // The overlay scrollbars (`scrollbar.overlay`) too: drag and click-to-scroll.
     css += '\n/* 2. Pointer cursor for clickable elements */\n'
     css += `a[href], a[href] *,
 button, button *,
@@ -106,7 +107,8 @@ input[type="button"], input[type="submit"], input[type="reset"],
 .v-tab,
 .v-card--link,
 .v-breadcrumbs-item--link,
-.v-pagination__item {
+.v-pagination__item,
+.os-scrollbar, .os-scrollbar * {
   cursor: var(--cursor-pointer) !important;
 }\n`
   }

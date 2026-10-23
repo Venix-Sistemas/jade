@@ -244,7 +244,7 @@ Visitors can turn the custom fonts off in the [switcher's settings](#theme-switc
 <p align="center">
   <img alt="venixTheme: scrollbar" src="https://img.shields.io/badge/venixTheme-scrollbar-00A86B?style=for-the-badge">
   <img alt="default: on" src="https://img.shields.io/badge/default-on-2EA44F?style=for-the-badge">
-  <img alt="third-party: none" src="https://img.shields.io/badge/third--party-none-6E7781?style=for-the-badge">
+  <img alt="third-party: OverlayScrollbars (optional)" src="https://img.shields.io/badge/third--party-OverlayScrollbars_(optional)-6E7781?style=for-the-badge">
 </p>
 
 A custom scrollbar whose colors follow the active theme. The values below are the defaults:
@@ -256,18 +256,48 @@ A custom scrollbar whose colors follow the active theme. The values below are th
 ```typescript
 venixTheme: {
   scrollbar: {
-    width: 'auto',
+    // Draws the scrollbars with OverlayScrollbars, so the custom cursor shows over them (see below)
+    overlay: false,
+    width: 'auto', // 10px for the overlay scrollbar
     borderRadius: '8px',
-    borderWidth: '3px',
-    // A theme color name (follows the active theme) or any CSS color
+    borderWidth: '3px', // native scrollbar only
+    // A theme color name (follows the active theme) or any CSS color; `border` is native only
     colors: { thumb: 'primary', thumbHover: 'secondary', track: 'background2', border: 'background3' },
   },
 }
 ```
 
+The scrollbars are the browser's own, styled with CSS. The CSS-styled scrollbar uses `::-webkit-scrollbar` in Chromium-based browsers and Safari, and `scrollbar-color` in Firefox, which only takes the colors (no border, radius or hover color). Chromium-based browsers (Chrome, Edge, Brave, Opera) draw a scrollbar styled this way as part of the page, so the [custom cursor](#cursor) shows over it too, the pointer over the thumb.
+
 Visitors can turn it off in the [switcher's settings](#theme-switcher), or you can with `scrollbar.set(false)` from `useVenixTheme()`: the module then sets `data-venix-scrollbar="off"` on `<html>` and the browser's own scrollbar comes back.
 
-It's plain CSS, with no library or script: `::-webkit-scrollbar` styles in Chromium-based browsers and Safari, and `scrollbar-color` in Firefox. Chromium draws a scrollbar styled this way as part of the page, so the [custom cursor](#cursor) also shows over it (the pointer over the thumb), which it can't over the browser's own scrollbar.
+### Overlay scrollbar (optional)
+
+Firefox draws its scrollbar outside the page, and so does every browser for an unstyled one: those ignore the CSS `cursor`, so hovering them shows the system cursor even with the [custom cursor](#cursor) on. With `overlay: true` the scrollbars are drawn by [OverlayScrollbars](https://github.com/KingSora/OverlayScrollbars) instead, as page elements, which the custom cursor applies to (the pointer, since they can be dragged and clicked). It's off by default while it gets tried out in more sites and on phones.
+
+OverlayScrollbars doesn't come with the module (it's an optional peer dependency): add it to your project, then turn the option on. With the option on and the package missing, the build warns and keeps the CSS-styled scrollbar.
+
+```bash
+pnpm add overlayscrollbars
+```
+
+```typescript
+venixTheme: {
+  scrollbar: { overlay: true },
+}
+```
+
+It covers:
+
+- the page itself (`window.scrollTo` and the like keep working);
+- Vuetify's scroll containers: navigation drawers, scrollable dialogs, `v-select` menus and tables, including the page and containers behind an open dialog staying locked;
+- any element of yours that scrolls, marked with `data-venix-scroll`:
+
+```html
+<div data-venix-scroll style="height: 300px; overflow: auto">…</div>
+```
+
+Everything else keeps the browser's scrollbar, styled with CSS. Scrolling itself stays the browser's own, so smooth scrolling (`scroll-behavior: smooth`, `scrollTo({ behavior: 'smooth' })`), GSAP's ScrollTrigger, ScrollToPlugin and ScrollSmoother, and Lenis keep working. With `overlay: false` OverlayScrollbars isn't added to the bundle at all.
 
 <br>
 
@@ -719,7 +749,7 @@ To avoid a wrong-theme flash, a small inline script in `<head>` applies the them
 
 ## Third-party packages
 
-Colors, typography, scrollbar, cursor, translation and the switcher are Jade's own code, with no package behind them. These come from third parties:
+Colors, typography, scrollbar, cursor, translation and the switcher are Jade's own code, with no package behind them (the overlay scrollbar aside). These come from third parties:
 
 | Package | Used for | How it's included | License |
 | ------- | -------- | ----------------- | ------- |
@@ -728,6 +758,7 @@ Colors, typography, scrollbar, cursor, translation and the switcher are Jade's o
 | [`@iconify-json/line-md`](https://github.com/cyberalien/line-md) | Animated Material Line Icons, by Vjacheslav Trushkin | Installed with Jade, bundled by default | MIT |
 | [`@iconify-json/mdi`](https://github.com/Templarian/MaterialDesign) | Material Design Icons, by Pictogrammers, used by the built-in themes | Installed with Jade, only the icons used are bundled | Apache 2.0 |
 | [Iceberg](https://fonts.google.com/specimen/Iceberg) | The module's default custom font ([Typography](#typography)) | Shipped in the package | SIL OFL 1.1 |
+| [OverlayScrollbars](https://github.com/KingSora/OverlayScrollbars) | Scrollbars the custom cursor shows over ([Overlay scrollbar](#overlay-scrollbar-optional)) | Optional, installed by you | MIT |
 | [UnoCSS](https://unocss.dev) | Theme colors as utilities ([UnoCSS preset](#unocss-preset)) | Optional, installed by you | MIT |
 | [Vuetify](https://vuetifyjs.com) + [`vuetify-nuxt-module`](https://nuxt.vuetifyjs.com) | Theme sync with Vuetify ([Vuetify](#vuetify)) | Optional, installed by you | MIT |
 | [`nuxt-security`](https://nuxt-security.vercel.app) | Nonce for the theme script under a strict CSP ([Content-Security-Policy](#content-security-policy)) | Optional, installed by you | MIT |

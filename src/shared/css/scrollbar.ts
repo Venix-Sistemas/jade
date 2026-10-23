@@ -1,5 +1,5 @@
 import type { ThemeConfig } from '../types'
-import { SCROLLBAR_ATTRIBUTE } from '../constants'
+import { OVERLAY_SCROLLBAR_THEME, SCROLLBAR_ATTRIBUTE } from '../constants'
 
 // Every rule only applies while `<html>` doesn't have the attribute set to
 // 'off' (the visitor's choice, see `scrollbar.set()`), which brings back the
@@ -67,5 +67,54 @@ export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
   }
 }\n`
 
+  if (scrollbar.overlay === true) css += generateOverlayScrollbarCSS({ width, borderRadius, thumb, thumbHover, track })
+
+  return css
+}
+
+/**
+ * The OverlayScrollbars theme, from the same options, and the page's native
+ * scrollbar hidden until it takes over (see the overlay-scrollbars plugin).
+ */
+function generateOverlayScrollbarCSS(o: { width: string, borderRadius: string, thumb: string, thumbHover: string, track: string }): string {
+  let css = '\n/* Overlay scrollbar (OverlayScrollbars): page elements, so the custom cursor applies over them */\n'
+  css += `.${OVERLAY_SCROLLBAR_THEME} {
+  --os-size: ${o.width === 'auto' ? '10px' : o.width};
+  --os-padding-perpendicular: 2px;
+  --os-padding-axis: 2px;
+  --os-track-border-radius: ${o.borderRadius};
+  --os-handle-border-radius: ${o.borderRadius};
+  --os-track-bg: ${o.track};
+  --os-handle-bg: ${o.thumb};
+  --os-handle-bg-hover: ${o.thumbHover};
+  --os-handle-bg-active: ${o.thumbHover};
+}\n`
+  // The hover color over the whole scrollbar, not only right over the handle:
+  // the handle is a few pixels wide, so hovering the scrollbar next to it (or
+  // above and below it) would show no change at all.
+  css += `\n.${OVERLAY_SCROLLBAR_THEME}.os-scrollbar:hover {
+  --os-handle-bg: ${o.thumbHover};
+}\n`
+  // Above Vuetify's sticky table header, which otherwise covers the top of the scrollbar
+  css += `\n.v-table > .os-scrollbar {
+  z-index: 3;
+}\n`
+  // Behind a dialog Vuetify fixes `<html>` in place, offset by the scroll
+  // position (`top`). OverlayScrollbars keeps `<html>` as the element that
+  // scrolls, so it can't be fixed and the offset only shifted the page; the
+  // plugin locks it through OverlayScrollbars instead, at the same position.
+  css += `\nhtml[data-overlayscrollbars].v-overlay-scroll-blocked {
+  top: auto;
+  left: auto;
+}\n`
+  // Until the plugin replaces the page's scrollbar (it marks `<html>` with
+  // `data-overlayscrollbars`), the native one would show and then vanish,
+  // shifting the page by its width. Only with JavaScript on, or nothing would
+  // ever replace it; and not when the visitor turned the custom scrollbar off.
+  css += `\n@media (scripting: enabled) {
+  ${ON}:not([data-overlayscrollbars]) {
+    scrollbar-width: none;
+  }
+}\n`
   return css
 }

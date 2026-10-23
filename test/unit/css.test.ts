@@ -9,6 +9,7 @@ import type { CursorConfig } from '../../src/shared/types'
 
 describe('processTheme', () => {
   const theme = loadTheme()
+  const overlayTheme = { ...theme, customScrollbar: { ...theme.customScrollbar, overlay: true } }
 
   it('deve gerar CSS com cores', () => {
     const css = processTheme(theme)
@@ -81,6 +82,35 @@ describe('processTheme', () => {
     expect(processTheme(theme)).toMatch(/::-webkit-scrollbar-thumb \{[^}]*cursor: var\(--cursor-pointer, default\);/)
   })
 
+  it('deve gerar o tema do OverlayScrollbars com as mesmas opções da scrollbar', () => {
+    const css = processTheme(overlayTheme)
+    const rule = css.match(/\.os-theme-jade \{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toContain('--os-size: 10px;')
+    expect(rule).toContain('--os-handle-border-radius: 8px;')
+    expect(rule).toContain('--os-handle-bg: var(--color-primary);')
+    expect(rule).toContain('--os-handle-bg-hover: var(--color-secondary);')
+    expect(rule).toContain('--os-track-bg: var(--color-background2);')
+  })
+
+  it('deve mudar a cor da alça ao passar o mouse em qualquer ponto da scrollbar, não só sobre a alça', () => {
+    expect(processTheme(overlayTheme)).toContain('.os-theme-jade.os-scrollbar:hover {\n  --os-handle-bg: var(--color-secondary);\n}')
+  })
+
+  it('deve esconder a scrollbar nativa da página até o OverlayScrollbars assumir, só com JavaScript e com a scrollbar ligada', () => {
+    expect(processTheme(overlayTheme)).toContain('@media (scripting: enabled) {\n  html:not([data-venix-scrollbar=\'off\']):not([data-overlayscrollbars]) {\n    scrollbar-width: none;')
+  })
+
+  it('deve anular o deslocamento do <html> que o Vuetify aplica atrás de um diálogo', () => {
+    expect(processTheme(overlayTheme)).toContain('html[data-overlayscrollbars].v-overlay-scroll-blocked {\n  top: auto;\n  left: auto;\n}')
+  })
+
+  it('não deve gerar nada do OverlayScrollbars sem overlay: true (o padrão)', () => {
+    const css = processTheme(theme)
+    expect(css).not.toContain('os-theme-jade')
+    expect(css).not.toContain('data-overlayscrollbars')
+    expect(css).toContain('::-webkit-scrollbar')
+  })
+
   it('deve pintar o canto entre as duas scrollbars com a cor da trilha', () => {
     expect(processTheme(theme)).toContain('::-webkit-scrollbar-corner {\n  background: var(--color-background2);\n}')
   })
@@ -132,6 +162,8 @@ describe('generateCustomCursorCSS', () => {
     expect(pointer).toContain('.v-icon--clickable')
     expect(pointer).toContain('.v-list-item--link')
     expect(pointer).toContain('.v-chip--link')
+    // A scrollbar do OverlayScrollbars é um elemento da página: arrastável e clicável
+    expect(pointer).toContain('.os-scrollbar, .os-scrollbar *')
     expect(pointer).not.toMatch(/(^|[\s,])a,|\.v-icon,|\.v-list-item,|\.v-chip,/)
   })
 

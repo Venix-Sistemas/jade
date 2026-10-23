@@ -18,6 +18,7 @@
     },
     "customScrollbar": {
         "enabled": true,
+        "overlay": false,
         "width": "auto",
         "borderRadius": "8px",
         "borderWidth": "3px",

@@ -61,6 +61,8 @@ export default defineNuxtConfig({
 
     // Custom scrollbar
     scrollbar: {
+      // OverlayScrollbars (off by default): the custom cursor also shows over the scrollbars
+      overlay: false,
       // width: "10px",
       // borderRadius: "8px",
       // borderWidth: "2px",

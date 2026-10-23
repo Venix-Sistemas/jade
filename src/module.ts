@@ -11,6 +11,7 @@ import { registerThemeComponents } from './setup/register-components'
 import { registerThemePlugins } from './setup/register-plugins'
 import { registerThemeCSS } from './setup/register-css'
 import { registerFontPreloads } from './setup/register-fonts'
+import { registerOverlayScrollbars } from './setup/register-scrollbar'
 import { registerThemeVuetify } from './setup/register-vuetify'
 import { registerThemeIcon } from './setup/register-icon'
 
@@ -94,6 +95,7 @@ export default defineNuxtModule<ModuleOptions>({
     })
 
     // 5. Register CSS
+    registerOverlayScrollbars(nuxt, resolver, theme)
     registerThemeCSS(nuxt, theme)
     registerFontPreloads(nuxt, theme)
 
