@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src="./docs/images/readme/theme-switcher.webp" alt="VenixThemeSwitcher going through the dark themes (Carnival, Easter, Christmas, Halloween, Ocean), then light mode and back" width="800">
+  <img src="./docs/images/readme/theme-switcher.webp" alt="VenixThemeSwitcher going through the dark themes (Venix, Carnival, Easter, Christmas, Halloween, Ocean), then Ocean in light and automatic mode, and its settings turning the custom scrollbar, cursor and font off and back on" width="800">
 </p>
 
 ## Features
