@@ -267,7 +267,7 @@ venixTheme: {
 
 Visitors can turn it off in the [switcher's settings](#theme-switcher), or you can with `scrollbar.set(false)` from `useVenixTheme()`: the module then sets `data-venix-scrollbar="off"` on `<html>` and the browser's own scrollbar comes back.
 
-It's plain CSS, with no library or script: `::-webkit-scrollbar` styles in Chromium-based browsers and Safari, and `scrollbar-color` in Firefox. Chromium draws a scrollbar styled this way as part of the page, so the [custom cursor](#cursor) also shows over it, which it can't over the browser's own scrollbar.
+It's plain CSS, with no library or script: `::-webkit-scrollbar` styles in Chromium-based browsers and Safari, and `scrollbar-color` in Firefox. Chromium draws a scrollbar styled this way as part of the page, so the [custom cursor](#cursor) also shows over it (the pointer over the thumb), which it can't over the browser's own scrollbar.
 
 <br>
 

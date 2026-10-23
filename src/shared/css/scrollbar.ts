@@ -45,6 +45,9 @@ export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
   background: ${thumb};
   border-radius: ${borderRadius};
   border: ${borderWidth} solid ${border};
+  /* The custom pointer: Chromium draws a styled scrollbar as part of the
+     page and shows its cursor there. The arrow without the cursor module. */
+  cursor: var(--cursor-pointer, default);
 }\n`
   css += `\n${on('::-webkit-scrollbar-thumb:hover')} {
   background: ${thumbHover};

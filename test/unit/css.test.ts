@@ -77,6 +77,10 @@ describe('processTheme', () => {
     expect(css).not.toContain(':root:not([data-venix-scrollbar')
   })
 
+  it('deve mostrar a mão do cursor personalizado sobre a alça da scrollbar em CSS', () => {
+    expect(processTheme(theme)).toMatch(/::-webkit-scrollbar-thumb \{[^}]*cursor: var\(--cursor-pointer, default\);/)
+  })
+
   it('deve pintar o canto entre as duas scrollbars com a cor da trilha', () => {
     expect(processTheme(theme)).toContain('::-webkit-scrollbar-corner {\n  background: var(--color-background2);\n}')
   })
