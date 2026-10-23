@@ -1,6 +1,51 @@
 # Changelog
 
 
+## v1.3.0
+
+[compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.2.0...v1.3.0)
+
+### 🚀 Enhancements
+
+- **cursor:** Draw the cursors in each color theme's primary ([e52cfd4](https://github.com/Venix-Sistemas/jade/commit/e52cfd4))
+- **typography:** Preload the fonts marked preload: true ([6934c94](https://github.com/Venix-Sistemas/jade/commit/6934c94))
+- **theme:** Rename the Venix Sistemas theme to Venix ([6bc6905](https://github.com/Venix-Sistemas/jade/commit/6bc6905))
+- **switcher:** Settings for saving changes, the scrollbar and the cursor ([647626d](https://github.com/Venix-Sistemas/jade/commit/647626d))
+- **typography:** Let visitors turn the custom font off ([5087140](https://github.com/Venix-Sistemas/jade/commit/5087140))
+- **switcher:** Credit the module at the bottom of the settings ([338da73](https://github.com/Venix-Sistemas/jade/commit/338da73))
+- **switcher:** Show each seasonal theme's dates ([4b7ac0b](https://github.com/Venix-Sistemas/jade/commit/4b7ac0b))
+- **scrollbar:** Show the custom pointer over the thumb ([773abc8](https://github.com/Venix-Sistemas/jade/commit/773abc8))
+- **scrollbar:** Optional overlay scrollbar with OverlayScrollbars ([5f95656](https://github.com/Venix-Sistemas/jade/commit/5f95656))
+
+### 🩹 Fixes
+
+- **color:** Make green the primary color of the Christmas theme ([9d59c3f](https://github.com/Venix-Sistemas/jade/commit/9d59c3f))
+- **scrollbar:** Keep the custom scrollbar in Chromium ([e4981eb](https://github.com/Venix-Sistemas/jade/commit/e4981eb))
+- **cursor:** Show the right cursor in each situation ([d95882b](https://github.com/Venix-Sistemas/jade/commit/d95882b))
+- **switcher:** Fit the menu on phones ([60e1778](https://github.com/Venix-Sistemas/jade/commit/60e1778))
+- **scrollbar:** Change the thumb's color on hover again ([730a140](https://github.com/Venix-Sistemas/jade/commit/730a140))
+
+### 💅 Refactors
+
+- Rebuild only the colors at runtime ([2838690](https://github.com/Venix-Sistemas/jade/commit/2838690))
+
+### 📖 Documentation
+
+- List what 2.0.0 removes and renames ([1b84aac](https://github.com/Venix-Sistemas/jade/commit/1b84aac))
+- Show each theme's cursors in the README ([036ad91](https://github.com/Venix-Sistemas/jade/commit/036ad91))
+- Regenerate the palettes image with the new Christmas colors ([0206082](https://github.com/Venix-Sistemas/jade/commit/0206082))
+- Plan the module's public files under their own path in 2.0.0 ([8550527](https://github.com/Venix-Sistemas/jade/commit/8550527))
+- Reorganize the README around the modules and the switcher ([2968895](https://github.com/Venix-Sistemas/jade/commit/2968895))
+- Retake the theme switcher animation ([d73fa7b](https://github.com/Venix-Sistemas/jade/commit/d73fa7b))
+
+### 🤖 CI
+
+- Limit the workflow token to read-only ([c236a5d](https://github.com/Venix-Sistemas/jade/commit/c236a5d))
+
+### ❤️ Contributors
+
+- Vinicius ([@VBviniciusVB](https://github.com/VBviniciusVB))
+
 ## v1.2.0
 
 [compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.1.0...v1.2.0)
