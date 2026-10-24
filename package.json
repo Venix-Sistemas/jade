@@ -82,7 +82,7 @@
     "@iconify-json/mdi": "^1.2.3",
     "@iconify/utils": "^3.1.7",
     "@nuxt/icon": "^2.5.1",
-    "@nuxt/kit": "^4.6.1"
+    "@nuxt/kit": "^4.6.2"
   },
   "peerDependencies": {
     "overlayscrollbars": "^2.17.0"
@@ -93,19 +93,19 @@
     }
   },
   "devDependencies": {
-    "@nuxt/devtools": "4.0.0-beta.5",
+    "@nuxt/devtools": "4.0.0-beta.7",
     "@nuxt/eslint-config": "^1.17.0",
     "@nuxt/module-builder": "^1.0.3",
-    "@nuxt/schema": "^4.6.1",
-    "@nuxt/test-utils": "^4.3.3",
+    "@nuxt/schema": "^4.6.2",
+    "@nuxt/test-utils": "^4.3.4",
     "@nuxtjs/i18n": "10.6.0",
     "@types/node": "latest",
     "changelogen": "^0.6.2",
-    "eslint": "^10.12.0",
-    "nuxt": "^4.6.1",
+    "eslint": "^10.13.0",
+    "nuxt": "^4.6.2",
     "overlayscrollbars": "^2.17.0",
     "typescript": "7.0.2",
-    "vitest": "5.0.4",
+    "vitest": "5.0.5",
     "vue-tsc": "^3.3.13"
   },
   "packageManager": "pnpm@12.3.4"
