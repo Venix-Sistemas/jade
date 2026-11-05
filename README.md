@@ -377,7 +377,19 @@ venixTheme: {
 | ----------- | --------- | ----------------------- | --------------------------------------------------- |
 | `label`     | `string`  | translated, per locale  | Accessible label for the button and the menu        |
 | `showLabel` | `boolean` | `false`                 | Show the theme and mode names next to the icon      |
-| `hideConsent` | `boolean` | `false`               | Leave "Save changes" out of the settings, when your own cookie banner already asks |
+| `hideConsent` | `boolean` | `false`               | Leave "Save changes" and the save reminder out, when your own cookie banner already asks |
+
+And emits one event:
+
+| Event            | When                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| `consent-needed` | The visitor's first change on this visit that won't be remembered (no consent yet, with `color.requireConsent`) |
+
+With your own cookie banner, use it to bring the banner up at the moment it matters:
+
+```vue
+<VenixThemeSwitcher hide-consent @consent-needed="openCookieBanner()" />
+```
 
 The gear next to the title opens the **settings**, a few switches for the visitor:
 
@@ -393,6 +405,8 @@ The gear next to the title opens the **settings**, a few switches for the visito
 
 Without any of them, the gear isn't shown. At the bottom, in small faint print, the settings credit the module with a link to its repository.
 
+Since "Save changes" is easy to miss, a change that won't be remembered (a theme, a mode or one of the switches, without consent yet) opens a small reminder at the bottom of the menu: **Remember your choices? · Uses cookies**, with **Save** and **×** (not now). **Save** grants consent right there (`persistence.grant()`) and briefly confirms; **×** hides the reminder for the rest of the visit. Nothing is stored for "not now" (that would itself need consent), so it can come back on the next visit after another change. It never shows with `hideConsent`, once consent is recorded, or after the visitor revoked it on this visit.
+
 - **Accessible:** arrow keys, Home/End and Esc navigate the menu, focus returns to the button on close, and each change is announced to screen readers.
 - **Always legible:** the menu uses fixed neutral colors (dark surface, light text) instead of the active theme's, so every option stays readable whatever theme is applied. The button itself follows the active theme.
 - **Seasons at a glance:** each seasonal theme shows its dates in small faint print beside its name (e.g. `01/10 a 31/10` in Portuguese, `10/01 – 10/31` in English) — the running occurrence, or the next one once this year's is over, so themes relative to Easter show the right year's dates.
@@ -400,7 +414,7 @@ Without any of them, the gear isn't shown. At the bottom, in small faint print, 
 - **Quick:** picking a mode or a theme keeps the menu open, so both can be set in one go; it closes on the button, a click or tap outside, or Esc.
 - **Fits on phones:** the menu always stays on screen: it opens upward when there's more room above the button, shifts sideways near an edge, and scrolls inside itself when it's taller than the space left (refitted when the screen rotates). On touch screens its targets are bigger, hover highlights are off, and the custom cursor's switch is hidden, since there's no cursor to show.
 
-It ships with minimal CSS of its own. To restyle it, target `.venix-theme-switcher`, `.venix-theme-switcher__trigger`, `.venix-theme-switcher__menu`, `.venix-theme-switcher__subheading`, `.venix-theme-switcher__item` (`--mode` for the mode buttons, `--toggle` for the settings), `.venix-theme-switcher__icon-button` (the gear and back buttons) and `.venix-theme-switcher__switch` (see [`VenixThemeSwitcher.vue`](./src/runtime/components/VenixThemeSwitcher.vue)).
+It ships with minimal CSS of its own. To restyle it, target `.venix-theme-switcher`, `.venix-theme-switcher__trigger`, `.venix-theme-switcher__menu`, `.venix-theme-switcher__subheading`, `.venix-theme-switcher__item` (`--mode` for the mode buttons, `--toggle` for the settings), `.venix-theme-switcher__icon-button` (the gear and back buttons), `.venix-theme-switcher__prompt` (the save reminder) and `.venix-theme-switcher__switch` (see [`VenixThemeSwitcher.vue`](./src/runtime/components/VenixThemeSwitcher.vue)).
 
 <br>
 

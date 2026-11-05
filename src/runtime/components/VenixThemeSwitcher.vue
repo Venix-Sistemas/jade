@@ -105,7 +105,7 @@
               class="venix-theme-switcher__item venix-theme-switcher__item--toggle"
               :class="{ 'venix-theme-switcher__item--on': option.enabled }"
               :aria-checked="option.enabled"
-              @click="option.toggle()"
+              @click="toggleOption(option)"
             >
               <span
                 v-if="option.icon?.format === 'emote'"
@@ -272,6 +272,65 @@
               </button>
             </div>
           </template>
+
+          <!-- After a change that won't be remembered (no consent yet): a
+               reminder at the bottom that saves right here, so the visitor
+               doesn't have to find "Save changes" in the settings. -->
+          <Transition
+            name="venix-theme-switcher-prompt"
+            @after-enter="revealPrompt"
+            @after-leave="updatePlacement"
+          >
+            <div
+              v-if="showSavePrompt || justSaved"
+              class="venix-theme-switcher__prompt"
+            >
+              <div class="venix-theme-switcher__prompt-inner">
+                <div
+                  class="venix-theme-switcher__separator"
+                  role="separator"
+                />
+                <div
+                  v-if="justSaved"
+                  class="venix-theme-switcher__prompt-row venix-theme-switcher__prompt-row--saved"
+                >
+                  <span aria-hidden="true">✓</span>
+                  <span>{{ promptSavedLabel }}</span>
+                </div>
+                <div
+                  v-else
+                  class="venix-theme-switcher__prompt-row"
+                >
+                  <span
+                    :id="promptTextId"
+                    class="venix-theme-switcher__item-text"
+                  >
+                    <span class="venix-theme-switcher__prompt-title">{{ promptTitle }}</span>
+                    <span class="venix-theme-switcher__item-description">{{ promptDescription }}</span>
+                  </span>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    class="venix-theme-switcher__prompt-button venix-theme-switcher__prompt-button--save"
+                    :aria-describedby="promptTextId"
+                    @click="saveFromPrompt"
+                  >
+                    {{ promptSaveLabel }}
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    class="venix-theme-switcher__prompt-button venix-theme-switcher__prompt-button--dismiss"
+                    :aria-label="promptDismissLabel"
+                    :title="promptDismissLabel"
+                    @click="dismissPrompt"
+                  >
+                    <span aria-hidden="true">×</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Transition>
         </div>
       </div>
     </Transition>
@@ -279,7 +338,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick, useId } from 'vue'
 import { useRuntimeConfig } from '#app'
 import { useVenixTheme } from '../composables/useVenixTheme'
 import { getDefaultSelection, getSeasonDates } from '../../shared/utils/theme-resolve'
@@ -457,6 +516,67 @@ const SEASON_RANGE_TRANSLATIONS: Record<string, string> = {
   'zh-CN': '{start}至{end}',
 }
 
+// The save reminder at the bottom of the menu (see showSavePrompt).
+const PROMPT_TITLE_TRANSLATIONS: Record<string, string> = {
+  'pt-BR': 'Lembrar suas escolhas?',
+  'en-US': 'Remember your choices?',
+  'es-ES': '¿Recordar tus elecciones?',
+  'fr-FR': 'Retenir vos choix ?',
+  'de-DE': 'Auswahl merken?',
+  'it-IT': 'Ricordare le tue scelte?',
+  'ja-JP': '選択を保存しますか？',
+  'ko-KR': '선택을 기억할까요?',
+  'zh-CN': '记住你的选择？',
+}
+
+const PROMPT_DESCRIPTION_TRANSLATIONS: Record<string, string> = {
+  'pt-BR': 'Usa cookies',
+  'en-US': 'Uses cookies',
+  'es-ES': 'Usa cookies',
+  'fr-FR': 'Utilise des cookies',
+  'de-DE': 'Nutzt Cookies',
+  'it-IT': 'Usa cookie',
+  'ja-JP': 'Cookieを使用',
+  'ko-KR': '쿠키 사용',
+  'zh-CN': '使用 Cookie',
+}
+
+const PROMPT_SAVE_TRANSLATIONS: Record<string, string> = {
+  'pt-BR': 'Salvar',
+  'en-US': 'Save',
+  'es-ES': 'Guardar',
+  'fr-FR': 'Enregistrer',
+  'de-DE': 'Speichern',
+  'it-IT': 'Salva',
+  'ja-JP': '保存',
+  'ko-KR': '저장',
+  'zh-CN': '保存',
+}
+
+const PROMPT_DISMISS_TRANSLATIONS: Record<string, string> = {
+  'pt-BR': 'Agora não',
+  'en-US': 'Not now',
+  'es-ES': 'Ahora no',
+  'fr-FR': 'Pas maintenant',
+  'de-DE': 'Nicht jetzt',
+  'it-IT': 'Non ora',
+  'ja-JP': '今はしない',
+  'ko-KR': '나중에',
+  'zh-CN': '暂不',
+}
+
+const PROMPT_SAVED_TRANSLATIONS: Record<string, string> = {
+  'pt-BR': 'Escolhas salvas',
+  'en-US': 'Choices saved',
+  'es-ES': 'Elecciones guardadas',
+  'fr-FR': 'Choix enregistrés',
+  'de-DE': 'Auswahl gespeichert',
+  'it-IT': 'Scelte salvate',
+  'ja-JP': '選択を保存しました',
+  'ko-KR': '선택이 저장되었습니다',
+  'zh-CN': '已保存你的选择',
+}
+
 const FONT_TITLE_TRANSLATIONS: Record<string, string> = {
   'pt-BR': 'Fonte personalizada',
   'en-US': 'Custom font',
@@ -476,6 +596,15 @@ const props = defineProps<{
   showLabel?: boolean
   /** Hides "Save changes" in the settings, for a site whose own cookie banner already records consent. */
   hideConsent?: boolean
+}>()
+
+const emit = defineEmits<{
+  /**
+   * The visitor's first change on this visit that won't be remembered, for
+   * lack of consent (`color.requireConsent`). For a site with its own cookie
+   * banner (usually with `hideConsent`), to bring that banner up.
+   */
+  'consent-needed': []
 }>()
 
 const { theme, themes, mode, modes, locale, persistence, scrollbar, cursor, font } = useVenixTheme()
@@ -526,6 +655,78 @@ const iconFormat = (useRuntimeConfig().public.venixTheme?.iconFormat ?? 'svg') a
 const icons = {
   settings: resolveThemeIcon(SWITCHER_ICONS.settings, iconFormat),
   back: resolveThemeIcon(SWITCHER_ICONS.back, iconFormat),
+}
+
+const promptTitle = computed(() => locale.translate(PROMPT_TITLE_TRANSLATIONS, 'Remember your choices?'))
+const promptDescription = computed(() => locale.translate(PROMPT_DESCRIPTION_TRANSLATIONS, 'Uses cookies'))
+const promptSaveLabel = computed(() => locale.translate(PROMPT_SAVE_TRANSLATIONS, 'Save'))
+const promptDismissLabel = computed(() => locale.translate(PROMPT_DISMISS_TRANSLATIONS, 'Not now'))
+const promptSavedLabel = computed(() => locale.translate(PROMPT_SAVED_TRANSLATIONS, 'Choices saved'))
+const promptTextId = useId()
+
+// Whether the visitor changed something on this visit that won't be
+// remembered: consent is still missing. Kept in memory only — remembering
+// "not now" anywhere would itself be storing something without consent.
+const needsConsent = computed(() => persistence.required && !persistence.hasConsent.value)
+const unsavedChange = ref(false)
+const promptDismissed = ref(false)
+const justSaved = ref(false)
+let justSavedTimer: ReturnType<typeof setTimeout> | undefined
+let consentNeededEmitted = false
+
+const showSavePrompt = computed(() =>
+  needsConsent.value && unsavedChange.value && !promptDismissed.value && !props.hideConsent && view.value === 'main',
+)
+
+const markChanged = () => {
+  if (!needsConsent.value) return
+  unsavedChange.value = true
+  if (!consentNeededEmitted) {
+    consentNeededEmitted = true
+    emit('consent-needed')
+  }
+}
+
+// Consent revoked on this visit (in the settings, or by the site's own
+// banner) is a decision: no reminder after it.
+watch(() => persistence.hasConsent.value, (granted, wasGranted) => {
+  if (wasGranted && !granted) promptDismissed.value = true
+})
+
+// The reminder's buttons leave the DOM when it closes: focus moves to the
+// selected theme first, or it would fall to <body> and close the menu (see
+// handleFocusOut).
+const focusSelected = async () => {
+  menuRef.value?.focus()
+  await nextTick()
+  const items = getMenuItems()
+  ;(items.find(el => el.getAttribute('aria-checked') === 'true') ?? items[0])?.focus()
+}
+
+const saveFromPrompt = () => {
+  persistence.grant()
+  justSaved.value = true
+  announcement.value = promptSavedLabel.value
+  clearTimeout(justSavedTimer)
+  justSavedTimer = setTimeout(() => {
+    justSaved.value = false
+  }, 1800)
+  void focusSelected()
+}
+
+// On a short screen the menu scrolls inside, and the reminder opens at its
+// bottom, out of sight: scrolled to once it's open.
+const revealPrompt = () => {
+  updatePlacement()
+  const menu = menuRef.value
+  if (!menu || menu.scrollHeight <= menu.clientHeight) return
+  const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  menu.scrollTo({ top: menu.scrollHeight, behavior: smooth ? 'smooth' : 'auto' })
+}
+
+const dismissPrompt = () => {
+  promptDismissed.value = true
+  void focusSelected()
 }
 
 interface SettingsOption {
@@ -659,7 +860,7 @@ const activeIconKey = computed(() => `${theme.value.value}:${activeIcon.value?.f
 
 // In document order: the header's button (settings/back) first.
 const getMenuItems = (): HTMLButtonElement[] => {
-  return Array.from(rootRef.value?.querySelectorAll<HTMLButtonElement>('.venix-theme-switcher__icon-button, .venix-theme-switcher__item') ?? [])
+  return Array.from(rootRef.value?.querySelectorAll<HTMLButtonElement>('.venix-theme-switcher__icon-button, .venix-theme-switcher__item, .venix-theme-switcher__prompt-button') ?? [])
 }
 
 const focusItemAt = (index: number) => {
@@ -698,8 +899,16 @@ const close = (options: { restoreFocus?: boolean } = {}) => {
   if (options.restoreFocus) triggerRef.value?.focus()
 }
 
+// The settings' switches, besides "Save changes" itself, are choices to
+// remember too.
+const toggleOption = (option: SettingsOption) => {
+  option.toggle()
+  if (option.key !== 'save') markChanged()
+}
+
 const selectTheme = (value: string) => {
   const selected = themes.value.find(item => item.value === value)
+  if (value !== theme.preference.value) markChanged()
   theme.set(value)
 
   const template = locale.translate(CHANGED_ANNOUNCEMENT_TRANSLATIONS, 'Website color changed to {theme}')
@@ -711,6 +920,7 @@ const selectTheme = (value: string) => {
 // close it.
 const selectMode = (value: ThemeModePreference) => {
   const selected = modes.value.find(item => item.value === value)
+  if (value !== mode.preference.value) markChanged()
   mode.set(value)
 
   const template = locale.translate(MODE_CHANGED_ANNOUNCEMENT_TRANSLATIONS, 'Mode changed to {mode}')
@@ -807,6 +1017,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  clearTimeout(justSavedTimer)
   document.removeEventListener('pointerdown', handlePointerDown)
   document.removeEventListener('mousedown', handleMouseDown, true)
   document.removeEventListener('click', handleClick)
@@ -936,7 +1147,8 @@ onUnmounted(() => {
 /* Touch: no gray flash on tap, and no wait for a possible double-tap zoom. */
 .venix-theme-switcher__trigger,
 .venix-theme-switcher__icon-button,
-.venix-theme-switcher__item {
+.venix-theme-switcher__item,
+.venix-theme-switcher__prompt-button {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
@@ -1232,6 +1444,118 @@ onUnmounted(() => {
 .venix-theme-switcher__item--on .venix-theme-switcher__switch::after {
   background: var(--venix-switcher-bg);
   transform: translateX(0.75rem);
+}
+
+/* The save reminder: opens up from nothing below the themes (the rows of a
+   grid going from 0fr to 1fr, so it eases to its real height). */
+.venix-theme-switcher__prompt {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.venix-theme-switcher__prompt-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.venix-theme-switcher-prompt-enter-active,
+.venix-theme-switcher-prompt-leave-active {
+  transition:
+    grid-template-rows 0.22s cubic-bezier(0, 0, 0.2, 1),
+    opacity 0.18s ease;
+}
+
+.venix-theme-switcher-prompt-enter-from,
+.venix-theme-switcher-prompt-leave-to {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.venix-theme-switcher__prompt-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.25rem 0.125rem 0.625rem;
+  color: var(--venix-switcher-text-strong);
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+
+.venix-theme-switcher__prompt-row--saved {
+  justify-content: center;
+  min-height: 2rem;
+  padding-inline: 0.625rem;
+  animation: venix-theme-switcher-view-in 0.18s cubic-bezier(0, 0, 0.2, 1);
+  --venix-switcher-view-from: 0;
+}
+
+/* Wraps rather than widen the menu while it's open. */
+.venix-theme-switcher__prompt-title {
+  font-weight: 600;
+}
+
+.venix-theme-switcher__prompt-button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--venix-switcher-icon-button);
+  padding: 0 0.625rem;
+  border: none;
+  border-radius: 0.5rem;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+/* "Save" in the switches' "on" colors, so it reads as the action. */
+.venix-theme-switcher__prompt-button--save {
+  background: var(--venix-switcher-switch-on);
+  color: var(--venix-switcher-bg);
+}
+
+.venix-theme-switcher__prompt-button--dismiss {
+  width: var(--venix-switcher-icon-button);
+  padding: 0;
+  background: transparent;
+  color: var(--venix-switcher-text);
+  font-size: 1.125rem;
+  font-weight: 400;
+}
+
+.venix-theme-switcher__prompt-button--save:focus-visible {
+  outline: 2px solid var(--venix-switcher-switch-on);
+  outline-offset: 2px;
+}
+
+.venix-theme-switcher__prompt-button--dismiss:focus-visible {
+  background: var(--venix-switcher-hover);
+  color: var(--venix-switcher-text-strong);
+}
+
+@media (hover: hover) {
+  .venix-theme-switcher__prompt-button--save:hover {
+    opacity: 0.85;
+  }
+
+  .venix-theme-switcher__prompt-button--dismiss:hover {
+    background: var(--venix-switcher-hover);
+    color: var(--venix-switcher-text-strong);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .venix-theme-switcher-prompt-enter-active,
+  .venix-theme-switcher-prompt-leave-active {
+    transition: none;
+  }
+
+  .venix-theme-switcher__prompt-row--saved {
+    animation: none;
+  }
 }
 
 /* Credit to the module: tiny and faint, only noticeable when looked for. */
