@@ -466,6 +466,8 @@ These cookies remember the visitor's choices between visits, for a year:
 
 The theme itself is always recomputed from the first two (with `'system'`, by today's date and the OS color scheme), so a saved seasonal theme never outlives its season.
 
+Open pages follow these cookies live: a choice saved in another tab, or by another site on the same host using this module (cookies are shared by host, not by port — e.g. two apps on `localhost`, or subdomains sharing a cookie domain), is applied without a reload. Browsers with the [Cookie Store API](https://developer.mozilla.org/docs/Web/API/Cookie_Store_API) apply it right away; the others when the page is focused again. A page only follows them while it can save its own choices (see consent below).
+
 Choices saved before theme and mode were separate (e.g. a theme cookie of `'dark'`) are read as the equivalent theme and mode, so users keep their theme.
 
 By default, none of them is written without consent. Switching themes always works; without consent it just isn't remembered on the next visit. In development, the first unsaved theme change logs a `[jade]` warning in the console, so a missing consent setup doesn't go unnoticed.

@@ -1,7 +1,7 @@
 // runtime/composables/useVenixTheme.ts
 import { computed, effectScope, watch } from 'vue'
 import { onNuxtReady, useNuxtApp, useRuntimeConfig, useState } from '#app'
-import { DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT, SYSTEM_THEME, SCROLLBAR_ATTRIBUTE, CURSOR_ATTRIBUTE, FONT_ATTRIBUTE } from '../../shared/constants'
+import { DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT, SYSTEM_THEME, SCROLLBAR_ATTRIBUTE, CURSOR_ATTRIBUTE, FONT_ATTRIBUTE, THEME_PREFERENCE_COOKIE, THEME_MODE_COOKIE, SCROLLBAR_COOKIE, CURSOR_COOKIE, FONT_COOKIE } from '../../shared/constants'
 import { useThemeCookies } from './useThemeCookies'
 import { useThemeLocale } from './useThemeLocale'
 import { useThemeSeasonal } from './useThemeSeasonal'
@@ -337,6 +337,33 @@ function createThemeCore() {
 type ThemeCore = ReturnType<typeof createThemeCore>
 
 /**
+ * One cookie's current value, straight from `document.cookie`; `undefined`
+ * when it isn't set. Decoded the way `useCookie` writes it (URI-encoded,
+ * JSON for anything that isn't a plain string).
+ */
+function readDocumentCookie(name: string): string | undefined {
+  for (const part of document.cookie.split(';')) {
+    const separator = part.indexOf('=')
+    if (separator === -1 || part.slice(0, separator).trim() !== name) continue
+    let value = part.slice(separator + 1).trim()
+    try {
+      value = decodeURIComponent(value)
+    }
+    catch {
+      return value
+    }
+    try {
+      const parsed = JSON.parse(value)
+      return typeof parsed === 'string' ? parsed : value
+    }
+    catch {
+      return value
+    }
+  }
+  return undefined
+}
+
+/**
  * Side effects of the theme state — applying it to `<html>`, persisting it,
  * reacting to the OS color scheme and the date. Installed once per app (see
  * `useVenixTheme`): when every call installed its own, a page plus
@@ -360,6 +387,9 @@ function installThemeEffects(core: ThemeCore) {
     })
   }
 
+  // Set by `syncFromCookies` below, for the change it makes.
+  let skipNextThemePersist = false
+
   if (shouldApplyColors) {
     // `preference` (`useState`) can hydrate from a stale payload: on a page
     // that was prerendered/cached (e.g. a static host serving the same HTML
@@ -382,8 +412,50 @@ function installThemeEffects(core: ThemeCore) {
     watch([preference, modePreference], () => {
       const selection = core.currentSelection()
       core.applyWithTransition(selection)
+      // A change read from the cookies (another site or tab) is already
+      // saved — writing it back could overwrite it: a theme this app doesn't
+      // have is read here as the fallback, and saving that would undo the
+      // other site's choice there too.
+      if (skipNextThemePersist) {
+        skipNextThemePersist = false
+        return
+      }
       cookies.persistIfConsented(selection.theme, selection.mode, core.getResolvedTheme(selection))
     })
+  }
+
+  // Picks up choices saved by another tab or another site on the same host
+  // (cookies are shared by host, not by port), which `useCookie` never
+  // re-reads by itself. Read straight from `document.cookie`, since the
+  // `useCookie` refs only follow other writers with Nuxt's opt-in cookieStore.
+  const syncFromCookies = () => {
+    // Without consent this page doesn't save its choices, so the cookies
+    // aren't its own: following them would undo an unsaved switch here.
+    if (!cookies.canPersist()) return
+
+    if (shouldApplyColors) {
+      const themeRaw = readDocumentCookie(THEME_PREFERENCE_COOKIE)
+      const modeRaw = readDocumentCookie(THEME_MODE_COOKIE)
+      if (themeRaw !== undefined || modeRaw !== undefined) {
+        const fromCookies = normalizeThemeSelection(themeRaw, modeRaw, core.theme.colors)
+        if (fromCookies.theme !== preference.value || fromCookies.mode !== modePreference.value) {
+          skipNextThemePersist = true
+          preference.value = fromCookies.theme
+          modePreference.value = fromCookies.mode
+        }
+      }
+    }
+
+    // A missing cookie means nothing was saved: leave these as they are.
+    const toggles: Array<[string, typeof scrollbarEnabled]> = [
+      [SCROLLBAR_COOKIE, scrollbarEnabled],
+      [CURSOR_COOKIE, cursorEnabled],
+      [FONT_COOKIE, fontEnabled],
+    ]
+    for (const [name, state] of toggles) {
+      const raw = readDocumentCookie(name)
+      if (raw !== undefined && (raw !== 'off') !== state.value) state.value = raw !== 'off'
+    }
   }
 
   // The custom scrollbar/cursor/font switches: the cookies win over a stale
@@ -406,6 +478,16 @@ function installThemeEffects(core: ThemeCore) {
     hasConsent.value = hasCookieConsent()
 
     window.addEventListener(COOKIE_PREFERENCES_UPDATED_EVENT, core.syncPersistence)
+
+    // The Cookie Store API reports every change, from any tab or site sharing
+    // the cookies, while both stay open side by side. Where it's missing (or
+    // as a backup), re-check whenever the visitor comes back to this page.
+    const cookieStore = (window as Window & { cookieStore?: EventTarget }).cookieStore
+    cookieStore?.addEventListener('change', syncFromCookies)
+    window.addEventListener('focus', syncFromCookies)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') syncFromCookies()
+    })
 
     if (!shouldApplyColors) return
 
