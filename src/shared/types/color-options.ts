@@ -7,7 +7,8 @@ export interface ColorOptions {
    * Initial choice for new visitors: a theme name (mode follows the OS), a
    * variant id like `'dark'` (that theme in that mode) or `'system'` (both
    * automatic). Default: `'dark'`. To start on a project's own brand, add
-   * that theme to `themes` and put its name here.
+   * that theme to `themes` and put its name here. A value that matches no
+   * available theme warns at build time and falls back to `'system'`.
    */
   defaultColor: string
   /**

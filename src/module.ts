@@ -4,7 +4,7 @@ import type { TypographyConfig, ScrollbarConfig, CursorConfig, ColorOptions, Tra
 import { DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_THEME } from './shared/constants'
 import { resolveFeatureOption } from './shared/utils/options'
 import { findDeprecatedThemeEntries, overridesBrandColors } from './shared/utils/merge-themes'
-import { getBaseThemeEntries } from './shared/utils/theme-config'
+import { buildResolvedTheme, findInvalidDefaultColor, getBaseThemeEntries } from './shared/utils/theme-config'
 import { customizeTheme } from './setup/customize-theme'
 import { registerPublicAssets } from './setup/register-assets'
 import { registerThemeComponents } from './setup/register-components'
@@ -83,6 +83,15 @@ export default defineNuxtModule<ModuleOptions>({
     }
     if (colorOptions.enabled && !colorOptions.allowVenixOverride && overridesBrandColors(getBaseThemeEntries(), colorOptions.themes)) {
       useLogger('jade').warn('`color.themes` changes the colors of `venix`, the Venix Sistemas brand theme. For another identity, add a theme of your own (e.g. `color.themes.myBrand`) and set `color.defaultColor` to its name; Venix stays in the switcher next to it. Set `color.allowVenixOverride: true` if changing Venix is intended.')
+    }
+    if (colorOptions.enabled) {
+      const resolvedColors = buildResolvedTheme({
+        defaultTheme: colorOptions.defaultColor,
+        colorThemes: colorOptions.themes,
+        seasonal: colorOptions.seasonal,
+      }).colors
+      const defaultColorMessage = findInvalidDefaultColor(resolvedColors)
+      if (defaultColorMessage) useLogger('jade').warn(defaultColorMessage)
     }
     if (typeof options.cursor === 'object' && options.cursor?.cursors) {
       useLogger('jade').warn('`cursor.cursors` is deprecated and stops working in 2.0. Use `cursor.defaultCursors` instead.')

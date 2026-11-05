@@ -1,8 +1,10 @@
 // src/shared/utils/theme-config.ts
 import themeData from '../theme.json' with { type: 'json' }
 import type { ResolvedTheme, ThemeEntry, ThemeModeLabel } from '../types'
-import { DEFAULT_THEME } from '../constants'
+import { DEFAULT_THEME, SYSTEM_THEME } from '../constants'
 import { mergeColorThemes, normalizeColorThemes } from './merge-themes'
+import { findVariantOwner, isSelectableGroup } from './theme-resolve'
+import type { ColorModel } from './theme-resolve'
 
 export interface VenixRuntimeThemeConfig {
   defaultTheme?: string
@@ -23,6 +25,23 @@ interface RawColors {
 /** The theme entries bundled with the module, in config format. */
 export function getBaseThemeEntries(): Record<string, ThemeEntry> {
   return ((themeData.colors as RawColors | undefined)?.themes ?? {}) as Record<string, ThemeEntry>
+}
+
+/**
+ * The build-time message for a `defaultColor` that names no theme a visitor
+ * can get (a typo, a theme that isn't defined, a seasonal one with
+ * `seasonal: false`), or `null` when it's fine. The runtime then falls back
+ * to `'system'` (see `getDefaultSelection`), so this only makes that visible.
+ */
+export function findInvalidDefaultColor(colors: ColorModel): string | null {
+  const defaultColor = colors.defaultColor || DEFAULT_THEME
+  if (defaultColor === SYSTEM_THEME || isSelectableGroup(colors, defaultColor)) return null
+
+  const owner = findVariantOwner(colors, defaultColor)
+  if (owner && isSelectableGroup(colors, owner.theme)) return null
+
+  const available = Object.keys(colors.groups).filter(name => isSelectableGroup(colors, name))
+  return `\`color.defaultColor\` is \`'${defaultColor}'\`, which matches no available theme, so new visitors get \`'system'\` instead. Use a theme name (${available.map(name => `\`'${name}'\``).join(', ')}), one of its variant ids or \`'system'\`.`
 }
 
 const resolvedThemeCache = new WeakMap<VenixRuntimeThemeConfig, ResolvedTheme>()

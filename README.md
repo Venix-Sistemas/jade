@@ -136,7 +136,7 @@ Every theme has a light and a dark palette, exposed as CSS variables (`--color-p
 | Option           | Type                        | Default  | Description                                                   |
 | ---------------- | --------------------------- | -------- | ------------------------------------------------------------- |
 | `apply`          | `boolean`                   | `true`   | Apply the resolved theme to `<html>` (`data-theme` and class) |
-| `defaultColor`   | `string`                    | `'dark'` | Initial choice with no saved preference: a theme (mode follows the OS), a variant id like `'dark'` (that theme in that mode) or `'system'` |
+| `defaultColor`   | `string`                    | `'dark'` | Initial choice with no saved preference: a theme (mode follows the OS), a variant id like `'dark'` (that theme in that mode) or `'system'`. A value that matches no available theme warns at build time and falls back to `'system'` |
 | `themes`         | `object`                    | `{}`     | Override or add themes — see [Themes](#themes)                |
 | `iconFormat`     | `'emote' \| 'css' \| 'svg'` | `'svg'`  | Preferred theme icon variant — see [Theme icons](#theme-icons) |
 | `requireConsent` | `boolean`                   | `true`   | Only save the chosen theme after cookie consent — see [Saving preferences](#saving-preferences-cookie-consent) |

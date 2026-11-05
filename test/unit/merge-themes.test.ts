@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mergeColorThemes, normalizeColorThemes, findDeprecatedThemeEntries, overridesBrandColors } from '../../src/shared/utils/merge-themes'
-import { buildResolvedTheme, getBaseThemeEntries } from '../../src/shared/utils/theme-config'
+import { buildResolvedTheme, findInvalidDefaultColor, getBaseThemeEntries } from '../../src/shared/utils/theme-config'
+import type { VenixRuntimeThemeConfig } from '../../src/shared/utils/theme-config'
 import { customizeTheme } from '../../src/setup/customize-theme'
 import { loadTheme } from '../../src/shared/utils/load'
 import { useThemeColors } from '../../src/runtime/composables/useThemeColors'
@@ -127,6 +128,36 @@ describe('overridesBrandColors', () => {
     expect(overridesBrandColors(baseEntries, { natal: { dark: { primary: '#000000' } } })).toBe(false)
     expect(overridesBrandColors(baseEntries, { carnaval: { primary: '#000000' } as Partial<ThemeEntry> })).toBe(false)
     expect(overridesBrandColors(baseEntries, { acme: { light: { primary: '#000000' }, dark: { primary: '#ffffff' } } })).toBe(false)
+  })
+})
+
+describe('findInvalidDefaultColor', () => {
+  const colorsFor = (defaultTheme: string, extra: Partial<VenixRuntimeThemeConfig> = {}) =>
+    buildResolvedTheme({ defaultTheme, ...extra }).colors
+
+  it('accepts a theme name, a variant id and system', () => {
+    expect(findInvalidDefaultColor(colorsFor('venix'))).toBeNull()
+    expect(findInvalidDefaultColor(colorsFor('dark'))).toBeNull()
+    expect(findInvalidDefaultColor(colorsFor('light'))).toBeNull()
+    expect(findInvalidDefaultColor(colorsFor('system'))).toBeNull()
+    expect(findInvalidDefaultColor(colorsFor('natal'))).toBeNull()
+  })
+
+  it('accepts a project theme', () => {
+    const colorThemes = { acme: { light: { primary: '#111111' }, dark: { primary: '#eeeeee' } } }
+    expect(findInvalidDefaultColor(colorsFor('acme', { colorThemes }))).toBeNull()
+    expect(findInvalidDefaultColor(colorsFor('acme-dark', { colorThemes }))).toBeNull()
+  })
+
+  it('flags an unknown theme, listing the available ones', () => {
+    const message = findInvalidDefaultColor(colorsFor('acme'))
+    expect(message).toContain('`\'acme\'`')
+    expect(message).toContain('`\'venix\'`')
+    expect(message).not.toContain('`\'system\'`,')
+  })
+
+  it('flags a seasonal theme removed with `seasonal: false`', () => {
+    expect(findInvalidDefaultColor(colorsFor('natal', { seasonal: false }))).toContain('`\'natal\'`')
   })
 })
 
