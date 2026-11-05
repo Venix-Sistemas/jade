@@ -6,13 +6,19 @@ export interface ColorOptions {
   /**
    * Initial choice for new visitors: a theme name (mode follows the OS), a
    * variant id like `'dark'` (that theme in that mode) or `'system'` (both
-   * automatic). Default: `'dark'`.
+   * automatic). Default: `'dark'`. To start on a project's own brand, add
+   * that theme to `themes` and put its name here.
    */
   defaultColor: string
   /**
    * Override or add themes. Use the grouped format
    * (`{ translations, icon, light: {...}, dark: {...} }`); the flat format
    * (`{ dark: true, primary, ... }`) still works but is deprecated.
+   *
+   * `venix` is the brand theme of Venix Sistemas: don't change its colors.
+   * For another identity (a client's brand, say), add a new theme here and
+   * set `defaultColor` to its name. Overriding Venix's colors logs a build
+   * warning unless `allowVenixOverride` is `true`.
    */
   themes: Record<string, Partial<ThemeEntry>>
   /**
@@ -36,4 +42,10 @@ export interface ColorOptions {
    * removed entirely: not listed in pickers and never applied by date.
    */
   seasonal: boolean
+  /**
+   * Override the colors of the `venix` theme without the build warning.
+   * Default: `false`. Venix is the Venix Sistemas brand theme, so a project
+   * with its own identity should add a theme instead (see `themes`).
+   */
+  allowVenixOverride: boolean
 }

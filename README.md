@@ -60,17 +60,25 @@ export default defineNuxtConfig({
 })
 ```
 
-No configuration is needed: every module except Vuetify is on by default with built-in values. Later, set only what you want to change under `venixTheme` — for example, the Venix theme's primary color in dark mode:
+No configuration is needed: every module except Vuetify is on by default with built-in values. Later, set only what you want to change under `venixTheme` — for example, your own brand theme as the one new visitors start on:
 
 ```typescript
 venixTheme: {
   color: {
     themes: {
-      venix: { dark: { primary: '#FF6B6B' } },
+      acme: {
+        translations: { 'en-US': 'Acme', 'pt-BR': 'Acme' },
+        light: { primary: '#1565C0', background: '#F5F8FC' },
+        dark: { primary: '#64B5F6', background: '#0B1420' },
+      },
     },
+    defaultColor: 'acme',
   },
 }
 ```
+
+> [!IMPORTANT]
+> **Venix** (`venix`) is the brand theme of Venix Sistemas: keep its colors as shipped. For another identity, add a theme of your own (as above) and point `defaultColor` at it. Venix stays available in the switcher next to it. Overriding Venix's colors logs a `[jade]` warning at build time, unless `color.allowVenixOverride` is `true`.
 
 See [Modules](#modules) for what each one does.
 
@@ -133,20 +141,21 @@ Every theme has a light and a dark palette, exposed as CSS variables (`--color-p
 | `iconFormat`     | `'emote' \| 'css' \| 'svg'` | `'svg'`  | Preferred theme icon variant — see [Theme icons](#theme-icons) |
 | `requireConsent` | `boolean`                   | `true`   | Only save the chosen theme after cookie consent — see [Saving preferences](#saving-preferences-cookie-consent) |
 | `seasonal`       | `boolean`                   | `true`   | Seasonal themes — `false` removes them entirely, see [Seasonal themes](#seasonal-themes) |
+| `allowVenixOverride` | `boolean`               | `false`  | Override the colors of the Venix brand theme without the build warning — see [Themes](#themes) |
 
 ### Themes
 
 Each theme has a `light` and a `dark` variant, plus a name (`translations`) and an `icon` shared by both. The module ships with **Venix** (`venix`) and the [seasonal themes](#seasonal-themes), all in both modes. `color.themes` extends that set:
 
-- An **existing** name overrides only the properties you set; the rest of the theme (the other variant, other colors, translations, icon) stays as shipped.
+- An **existing** name overrides only the properties you set; the rest of the theme (the other variant, other colors, translations, icon) stays as shipped. Venix's colors are the exception: they're the Venix Sistemas brand, so overriding them warns at build time unless `allowVenixOverride` is `true`. Add your own theme instead.
 - A **new** name adds a theme that works like a built-in one: its own CSS variables, an entry in `useVenixTheme().themes` (so it appears in `<VenixThemeSwitcher>`), and UnoCSS/Vuetify support when enabled. A theme with only one variant uses it in both modes.
 
 ```typescript
 color: {
   themes: {
-    // Overrides only `primary` of the built-in theme in dark mode
-    venix: {
-      dark: { primary: '#FF6B6B' },
+    // Overrides only the name of a built-in seasonal theme
+    natal: {
+      translations: { 'en-US': 'Holidays', 'pt-BR': 'Festas' },
     },
 
     // Adds a project-specific theme

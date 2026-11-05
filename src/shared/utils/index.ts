@@ -18,6 +18,6 @@ export {
   resolveThemePreference,
 } from './theme-resolve'
 export type { ColorModel, ThemeSelection } from './theme-resolve'
-export { mergeColorThemes, normalizeColorThemes, findDeprecatedThemeEntries } from './merge-themes'
+export { mergeColorThemes, normalizeColorThemes, findDeprecatedThemeEntries, overridesBrandColors, BRAND_THEME } from './merge-themes'
 export { buildResolvedTheme, getBaseThemeEntries } from './theme-config'
 export type { VenixRuntimeThemeConfig } from './theme-config'

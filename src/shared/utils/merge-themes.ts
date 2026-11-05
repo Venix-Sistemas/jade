@@ -164,6 +164,35 @@ export function normalizeColorThemes(entries: Record<string, ThemeEntry>): {
   return { themes, groups }
 }
 
+/** The built-in theme carrying the Venix Sistemas brand. */
+export const BRAND_THEME = 'venix'
+
+function hasPaletteColors(entry: Partial<ThemeEntry> | ThemeVariant | undefined): boolean {
+  return !!entry && COLOR_PROPERTIES.some(key => (entry as ThemePalette)[key] !== undefined)
+}
+
+/**
+ * Whether the overrides change any color of the brand theme (`venix`) —
+ * by its name, in either format, or by one of its variant ids in the flat
+ * format (`dark: { primary }`). Its name and icon don't count.
+ */
+export function overridesBrandColors(
+  baseThemes: Record<string, ThemeEntry>,
+  overrides?: Record<string, Partial<ThemeEntry>>,
+): boolean {
+  for (const [themeName, override] of Object.entries(overrides ?? {})) {
+    if (themeName === BRAND_THEME) {
+      if (isThemeDefinition(override)
+        ? THEME_MODES.some(mode => hasPaletteColors(override[mode]))
+        : hasPaletteColors(override)) return true
+      continue
+    }
+    if (baseThemes[themeName] || !isLegacyThemeEntry(override)) continue
+    if (findVariantOwner(baseThemes, themeName)?.theme === BRAND_THEME && hasPaletteColors(override)) return true
+  }
+  return false
+}
+
 /**
  * Overrides still written in the deprecated flat format, with the message to
  * show for each — logged once at build time by `module.ts`.

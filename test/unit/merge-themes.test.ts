@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { mergeColorThemes, normalizeColorThemes, findDeprecatedThemeEntries } from '../../src/shared/utils/merge-themes'
+import { mergeColorThemes, normalizeColorThemes, findDeprecatedThemeEntries, overridesBrandColors } from '../../src/shared/utils/merge-themes'
 import { buildResolvedTheme, getBaseThemeEntries } from '../../src/shared/utils/theme-config'
 import { customizeTheme } from '../../src/setup/customize-theme'
 import { loadTheme } from '../../src/shared/utils/load'
@@ -110,6 +110,23 @@ describe('findDeprecatedThemeEntries', () => {
     expect(messages).toHaveLength(2)
     expect(messages[0]).toContain('venix: { dark:')
     expect(messages[1]).toContain('`color.themes.brand`')
+  })
+})
+
+describe('overridesBrandColors', () => {
+  it('flags color changes to venix, by name or by its variant ids', () => {
+    expect(overridesBrandColors(baseEntries, { venix: { dark: { primary: '#000000' } } })).toBe(true)
+    expect(overridesBrandColors(baseEntries, { venix: { primary: '#000000' } as Partial<ThemeEntry> })).toBe(true)
+    expect(overridesBrandColors(baseEntries, { dark: { primary: '#000000' } })).toBe(true)
+    expect(overridesBrandColors(baseEntries, { light: { background: '#ffffff' } })).toBe(true)
+  })
+
+  it('ignores names, icons, other themes and new themes', () => {
+    expect(overridesBrandColors(baseEntries, undefined)).toBe(false)
+    expect(overridesBrandColors(baseEntries, { venix: { translations: { 'en-US': 'Brand' }, icon: '⭐' } })).toBe(false)
+    expect(overridesBrandColors(baseEntries, { natal: { dark: { primary: '#000000' } } })).toBe(false)
+    expect(overridesBrandColors(baseEntries, { carnaval: { primary: '#000000' } as Partial<ThemeEntry> })).toBe(false)
+    expect(overridesBrandColors(baseEntries, { acme: { light: { primary: '#000000' }, dark: { primary: '#ffffff' } } })).toBe(false)
   })
 })
 

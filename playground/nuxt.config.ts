@@ -79,9 +79,9 @@ export default defineNuxtConfig({
       // defaultColor: 'dark',
       // seasonal: false, // removes Carnival, Easter, Halloween and Christmas
       themes: {
-        // venix: {
-        //   dark: { primary: '#FF0000', secondary: '#00FF00' },
-        // },
+        // `venix` is the Venix Sistemas brand theme: overriding its colors
+        // warns at build time (unless `allowVenixOverride: true`). For another
+        // brand, add a theme like `oceano` below and set `defaultColor` to it.
         // A project-only theme (not in the bundled theme.json), added just by
         // naming it here: it gets its own CSS variables, shows up in
         // <VenixThemeSwitcher> and follows the light/dark mode like the
