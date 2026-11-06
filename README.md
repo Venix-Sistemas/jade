@@ -805,7 +805,7 @@ Colors, typography, scrollbar, cursor, translation and the switcher are Jade's o
 
 The Jade logo, in the variants shipped with the repository (`docs/images`):
 
-| Transparent | Dark background | Emblem (1254 px) |
+| Transparent | Dark background | Emblem |
 | :---------: | :-------------: | :--------------: |
 | <img src="./docs/images/jade-transparent.png" alt="Jade, transparent background" width="200"> | <img src="./docs/images/jade.png" alt="Jade, dark background" width="200"> | <img src="./docs/images/jade-emblem.png" alt="Jade emblem" width="200"> |
 
