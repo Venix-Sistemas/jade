@@ -24,6 +24,17 @@ describe('venixUnoPreset', () => {
     })
   })
 
+  it('deve levar cursor-default/pointer/text às variáveis do cursor, com o do sistema como reserva', () => {
+    const preset = venixUnoPreset()
+    expect(preset.rules).toEqual([
+      ['cursor-default', { cursor: 'var(--cursor-default, default)' }],
+      ['cursor-pointer', { cursor: 'var(--cursor-pointer, pointer)' }],
+      ['cursor-text', { cursor: 'var(--cursor-text, text)' }],
+    ])
+    // Depois do presetWind/presetUno, cujas regras de mesmo nome substitui
+    expect(preset.enforce).toBe('post')
+  })
+
   it('deve retornar uma nova instância a cada chamada (sem estado compartilhado)', () => {
     const a = venixUnoPreset()
     const b = venixUnoPreset()

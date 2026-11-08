@@ -750,6 +750,8 @@ export default defineConfig({
 
 It maps every [theme color](#themes), plus `inverse`, to its CSS variable (`primary: 'var(--color-primary)'`, …), so utilities follow the active theme. Colors you define yourself in `uno.config.ts` take precedence.
 
+It also makes `cursor-default`, `cursor-pointer` and `cursor-text` use the [custom cursor](#cursors-in-your-own-css) (`cursor: var(--cursor-pointer, pointer)`, the system's when the module's cursor is off), with variants and `!` included (`hover:cursor-pointer`, `!cursor-default`). These replace `presetWind`'s rules of the same name wherever the preset sits in `presets`.
+
 The preset has to be added by hand: `@unocss/nuxt` re-reads `uno.config.ts` from disk and discards a `theme` injected by other modules whenever your file declares its own `theme` key. As a preset in your own file, the colors survive that.
 
 ### Vuetify

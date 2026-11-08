@@ -7,16 +7,26 @@ import { COLOR_PROPERTIES } from './constants'
 // TS's structural typing is already compatible with their real `Preset<Theme>`.
 export interface VenixUnoPreset {
   name: string
+  enforce: 'post'
   theme: {
     colors: Record<string, string>
   }
+  rules: Array<[string, Record<string, string>]>
 }
+
+const CURSOR_TYPES = ['default', 'pointer', 'text'] as const
 
 /**
  * UnoCSS preset that exposes the theme's colors as `theme.colors` (`primary`,
  * `secondary`, `background2`, ...), all pointing at the CSS vars this module
  * generates (`--color-primary`, ...) — enables utilities like `text-primary`,
  * `bg-background2/80` or `border-accent`.
+ *
+ * Also points `cursor-default`, `cursor-pointer` and `cursor-text` at the
+ * module's cursor variables (`--cursor-pointer`, ...), falling back to the
+ * system cursor when the module's cursor is off. `enforce: 'post'` puts these
+ * after `presetWind`/`presetUno`, whose own `cursor-pointer` they replace,
+ * wherever the preset sits in `presets`.
  *
  * Must be added manually to your `uno.config.ts`:
  *
@@ -48,6 +58,8 @@ export function venixUnoPreset(): VenixUnoPreset {
 
   return {
     name: 'venix-theme',
+    enforce: 'post',
     theme: { colors },
+    rules: CURSOR_TYPES.map(type => [`cursor-${type}`, { cursor: `var(--cursor-${type}, ${type})` }]),
   }
 }
