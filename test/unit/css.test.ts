@@ -132,6 +132,19 @@ describe('generateCustomCursorCSS', () => {
   const theme = { ...base, customCursor: { ...base.customCursor, enabled: true } }
   const withCursor = (cursor: Partial<CursorConfig>) => generateCustomCursorCSS({ ...theme, customCursor: { ...theme.customCursor, ...cursor } })
   const block = (css: string, id: string) => css.match(new RegExp(`:root\\[data-theme='${id}'\\] \\{([^}]*)\\}`))?.[1]
+  // Os seletores e o corpo da seção `/* <n>. … */`
+  const section = (css: string, n: string) => {
+    const [, selectors = '', body = ''] = css.match(new RegExp(`/\\* ${n}\\. [^\\n]*\\n([^{]*)\\{([^}]*)\\}`)) ?? []
+    return { selectors: selectors.split(/,\s*/).map(s => s.trim()), body }
+  }
+  // Especificidade (ids, classes/atributos/pseudo-classes, elementos), contando o que está dentro de `:not()`
+  const specificity = (selector: string): number => {
+    const flat = selector.replace(/:not\(([^)]*)\)/g, ' $1')
+    const ids = flat.match(/#[\w-]+/g)?.length ?? 0
+    const classes = flat.match(/\.[\w-]+|\[[^\]]+\]|:[\w-]+/g)?.length ?? 0
+    const elements = flat.replace(/\[[^\]]+\]|[.#:][\w-]+/g, ' ').match(/(^|[\s>+~])[a-z][\w-]*/gi)?.length ?? 0
+    return ids * 10000 + classes * 100 + elements
+  }
 
   it('deve desenhar os cursores na cor primary de cada variante de tema', () => {
     const css = generateCustomCursorCSS(theme)
@@ -157,14 +170,71 @@ describe('generateCustomCursorCSS', () => {
 
   it('deve mostrar a mão só no que é clicável', () => {
     const css = generateCustomCursorCSS(theme)
-    const pointer = css.match(/\/\* 2\. [^\n]*\n([^{]*)\{/)?.[1] ?? ''
-    expect(pointer).toContain('a[href], a[href] *')
+    const pointer = [...section(css, '2').selectors, ...section(css, '2b').selectors]
+    expect(pointer).toContain('a[href]')
+    expect(pointer).toContain('a[href] *')
     expect(pointer).toContain('.v-icon--clickable')
     expect(pointer).toContain('.v-list-item--link')
     expect(pointer).toContain('.v-chip--link')
     // A scrollbar do OverlayScrollbars é um elemento da página: arrastável e clicável
-    expect(pointer).toContain('.os-scrollbar, .os-scrollbar *')
-    expect(pointer).not.toMatch(/(^|[\s,])a,|\.v-icon,|\.v-list-item,|\.v-chip,/)
+    expect(pointer).toContain('.os-scrollbar *')
+    for (const decoration of ['a', '.v-icon', '.v-list-item', '.v-chip']) expect(pointer).not.toContain(decoration)
+  })
+
+  it('deve dar a variável aos elementos em que o Vuetify fixa `cursor: pointer`, sem !important', () => {
+    const css = generateCustomCursorCSS(theme)
+    const { selectors, body } = section(css, '2b')
+    expect(body).toBe('\n  cursor: var(--cursor-pointer);\n')
+    // Um de cada grupo: tabela, cartão, chip, campos, seleção, slider, navegação, ativadores, pickers, calendário, labs
+    for (const selector of [
+      '.v-data-table__tr--clickable', '.v-data-table__th--sortable',
+      '.v-card--hover', '.v-chip__close', '.v-icon-btn',
+      '.v-field__clearable', '.v-select .v-field.v-field', '.v-label--clickable',
+      '.v-selection-control__input input', '.v-switch__track', '.v-slider-thumb__surface',
+      '.v-slide-group__next', '.v-rating__item label', '.v-avatar-group--hoverable .v-avatar',
+      '[aria-controls]', '.v-date-picker-header--clickable .v-date-picker-header__content',
+      '.v-color-picker-swatches__color', '.v-file-upload-dropzone input[type=file]',
+      '.v-calendar .v-event', '.v-calendar-weekly__day-label', '.v-heatmap--hover .v-heatmap__cell',
+      '.v-video:not(.v-video--error) .v-video__content',
+    ]) expect(selectors).toContain(selector)
+    // O campo de texto em volta do input, e o que o Vuetify deixa no `default`
+    expect(section(css, '3b').selectors).toContain('.v-text-field .v-field')
+    expect(section(css, '3b').body).toBe('\n  cursor: var(--cursor-text);\n')
+    expect(section(css, '1c').selectors).toContain('.v-text-field__prefix')
+    expect(section(css, '1c').body).toBe('\n  cursor: var(--cursor-default);\n')
+  })
+
+  it('deve deixar uma regra mais específica da tela trocar o cursor de uma linha clicável', () => {
+    const css = generateCustomCursorCSS(theme)
+    const { selectors, body } = section(css, '2b')
+    // Sem !important, numa folha sem layer: perde para qualquer regra sem layer mais específica
+    expect(body).not.toContain('!important')
+    expect(specificity('.minha-tabela .v-data-table__tr--clickable')).toBeGreaterThan(specificity(selectors.find(s => s === '.v-data-table__tr--clickable')!))
+    // E o `select` do Vuetify continua acima do campo de texto que ele também é
+    expect(specificity('.v-select .v-field.v-field')).toBeGreaterThan(specificity('.v-text-field .v-field'))
+  })
+
+  it('deve voltar ao cursor do sistema nos elementos do Vuetify quando o visitante desliga o cursor', () => {
+    const css = generateCustomCursorCSS(theme)
+    const off = css.match(/:root\[data-venix-cursor='off'\] \{([^}]*)\}/)?.[1]
+    expect(off).toContain('--cursor-pointer: pointer;')
+    // Lido da variável, não fixo: segue o `off`
+    for (const n of ['1c', '2b', '3b', '4']) expect(section(css, n).body).toMatch(/^\n {2}cursor: var\(--cursor-(default|pointer|text)\);\n$/)
+  })
+
+  it('deve levar as classes utilitárias de cursor às variáveis, acima das regras de componente', () => {
+    const css = generateCustomCursorCSS(theme)
+    for (const type of ['default', 'pointer', 'text']) {
+      expect(css).toContain(`html .cursor-${type} {\n  cursor: var(--cursor-${type});\n}`)
+    }
+    // `<tr class="cursor-default">` numa tabela com @click:row
+    expect(specificity('html .cursor-default')).toBeGreaterThan(specificity('.v-data-table__tr--clickable'))
+    // E abaixo das de desabilitado, que vêm depois
+    expect(css.indexOf('/* 5.')).toBeGreaterThan(css.indexOf('html .cursor-pointer'))
+  })
+
+  it('deve ficar fora de qualquer @layer, para vencer o Vuetify sem !important', () => {
+    expect(processTheme(theme)).not.toContain('@layer')
   })
 
   it('deve usar o cursor de texto também em input sem type e em qualquer contenteditable', () => {
@@ -176,12 +246,12 @@ describe('generateCustomCursorCSS', () => {
 
   it('deve fazer a regra de desabilitado vencer a de texto e a da mão, inclusive nos filhos', () => {
     const css = generateCustomCursorCSS(theme)
-    const disabled = css.match(/\/\* 4\. [^\n]*\n([^{]*)\{/)?.[1] ?? ''
+    const disabled = css.match(/\/\* 5\. [^\n]*\n([^{]*)\{/)?.[1] ?? ''
     // `html [disabled]` (0,1,1) empata com `input[type="text"]` e `a[href] *` e vem depois
     expect(disabled).toContain('html :disabled, html :disabled *')
     expect(disabled).toContain('html [disabled], html [disabled] *')
     expect(disabled).toContain('html [aria-disabled="true"]')
-    expect(css.indexOf('/* 4.')).toBeGreaterThan(css.indexOf('/* 3.'))
+    expect(css.indexOf('/* 5.')).toBeGreaterThan(css.indexOf('/* 3.'))
   })
 
   it('deve manter as imagens no tema Venix, nas duas variantes', () => {

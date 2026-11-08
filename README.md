@@ -363,6 +363,26 @@ venixTheme: {
 }
 ```
 
+### Cursors in your own CSS
+
+The custom cursor is set on `<html>` and reaches the rest of the page by inheritance. Any element with a `cursor` of its own shows that one instead, so a fixed `cursor: pointer` in your CSS shows the **system's** hand. Use the module's variables:
+
+```css
+.my-clickable { cursor: var(--cursor-pointer); }
+.my-readonly  { cursor: var(--cursor-default); }
+.my-editor    { cursor: var(--cursor-text); }
+```
+
+They follow the color theme and switch to the system's cursors when the visitor turns the custom cursor off. The utility classes `cursor-default`, `cursor-pointer` and `cursor-text` (Vuetify's, and UnoCSS's with the [UnoCSS preset](#unocss-preset)) use them too.
+
+The module already gives the variables to what browsers and Vuetify 4 style with a fixed cursor: links, buttons, form fields, and Vuetify's clickable components (table rows with `@click:row`, sortable headers, `v-card` with `hover`, chip close buttons, `v-select`, switches, sliders, menu activators and so on). Its CSS is outside any `@layer`, so it wins over Vuetify's, which is layered, without `!important`. Your own rules (outside a layer, too) still win over it when they are more specific. For a table with `@click:row` where only some rows do something:
+
+```css
+.orders .v-data-table__tr--clickable.no-action { cursor: var(--cursor-default); }
+```
+
+Or the class `cursor-default` on those rows (`:row-props="row => ({ class: row.item.locked && 'cursor-default' })"`). Links, buttons, `[role="button"]`, text fields and disabled elements keep `!important`, so the pointer shows over everything inside a link or button and the arrow over a disabled one; for these, change the cursor with `!important` too (`!cursor-default` in UnoCSS).
+
 > [!NOTE]
 > `defaultCursors` was called `cursors` up to 1.2. The old name still works, with a warning, until 2.0.
 
