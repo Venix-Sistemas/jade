@@ -1075,14 +1075,14 @@ onUnmounted(() => {
 }
 
 .venix-theme-switcher__trigger:focus-visible {
-  background: var(--color-background3, rgba(128, 128, 128, 0.15));
+  background: var(--color-bg-hover, var(--color-background3, rgba(128, 128, 128, 0.15)));
 }
 
 /* Hover only where there is one: on a touch screen, `:hover` sticks to the
    last thing tapped and would look selected. Same for the menu below. */
 @media (hover: hover) {
   .venix-theme-switcher__trigger:hover {
-    background: var(--color-background3, rgba(128, 128, 128, 0.15));
+    background: var(--color-bg-hover, var(--color-background3, rgba(128, 128, 128, 0.15)));
   }
 }
 
@@ -1112,24 +1112,27 @@ onUnmounted(() => {
   /* Set here so the layout doesn't depend on the page around the switcher
      (e.g. a centered header vs. a left-aligned toolbar). */
   text-align: left;
-  /* Fixed neutral colors (not from the active theme): the menu needs to stay
-     legible no matter which color theme is currently applied/being picked.
-     Dark palette here; the @supports block below switches to the light one
-     when the page is in light mode. */
-  --venix-switcher-bg: #1f2128;
-  --venix-switcher-border: #3a3d46;
+  /* Fixed neutral colors on themes made of the plain palette (not from the
+     active theme): the menu needs to stay legible no matter which color theme
+     is currently applied/being picked. Dark palette here; the @supports block
+     below switches to the light one when the page is in light mode.
+     On a theme with `tokens: true` each one comes from the semantic token
+     named in front of it instead (the fixed color is the fallback): the
+     tokens are built to be legible together, so the menu can follow the theme. */
+  --venix-switcher-bg: var(--color-bg-subtle, #1f2128);
+  --venix-switcher-border: var(--color-border, #3a3d46);
   /* Headings in the strong color and options a step softer, so the sections
      stand out; an option lights up on hover and when selected. */
-  --venix-switcher-text: rgba(245, 245, 247, 0.7);
-  --venix-switcher-text-strong: #ffffff;
-  --venix-switcher-heading: #ffffff;
-  --venix-switcher-subheading: #f5f5f7;
-  --venix-switcher-hover: rgba(255, 255, 255, 0.1);
-  --venix-switcher-active: rgba(255, 255, 255, 0.16);
-  --venix-switcher-description: rgba(245, 245, 247, 0.45);
-  --venix-switcher-switch-off: #3a3d46;
-  --venix-switcher-knob-off: #9a9ca5;
-  --venix-switcher-switch-on: #f5f5f7;
+  --venix-switcher-text: var(--color-text-muted, rgba(245, 245, 247, 0.7));
+  --venix-switcher-text-strong: var(--color-text, #ffffff);
+  --venix-switcher-heading: var(--color-text, #ffffff);
+  --venix-switcher-subheading: var(--color-text, #f5f5f7);
+  --venix-switcher-hover: var(--color-bg-hover, rgba(255, 255, 255, 0.1));
+  --venix-switcher-active: var(--color-bg-active, rgba(255, 255, 255, 0.16));
+  --venix-switcher-description: var(--color-text-muted, rgba(245, 245, 247, 0.45));
+  --venix-switcher-switch-off: var(--color-border-strong, #3a3d46);
+  --venix-switcher-knob-off: var(--color-bg, #9a9ca5);
+  --venix-switcher-switch-on: var(--color-text, #f5f5f7);
   --venix-switcher-shadow: rgba(0, 0, 0, 0.25);
   --venix-switcher-icon-button: 1.75rem;
   background: var(--venix-switcher-bg);
@@ -1165,18 +1168,18 @@ onUnmounted(() => {
    older browsers keep the dark palette above. */
 @supports (color: light-dark(#fff, #000)) {
   .venix-theme-switcher__menu {
-    --venix-switcher-bg: light-dark(#ffffff, #1f2128);
-    --venix-switcher-border: light-dark(#e2e4ea, #3a3d46);
-    --venix-switcher-text: light-dark(rgba(31, 33, 40, 0.7), rgba(245, 245, 247, 0.7));
-    --venix-switcher-text-strong: light-dark(#000000, #ffffff);
-    --venix-switcher-heading: light-dark(#000000, #ffffff);
-    --venix-switcher-subheading: light-dark(#1f2128, #f5f5f7);
-    --venix-switcher-hover: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.1));
-    --venix-switcher-active: light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.16));
-    --venix-switcher-description: light-dark(rgba(31, 33, 40, 0.5), rgba(245, 245, 247, 0.45));
-    --venix-switcher-switch-off: light-dark(#d5d7de, #3a3d46);
-    --venix-switcher-knob-off: light-dark(#ffffff, #9a9ca5);
-    --venix-switcher-switch-on: light-dark(#1f2128, #f5f5f7);
+    --venix-switcher-bg: var(--color-bg-subtle, light-dark(#ffffff, #1f2128));
+    --venix-switcher-border: var(--color-border, light-dark(#e2e4ea, #3a3d46));
+    --venix-switcher-text: var(--color-text-muted, light-dark(rgba(31, 33, 40, 0.7), rgba(245, 245, 247, 0.7)));
+    --venix-switcher-text-strong: var(--color-text, light-dark(#000000, #ffffff));
+    --venix-switcher-heading: var(--color-text, light-dark(#000000, #ffffff));
+    --venix-switcher-subheading: var(--color-text, light-dark(#1f2128, #f5f5f7));
+    --venix-switcher-hover: var(--color-bg-hover, light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.1)));
+    --venix-switcher-active: var(--color-bg-active, light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.16)));
+    --venix-switcher-description: var(--color-text-muted, light-dark(rgba(31, 33, 40, 0.5), rgba(245, 245, 247, 0.45)));
+    --venix-switcher-switch-off: var(--color-border-strong, light-dark(#d5d7de, #3a3d46));
+    --venix-switcher-knob-off: var(--color-bg, light-dark(#ffffff, #9a9ca5));
+    --venix-switcher-switch-on: var(--color-text, light-dark(#1f2128, #f5f5f7));
     --venix-switcher-shadow: light-dark(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.25));
   }
 }
