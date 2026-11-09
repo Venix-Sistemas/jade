@@ -58,8 +58,40 @@ const TARGETS: Record<ContrastLevel, { text: number, strongText: number }> = {
   AAA: { text: 7, strongText: 10 },
 }
 
+/**
+ * Leonardo 1.1.0 warns about its own code: `BackgroundColor`, `createScale` and
+ * `Theme` hand each other the deprecated `colorspace` option, so every call
+ * logs "colorspace is deprecated" (66 times for one theme) even though we only
+ * pass `colorSpace`. Nothing here can avoid it, so that one message is dropped
+ * while the engine runs (it is synchronous) and anything else still gets through.
+ */
+const ENGINE_NOISE = '`colorspace` is deprecated'
+
+function withoutEngineNoise<T>(run: () => T): T {
+  const warn = console.warn
+  console.warn = (...args: unknown[]) => {
+    if (typeof args[0] === 'string' && args[0].includes(ENGINE_NOISE)) return
+    warn(...args)
+  }
+  try {
+    return run()
+  }
+  finally {
+    console.warn = warn
+  }
+}
+
 /** The color engine. Swappable: nothing outside this function knows about it. */
 function generateSteps(key: string, background: string, mode: ThemeMode, ratios: number[]): string[] {
+  const generated = withoutEngineNoise(() => runEngine(key, background, ratios))
+  const steps = generated.map(normalizeHex)
+  if (steps.length !== ratios.length) {
+    throw new Error(`[jade] The color engine returned ${steps.length} steps for ${ratios.length} ratios (${mode} mode, key ${key}).`)
+  }
+  return steps
+}
+
+function runEngine(key: string, background: string, ratios: number[]): string[] {
   const bg = new BackgroundColor({ name: 'background', colorKeys: [background as CssColor], ratios: [1], colorSpace: 'OKLCH' })
   const color = new Color({ name: 'scale', colorKeys: [key as CssColor], ratios, colorSpace: 'OKLCH', smooth: true })
   const theme = new Theme({
@@ -71,11 +103,7 @@ function generateSteps(key: string, background: string, mode: ThemeMode, ratios:
   })
 
   const generated = theme.contrastColors.at(-1) as unknown as { values: Array<{ value: string }> }
-  const steps = generated.values.map(v => normalizeHex(v.value))
-  if (steps.length !== ratios.length) {
-    throw new Error(`[jade] The color engine returned ${steps.length} steps for ${ratios.length} ratios (${mode} mode, key ${key}).`)
-  }
-  return steps
+  return generated.values.map(v => v.value)
 }
 
 /** The worst contrast of `text` over any of `surfaces`. */

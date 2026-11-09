@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { generateNeutralScale, generateScale, generateScales } from '../../src/shared/utils/scale'
 import type { ContrastLevel } from '../../src/shared/utils/scale'
 import { contrastRatio, relativeLuminance } from '../../src/shared/utils/contrast'
@@ -164,5 +164,24 @@ describe('contorno do neutro', () => {
     const { neutral } = generateScales(background, seeds, mode)
     expect(contrastRatio(neutral[8]!, neutral[0]!)).toBeGreaterThanOrEqual(3)
     expect(contrastRatio(neutral[8]!, neutral[1]!)).toBeGreaterThanOrEqual(3)
+  })
+})
+
+describe('avisos do motor de cores', () => {
+  it('não deve repassar o aviso `colorspace is deprecated` do Leonardo, que ele mesmo dispara', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      generateScales('#FAFAFA', { primary: '#FF0000', secondary: '#FF8800' }, 'light')
+      expect(warn.mock.calls.filter(([message]) => String(message).includes('colorspace'))).toEqual([])
+    }
+    finally {
+      warn.mockRestore()
+    }
+  })
+
+  it('deve devolver o console.warn original depois de gerar', () => {
+    const original = console.warn
+    generateScales('#FAFAFA', { primary: '#FF0000' }, 'light')
+    expect(console.warn).toBe(original)
   })
 })
