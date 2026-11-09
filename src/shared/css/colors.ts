@@ -1,16 +1,16 @@
 // src/shared/css/colors.ts
-import type { ThemeColors } from '../types'
+import type { ContrastLevel, ThemeColors } from '../types'
 import { getThemeHexColors } from '../utils/theme-resolve'
 import { generateTokenVars } from './tokens'
 
-export function generateThemeVars(mode: string, colors: ThemeColors): string {
+export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: ContrastLevel): string {
   const colorVars = getThemeHexColors(colors)
     .map(([key, value]) => `  --color-${key}: ${value};`)
     .join('\n')
 
   // Opt-in (experimental): themes without `tokens: true` produce the same CSS as before.
   const tokenVars = colors.tokens === true
-    ? `\n  /* Semantic tokens */\n${generateTokenVars(colors)}`
+    ? `\n  /* Semantic tokens */\n${generateTokenVars(colors, contrast)}`
     : ''
 
   const isDark = colors.dark === true

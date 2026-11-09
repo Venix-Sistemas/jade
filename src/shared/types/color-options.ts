@@ -1,4 +1,4 @@
-import type { ThemeEntry } from './colors'
+import type { ContrastLevel, ThemeEntry } from './colors'
 
 export interface ColorOptions {
   enabled: boolean
@@ -49,4 +49,12 @@ export interface ColorOptions {
    * with its own identity should add a theme instead (see `themes`).
    */
   allowVenixOverride: boolean
+  /**
+   * Experimental (v1.4.0). The contrast the semantic tokens (themes with
+   * `tokens: true`) aim for: `'AA'` (text 4.5:1, outlines 3:1) or `'AAA'`
+   * (text 7:1). The build warns, per theme variant, about every token pair
+   * that falls short. `false` skips the warning but still generates the
+   * tokens, as AA. Default: `'AA'`.
+   */
+  contrast: ContrastLevel | false
 }

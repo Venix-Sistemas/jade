@@ -1,7 +1,7 @@
 // src/shared/utils/scale.ts
 import { BackgroundColor, Color, Theme } from '@adobe/leonardo-contrast-colors'
 import type { CssColor } from '@adobe/leonardo-contrast-colors'
-import type { ThemeMode } from '../types'
+import type { ContrastLevel, ThemeMode } from '../types'
 import { contrastRatio } from './contrast'
 import { lightnessOf, normalizeHex, tintToward } from './oklab'
 
@@ -14,8 +14,7 @@ import { lightnessOf, normalizeHex, tintToward } from './oklab'
  * build time (module setup), never from `src/runtime/`.
  */
 
-/** Target of the text steps: WCAG AA (4.5:1) or AAA (7:1). */
-export type ContrastLevel = 'AA' | 'AAA'
+export type { ContrastLevel }
 
 export interface RoleScale {
   /** The 12 steps, light to strong, as `#RRGGBB`. Step 9 (index 8) is the seed. */

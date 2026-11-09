@@ -409,3 +409,31 @@ describe('generateThemeVars com tokens', () => {
     expect(css).toContain('--color-fill-primary: #FF6B6B;')
   })
 })
+
+describe('color.contrast', () => {
+  const colors = { dark: false, tokens: true, primary: '#FF0000', background: '#FAFAFA' }
+
+  it('deve gerar os tokens em AA por padrão e com `false`', () => {
+    const base = generateThemeVars('x', colors)
+    expect(generateThemeVars('x', colors, 'AA')).toBe(base)
+  })
+
+  it('deve gerar tokens mais fortes em AAA', () => {
+    expect(generateThemeVars('x', colors, 'AAA')).not.toBe(generateThemeVars('x', colors, 'AA'))
+  })
+
+  it('deve levar `color.contrast` ao CSS gerado', () => {
+    const config = (contrast: 'AA' | 'AAA' | false) => customizeTheme(loadTheme(), {
+      color: { contrast, themes: { t: { tokens: true, light: colors, dark: { primary: '#FF6B6B', background: '#0C0C0C' } } } },
+    })
+    expect(config('AAA').colors.contrast).toBe('AAA')
+    expect(config(false).colors.contrast).toBe(false)
+    expect(processTheme(config('AAA'))).not.toBe(processTheme(config('AA')))
+    expect(processTheme(config(false))).toBe(processTheme(config('AA')))
+  })
+
+  it('não deve definir `contrast` quando a opção não é usada', () => {
+    expect(customizeTheme(loadTheme(), {}).colors.contrast).toBeUndefined()
+    expect(customizeTheme(loadTheme(), { color: { themes: {} } }).colors.contrast).toBeUndefined()
+  })
+})

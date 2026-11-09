@@ -5,6 +5,7 @@ import { DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_THEME } from './sha
 import { resolveFeatureOption } from './shared/utils/options'
 import { findDeprecatedThemeEntries, overridesBrandColors } from './shared/utils/merge-themes'
 import { buildResolvedTheme, findInvalidDefaultColor, getBaseThemeEntries } from './shared/utils/theme-config'
+import { findTokenContrastIssues } from './shared/css/tokens'
 import { customizeTheme } from './setup/customize-theme'
 import { registerPublicAssets } from './setup/register-assets'
 import { registerThemeComponents } from './setup/register-components'
@@ -77,6 +78,7 @@ export default defineNuxtModule<ModuleOptions>({
       requireConsent: true,
       seasonal: true,
       allowVenixOverride: false,
+      contrast: 'AA',
     })
     for (const message of findDeprecatedThemeEntries(getBaseThemeEntries(), colorOptions.themes)) {
       useLogger('jade').warn(message)
@@ -92,6 +94,11 @@ export default defineNuxtModule<ModuleOptions>({
       }).colors
       const defaultColorMessage = findInvalidDefaultColor(resolvedColors)
       if (defaultColorMessage) useLogger('jade').warn(defaultColorMessage)
+      if (colorOptions.contrast) {
+        for (const message of findTokenContrastIssues(theme.colors.themes, colorOptions.contrast)) {
+          useLogger('jade').warn(message)
+        }
+      }
     }
     if (typeof options.cursor === 'object' && options.cursor?.cursors) {
       useLogger('jade').warn('`cursor.cursors` is deprecated and stops working in 2.0. Use `cursor.defaultCursors` instead.')

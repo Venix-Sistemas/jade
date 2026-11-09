@@ -43,6 +43,7 @@ export function customizeTheme(baseTheme: ThemeConfig, options: ModuleOptions): 
       seasonal: colorOption.seasonal,
     })
     customized.colors = { ...resolved.colors, enabled: customized.colors.enabled }
+    if (colorOption.contrast !== undefined) customized.colors.contrast = colorOption.contrast
   }
 
   return customized

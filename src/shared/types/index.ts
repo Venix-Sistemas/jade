@@ -17,6 +17,7 @@ export type {
   ThemeEntry,
   ResolvedThemeGroup,
   ThemeModeLabel,
+  ContrastLevel,
 } from './colors'
 export type { ThemeConfig, ResolvedTheme } from './theme'
 export type { TranslationConfig } from './translation'

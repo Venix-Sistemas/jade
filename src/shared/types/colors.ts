@@ -100,9 +100,14 @@ export interface ThemeModeLabel {
   icon?: string | ThemeIconFormats
 }
 
+/** The contrast level the semantic tokens aim for: WCAG AA (4.5:1 for text) or AAA (7:1). */
+export type ContrastLevel = 'AA' | 'AAA'
+
 export interface ColorsConfig {
   enabled: boolean
   defaults: boolean
+  /** Contrast target of the semantic tokens and their build check (`color.contrast`). Build time only. */
+  contrast?: ContrastLevel | false
   /** Initial choice for new visitors: a theme name, a variant id (`'dark'`) or `'system'`. */
   defaultColor: string
   /** Every concrete color variant, by id — what `data-theme` receives. */
