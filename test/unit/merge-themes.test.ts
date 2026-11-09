@@ -239,3 +239,37 @@ describe('useVenixTheme().themes / modes', () => {
     expect(modes.value.every(m => !!m.icon)).toBe(true)
   })
 })
+
+describe('tokens (experimental)', () => {
+  const light = { primary: '#FF0000', background: '#FAFAFA' }
+  const dark = { primary: '#FF6B6B', background: '#0C0C0C' }
+
+  it('deve levar `tokens: true` do tema para as duas variantes', () => {
+    const { themes, groups } = normalizeColorThemes({ t: { tokens: true, light, dark } })
+    expect(themes['t-light']).toMatchObject({ dark: false, tokens: true })
+    expect(themes['t-dark']).toMatchObject({ dark: true, tokens: true })
+    expect(groups.t!.tokens).toBe(true)
+  })
+
+  it('não deve acrescentar `tokens` a temas que não optaram', () => {
+    const { themes, groups } = normalizeColorThemes({ t: { light, dark }, u: { tokens: false, light } })
+    expect(themes['t-light']).not.toHaveProperty('tokens')
+    expect(themes['u-light']).not.toHaveProperty('tokens')
+    expect(groups.t).not.toHaveProperty('tokens')
+  })
+
+  it('deve levar `tokens` também no formato antigo (flat)', () => {
+    const { themes } = normalizeColorThemes({ legacy: { dark: true, tokens: true, ...dark } })
+    expect(themes.legacy).toMatchObject({ dark: true, tokens: true })
+  })
+
+  it('deve ativar `tokens` num tema existente por override, sem mexer nas cores', () => {
+    const merged = mergeColorThemes({ t: { light, dark } }, { t: { tokens: true } })
+    expect(merged.t).toMatchObject({ tokens: true, light, dark })
+  })
+
+  it('não deve contar `tokens` como cor do tema', () => {
+    const base = { venix: { light, dark } } as Record<string, ThemeEntry>
+    expect(overridesBrandColors(base, { venix: { tokens: true } })).toBe(false)
+  })
+})

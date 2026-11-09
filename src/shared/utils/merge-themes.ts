@@ -2,7 +2,7 @@
 import type { ThemeColors, ThemeDefinition, ThemeEntry, ThemeMode, ThemePalette, ThemeVariant, ResolvedThemeGroup } from '../types'
 import { COLOR_PROPERTIES, THEME_MODES } from '../constants'
 
-const META_PROPERTIES = ['seasonal', 'dateRange', 'translations', 'icon'] as const
+const META_PROPERTIES = ['seasonal', 'dateRange', 'translations', 'icon', 'tokens'] as const
 
 /** Grouped format: at least one `light`/`dark` variant object. */
 export function isThemeDefinition(entry: Partial<ThemeEntry> | undefined): entry is ThemeDefinition {
@@ -36,6 +36,11 @@ function pickPalette(entry: Partial<ThemeEntry> | ThemeVariant): ThemePalette {
     if (value !== undefined) palette[key] = value
   }
   return palette
+}
+
+/** `{ tokens: true }` for a theme that opted in, nothing otherwise, so other variants stay as they were. */
+function tokensFlag(entry: Partial<ThemeEntry>): { tokens?: true } {
+  return entry.tokens === true ? { tokens: true } : {}
 }
 
 const variantId = (themeName: string, mode: ThemeMode, variant: ThemeVariant): string =>
@@ -148,13 +153,13 @@ export function normalizeColorThemes(entries: Record<string, ThemeEntry>): {
         const variant = entry[mode]
         if (!variant) continue
         const id = variantId(themeName, mode, variant)
-        themes[id] = { dark: mode === 'dark', ...pickPalette(variant) }
+        themes[id] = { dark: mode === 'dark', ...tokensFlag(entry), ...pickPalette(variant) }
         group.variants[mode] = id
       }
     }
     else if (isLegacyThemeEntry(entry)) {
       const mode: ThemeMode = entry.dark === false ? 'light' : 'dark'
-      themes[themeName] = { dark: mode === 'dark', ...pickPalette(entry) }
+      themes[themeName] = { dark: mode === 'dark', ...tokensFlag(entry), ...pickPalette(entry) }
       group.variants[mode] = themeName
     }
 

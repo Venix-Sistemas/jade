@@ -48,6 +48,8 @@ const TEXT_FACTOR = 1.15
 const STRONG_TEXT_FACTOR = 1.4
 /** No step is placed beyond this ratio: white on a near-black background tops out around 19.5. */
 const MAX_RATIO = 15
+/** WCAG 1.4.11: what a control's outline needs against what surrounds it. */
+const OUTLINE_TARGET = 3
 /** Extra distance asked of a text step each time it falls short of its target. */
 const NUDGE = 1.01
 const MAX_NUDGES = 8
@@ -108,7 +110,8 @@ function reachTarget(
 /**
  * The neutral scale: the theme's background and 11 steps leaning toward the
  * hue of `tintSeed` (usually the primary). Step 1 is exactly `background`.
- * Step 11 (muted text) must reach the level on steps 1–3; step 12 is main text.
+ * Step 9 (outline) reaches 3:1 on steps 1–2 and step 11 (muted text) reaches
+ * the level on steps 1–3; step 12 is main text.
  */
 export function generateNeutralScale(
   background: string,
@@ -124,12 +127,15 @@ export function generateNeutralScale(
   const steps = generateSteps(key, key, mode, ratios)
   steps[0] = exact
 
-  const mutedText = reachTarget(ratios[10]!, TARGETS[level].text, steps.slice(0, 3), (ratio) => {
+  const withRatio = (index: number, ratio: number) => {
     const attempt = [...ratios]
-    attempt[10] = ratio
-    return generateSteps(key, key, mode, attempt)[10]!
-  })
-  steps[10] = mutedText.color
+    attempt[index] = ratio
+    return generateSteps(key, key, mode, attempt)[index]!
+  }
+
+  // Step 9 outlines form fields: 3:1 on the page and on the subtle area.
+  steps[8] = reachTarget(ratios[8]!, OUTLINE_TARGET, steps.slice(0, 2), r => withRatio(8, r)).color
+  steps[10] = reachTarget(ratios[10]!, TARGETS[level].text, steps.slice(0, 3), r => withRatio(10, r)).color
 
   return steps
 }

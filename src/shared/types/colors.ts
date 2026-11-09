@@ -55,6 +55,13 @@ export interface ThemeMeta {
   translations?: ThemeTranslations
   /** A plain emoji ('🎨') or an object with per-format variants — see `ThemeIconFormats`. */
   icon?: string | ThemeIconFormats
+  /**
+   * Experimental (v1.4.0). Also generates the semantic color tokens
+   * (`--color-text-primary`, `--color-fill-primary`, `--color-bg-subtle`…)
+   * from the variant's `primary`, `secondary` and `background`, next to the
+   * usual `--color-*` variables, which stay unchanged. Default: `false`.
+   */
+  tokens?: boolean
 }
 
 /**

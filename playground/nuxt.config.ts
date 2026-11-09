@@ -87,6 +87,17 @@ export default defineNuxtConfig({
         // <VenixThemeSwitcher> and follows the light/dark mode like the
         // built-in ones. Leave out `seasonal`/`dateRange` for a theme the
         // user picks by hand; add them to make it take over by date.
+        // Experimental (v1.4.0): `tokens: true` also generates the semantic
+        // tokens (`--color-text-primary`, `--color-fill-primary`,
+        // `--color-bg-subtle`…) from the seeds below. Playground only; it
+        // isn't shipped in theme.json.
+        venixTokens: {
+          tokens: true,
+          translations: { 'pt-BR': 'Venix (tokens)', 'en-US': 'Venix (tokens)', 'es-ES': 'Venix (tokens)' },
+          icon: '🧪',
+          light: { primary: '#FF0000', secondary: '#FF8800', background: '#FAFAFA' },
+          dark: { primary: '#FF6B6B', secondary: '#FFB96A', background: '#0C0C0C' },
+        },
         oceano: {
           translations: { 'en-US': 'Ocean', 'pt-BR': 'Oceano', 'es-ES': 'Océano' },
           icon: {

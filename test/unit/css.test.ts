@@ -355,3 +355,57 @@ describe('generateThemeVars', () => {
     expect(css).toContain('--color-secondary: #FFB96A')
   })
 })
+
+describe('generateThemeVars com tokens', () => {
+  const flat = { dark: false, primary: '#FF0000', secondary: '#FF8800', background: '#FAFAFA' }
+
+  it('deve manter o CSS idêntico, byte a byte, para temas sem `tokens`', () => {
+    const expected = `\n/* ============================================ */\n`
+      + `/* Colors - Light Theme                     */\n`
+      + `/* ============================================ */\n\n`
+      + `:root[data-theme='light'] {\n`
+      + `  color-scheme: light;\n`
+      + `  --color-scheme: #FFFFFF;\n`
+      + `  --color-inverse: #000000;\n`
+      + `  --color-primary: #FF0000;\n`
+      + `  --color-secondary: #FF8800;\n`
+      + `  --color-background: #FAFAFA;\n`
+      + `}\n`
+    expect(generateThemeVars('light', flat)).toBe(expected)
+    expect(generateThemeVars('light', { ...flat, tokens: false })).toBe(expected)
+  })
+
+  it('deve manter o CSS de todos os temas embutidos sem nenhum token', () => {
+    const css = processTheme(loadTheme())
+    expect(css).not.toContain('Semantic tokens')
+    expect(css).not.toContain('--color-text-primary')
+    expect(css).not.toContain('--color-fill-primary')
+  })
+
+  it('deve acrescentar os tokens ao bloco do tema, depois das variáveis de sempre', () => {
+    const css = generateThemeVars('venixTokens-light', { ...flat, tokens: true })
+    const block = css.slice(css.indexOf(':root'))
+    expect(block.startsWith(`:root[data-theme='venixTokens-light'] {`)).toBe(true)
+    expect(block.endsWith('}\n')).toBe(true)
+    expect(block.indexOf('--color-primary: #FF0000;')).toBeLessThan(block.indexOf('/* Semantic tokens */'))
+    expect(block.indexOf('/* Semantic tokens */')).toBeLessThan(block.indexOf('--color-bg: #FAFAFA;'))
+    expect(block).toContain('--color-fill-primary: #FF0000;')
+    expect(block).toContain('--color-on-primary: #000000;')
+    expect(block).toContain('--color-text-secondary:')
+    expect(block.match(/:root\[/g)).toHaveLength(1)
+  })
+
+  it('deve manter as variáveis antigas do tema com tokens iguais às de um tema sem tokens', () => {
+    const withTokens = generateThemeVars('x', { ...flat, tokens: true })
+    const without = generateThemeVars('x', flat)
+    const head = without.slice(0, without.lastIndexOf('}'))
+    expect(withTokens.startsWith(head)).toBe(true)
+  })
+
+  it('deve gerar os tokens também no escuro', () => {
+    const css = generateThemeVars('d', { dark: true, tokens: true, primary: '#FF6B6B', background: '#0C0C0C' })
+    expect(css).toContain('color-scheme: dark;')
+    expect(css).toContain('--color-bg: #0C0C0C;')
+    expect(css).toContain('--color-fill-primary: #FF6B6B;')
+  })
+})

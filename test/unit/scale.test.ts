@@ -158,3 +158,11 @@ describe('generateNeutralScale', () => {
     expect(contrastRatio(neutral[10]!, neutral[2]!)).toBeGreaterThanOrEqual(7)
   })
 })
+
+describe('contorno do neutro', () => {
+  it.each(VARIANTS)('deve dar 3:1 ao passo 9 sobre o fundo e a área sutil ($mode)', ({ mode, background, seeds }) => {
+    const { neutral } = generateScales(background, seeds, mode)
+    expect(contrastRatio(neutral[8]!, neutral[0]!)).toBeGreaterThanOrEqual(3)
+    expect(contrastRatio(neutral[8]!, neutral[1]!)).toBeGreaterThanOrEqual(3)
+  })
+})

@@ -119,4 +119,5 @@ export const NON_COLOR_PROPERTIES = [
   'dateRange',
   'translations',
   'icon',
+  'tokens',
 ] as const
