@@ -2,7 +2,7 @@
 import type { ThemeColors, ThemeDefinition, ThemeEntry, ThemeMode, ThemePalette, ThemeVariant, ResolvedThemeGroup } from '../types'
 import { COLOR_PROPERTIES, THEME_MODES } from '../constants'
 
-const META_PROPERTIES = ['seasonal', 'dateRange', 'translations', 'icon', 'tokens'] as const
+const META_PROPERTIES = ['seasonal', 'dateRange', 'translations', 'icon', 'tokens', 'neutralTint'] as const
 
 /** Grouped format: at least one `light`/`dark` variant object. */
 export function isThemeDefinition(entry: Partial<ThemeEntry> | undefined): entry is ThemeDefinition {
@@ -38,9 +38,13 @@ function pickPalette(entry: Partial<ThemeEntry> | ThemeVariant): ThemePalette {
   return palette
 }
 
-/** `{ tokens: true }` for a theme that opted in, nothing otherwise, so other variants stay as they were. */
-function tokensFlag(entry: Partial<ThemeEntry>): { tokens?: true } {
-  return entry.tokens === true ? { tokens: true } : {}
+/**
+ * `{ tokens: true }` for a theme that opted in (plus `neutralTint: false` when it
+ * turned the tint off), nothing otherwise, so other variants stay as they were.
+ */
+function tokensFlag(entry: Partial<ThemeEntry>): { tokens?: true, neutralTint?: false } {
+  if (entry.tokens !== true) return {}
+  return entry.neutralTint === false ? { tokens: true, neutralTint: false } : { tokens: true }
 }
 
 const variantId = (themeName: string, mode: ThemeMode, variant: ThemeVariant): string =>

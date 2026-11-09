@@ -2,7 +2,7 @@
 import { BackgroundColor, Color, Theme } from '@adobe/leonardo-contrast-colors'
 import type { CssColor } from '@adobe/leonardo-contrast-colors'
 import type { ContrastLevel, ThemeMode } from '../types'
-import { contrastRatio } from './contrast'
+import { contrastRatio, relativeLuminance } from './contrast'
 import { lightnessOf, normalizeHex, tintToward } from './oklab'
 
 /**
@@ -106,6 +106,18 @@ function runEngine(key: string, background: string, ratios: number[]): string[] 
   return generated.values.map(v => v.value)
 }
 
+function isGray(hex: string): boolean {
+  return hex.slice(1, 3) === hex.slice(3, 5) && hex.slice(3, 5) === hex.slice(5, 7)
+}
+
+/** The gray (`#RRGGBB`, equal channels) with the same relative luminance as `hex`. */
+function grayWithLuminanceOf(hex: string): string {
+  const y = relativeLuminance(hex)
+  const encoded = y <= 0.0031308 ? y * 12.92 : 1.055 * y ** (1 / 2.4) - 0.055
+  const channel = Math.round(Math.min(1, Math.max(0, encoded)) * 255).toString(16).padStart(2, '0').toUpperCase()
+  return `#${channel}${channel}${channel}`
+}
+
 /** The worst contrast of `text` over any of `surfaces`. */
 function worstContrast(text: string, surfaces: string[]): number {
   return Math.min(...surfaces.map(surface => contrastRatio(text, surface)))
@@ -136,28 +148,38 @@ function reachTarget(
 
 /**
  * The neutral scale: the theme's background and 11 steps leaning toward the
- * hue of `tintSeed` (usually the primary). Step 1 is exactly `background`.
+ * hue of `tintSeed` (usually the primary), or plain grays when it is `null`.
+ * Step 1 is exactly `background`.
  * Step 9 (outline) reaches 3:1 on steps 1–2 and step 11 (muted text) reaches
  * the level on steps 1–3; step 12 is main text.
  */
 export function generateNeutralScale(
   background: string,
-  tintSeed: string,
+  tintSeed: string | null,
   mode: ThemeMode,
   level: ContrastLevel = 'AA',
 ): string[] {
   const exact = normalizeHex(background)
-  const key = tintToward(exact, tintSeed)
+  const key = tintSeed ? tintToward(exact, tintSeed) : exact
+
+  // The engine rounds each channel on its own, so a gray comes back a unit off
+  // here and there (`#79797A`). With a gray background and no tint, every step
+  // is snapped to the gray of the same luminance: the contrast doesn't move.
+  const keepGray = !tintSeed && isGray(exact)
+  const generate = (ratios: number[]) => {
+    const steps = generateSteps(key, key, mode, ratios)
+    return keepGray ? steps.map(grayWithLuminanceOf) : steps
+  }
 
   const ratios = [...NEUTRAL_RATIOS]
   ratios[10] = TARGETS[level].text
-  const steps = generateSteps(key, key, mode, ratios)
+  const steps = generate(ratios)
   steps[0] = exact
 
   const withRatio = (index: number, ratio: number) => {
     const attempt = [...ratios]
     attempt[index] = ratio
-    return generateSteps(key, key, mode, attempt)[index]!
+    return generate(attempt)[index]!
   }
 
   // Step 9 outlines form fields: 3:1 on the page and on the subtle area.
@@ -238,16 +260,17 @@ export function generateScale(
 /**
  * The neutral scale and one scale per role, for one theme variant.
  * `seeds` maps each role (`primary`, `secondary`…) to its seed color; the
- * neutral scale leans toward the first one.
+ * neutral scale leans toward the first one unless `options.tint` is `false`.
  */
 export function generateScales(
   background: string,
   seeds: Record<string, string>,
   mode: ThemeMode,
   level: ContrastLevel = 'AA',
+  options: { tint?: boolean } = {},
 ): GeneratedScales {
   const entries = Object.entries(seeds)
-  const tintSeed = entries[0]?.[1] ?? background
+  const tintSeed = options.tint === false ? null : (entries[0]?.[1] ?? background)
   const neutral = generateNeutralScale(background, tintSeed, mode, level)
 
   const roles: Record<string, RoleScale> = {}

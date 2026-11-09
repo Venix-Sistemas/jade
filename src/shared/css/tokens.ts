@@ -26,7 +26,7 @@ const tokenCache = new Map<string, Array<[string, string]>>()
  * written. Memoized: the CSS and the build check ask for the same variant.
  */
 export function generateTokens(colors: ThemeColors, level: ContrastLevel = 'AA'): Array<[string, string]> {
-  const key = JSON.stringify([colors.dark === true, colors.background, colors.primary, colors.secondary, level])
+  const key = JSON.stringify([colors.dark === true, colors.background, colors.primary, colors.secondary, level, colors.neutralTint !== false])
   let tokens = tokenCache.get(key)
   if (!tokens) {
     tokens = buildTokens(colors, level)
@@ -45,7 +45,7 @@ function buildTokens(colors: ThemeColors, level: ContrastLevel): Array<[string, 
     if (seed) seeds[role] = seed
   }
 
-  const { neutral, roles } = generateScales(background, seeds, mode, level)
+  const { neutral, roles } = generateScales(background, seeds, mode, level, { tint: colors.neutralTint !== false })
   const tokens: Array<[string, string]> = NEUTRAL_TOKENS.map(([name, step]) => [name, neutral[step - 1]!])
 
   const primary = roles.primary

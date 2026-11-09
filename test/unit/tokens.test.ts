@@ -154,3 +154,36 @@ describe('findTokenContrastIssues', () => {
     expect(messages[0]).not.toContain('`text-muted`')
   })
 })
+
+describe('neutralTint', () => {
+  const isGray = (hex: string) => hex.slice(1, 3) === hex.slice(3, 5) && hex.slice(3, 5) === hex.slice(5, 7)
+  const NEUTRAL_NAMES = ['bg', 'bg-subtle', 'bg-muted', 'bg-hover', 'bg-active', 'border', 'border-strong', 'text', 'text-muted', 'text-disabled']
+
+  it('deve dar tom ao neutro por padrão', () => {
+    const tokens = toMap(LIGHT)
+    expect(NEUTRAL_NAMES.some(name => !isGray(tokens[name]!))).toBe(true)
+  })
+
+  it.each([['claro', LIGHT], ['escuro', DARK]] as const)('deve gerar o neutro em cinza com `neutralTint: false` (%s)', (_label, colors) => {
+    const tokens = toMap({ ...colors, neutralTint: false })
+    for (const name of NEUTRAL_NAMES) expect(isGray(tokens[name]!), name).toBe(true)
+    // só o neutro muda: os papéis seguem com a cor do seed
+    expect(tokens['fill-primary']).toBe(colors.primary)
+  })
+
+  it('deve passar os mesmos pares de contraste com o neutro em cinza', () => {
+    for (const colors of [LIGHT, DARK]) {
+      for (const level of ['AA', 'AAA'] as const) {
+        const issues = checkTokenContrast(generateTokens({ ...colors, neutralTint: false }, level), level)
+        expect(issues.filter(issue => !issue.text.startsWith('on-'))).toEqual([])
+      }
+    }
+  })
+
+  it('não deve misturar o resultado com e sem tom no cache', () => {
+    const tinted = toMap(LIGHT)
+    const gray = toMap({ ...LIGHT, neutralTint: false })
+    expect(gray['bg-subtle']).not.toBe(tinted['bg-subtle'])
+    expect(toMap(LIGHT)['bg-subtle']).toBe(tinted['bg-subtle'])
+  })
+})

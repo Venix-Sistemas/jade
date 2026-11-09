@@ -185,3 +185,33 @@ describe('avisos do motor de cores', () => {
     expect(console.warn).toBe(original)
   })
 })
+
+describe('neutro sem tom (tint: false)', () => {
+  const isGray = (hex: string) => hex.slice(1, 3) === hex.slice(3, 5) && hex.slice(3, 5) === hex.slice(5, 7)
+
+  it.each(VARIANTS)('deve gerar só cinzas, com o fundo exato no passo 1 ($mode)', ({ mode, background, seeds }) => {
+    const { neutral } = generateScales(background, seeds, mode, 'AA', { tint: false })
+    expect(neutral[0]).toBe(background)
+    expect(neutral.every(isGray)).toBe(true)
+  })
+
+  it.each(VARIANTS)('deve deixar o neutro com tom por padrão ($mode)', ({ mode, background, seeds }) => {
+    const { neutral } = generateScales(background, seeds, mode)
+    expect(neutral.slice(1).some(step => !isGray(step))).toBe(true)
+  })
+
+  it.each(VARIANTS)('deve manter os mesmos alvos de contraste do neutro com tom ($mode)', ({ mode, background, seeds }) => {
+    const { neutral } = generateScales(background, seeds, mode, 'AA', { tint: false })
+    expect(isAscending(ratios(neutral, background))).toBe(true)
+    for (const surface of neutral.slice(0, 3)) {
+      expect(contrastRatio(neutral[10]!, surface)).toBeGreaterThanOrEqual(4.5)
+    }
+    for (const surface of neutral.slice(0, 2)) {
+      expect(contrastRatio(neutral[8]!, surface)).toBeGreaterThanOrEqual(3)
+    }
+  })
+
+  it('deve aceitar tintSeed nulo em generateNeutralScale', () => {
+    expect(generateNeutralScale('#FAFAFA', null, 'light').every(isGray)).toBe(true)
+  })
+})

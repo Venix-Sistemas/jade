@@ -273,3 +273,30 @@ describe('tokens (experimental)', () => {
     expect(overridesBrandColors(base, { venix: { tokens: true } })).toBe(false)
   })
 })
+
+describe('neutralTint (experimental)', () => {
+  const light = { primary: '#FF0000', background: '#FAFAFA' }
+  const dark = { primary: '#FF6B6B', background: '#0C0C0C' }
+
+  it('deve levar `neutralTint: false` do tema para as duas variantes, junto de `tokens`', () => {
+    const { themes } = normalizeColorThemes({ t: { tokens: true, neutralTint: false, light, dark } })
+    expect(themes['t-light']).toMatchObject({ tokens: true, neutralTint: false })
+    expect(themes['t-dark']).toMatchObject({ tokens: true, neutralTint: false })
+  })
+
+  it('não deve acrescentar `neutralTint` quando o tema deixa o padrão', () => {
+    const { themes } = normalizeColorThemes({ t: { tokens: true, light, dark }, u: { tokens: true, neutralTint: true, light } })
+    expect(themes['t-light']).not.toHaveProperty('neutralTint')
+    expect(themes['u-light']).not.toHaveProperty('neutralTint')
+  })
+
+  it('não deve levar `neutralTint` a um tema sem tokens', () => {
+    const { themes } = normalizeColorThemes({ t: { neutralTint: false, light, dark } })
+    expect(themes['t-light']).not.toHaveProperty('neutralTint')
+  })
+
+  it('deve aplicar `neutralTint` por override num tema existente', () => {
+    const merged = mergeColorThemes({ t: { tokens: true, light, dark } }, { t: { neutralTint: false } })
+    expect(merged.t).toMatchObject({ tokens: true, neutralTint: false, light, dark })
+  })
+})

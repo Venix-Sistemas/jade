@@ -62,6 +62,14 @@ export interface ThemeMeta {
    * usual `--color-*` variables, which stay unchanged. Default: `false`.
    */
   tokens?: boolean
+  /**
+   * Only with `tokens: true`. The neutral tokens (`bg`, `bg-subtle`, `text`,
+   * `border`…) lean slightly toward the hue of `primary` by default, so the
+   * theme feels of one piece. `false` makes them plain grays, like a theme
+   * built on `background2`/`background3` greys. Contrast is the same either
+   * way. Default: `true`.
+   */
+  neutralTint?: boolean
 }
 
 /**

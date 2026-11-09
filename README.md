@@ -246,7 +246,7 @@ The old variables stay: a token theme still emits `--color-primary` and `--color
 
 **Names.** `--color-<property>[-<role>][-<variant>][-<state>]`: the property says what the color is for (`bg`, `text`, `fill`, `on`, `border`), the role is `primary` or `secondary`, the variant is `subtle`, `muted`, `strong` or `focus`, and the state is `hover` or `active`. None of them repeats a name from the original model, so both live side by side.
 
-Neutral tokens, built from the theme's `background` (`--color-bg` *is* the background, exactly):
+Neutral tokens, built from the theme's `background` (`--color-bg` *is* the background, exactly). By default they lean very slightly toward the hue of `primary`, so the surfaces feel of one piece with the theme. Set `neutralTint: false` next to `tokens: true` for plain grays instead (contrast is the same either way):
 
 | Token | Use |
 | ----- | --- |
