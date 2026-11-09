@@ -3,6 +3,7 @@ import type { ContrastLevel, ThemeColors } from '../types'
 import { contrastRatio } from '../utils/contrast'
 import { generateScales } from '../utils/scale'
 import type { RoleScale } from '../utils/scale'
+import { NEUTRAL_TOKENS, ROLE_TOKENS, TOKEN_ROLES as ROLES, roleTokenName } from '../token-names'
 
 /**
  * The semantic color tokens of a theme variant (v1.4.0, experimental).
@@ -17,35 +18,6 @@ import type { RoleScale } from '../utils/scale'
 
 /** Used when a token theme variant sets no `background`. */
 const FALLBACK_BACKGROUND = { light: '#FFFFFF', dark: '#121212' } as const
-
-const ROLES = ['primary', 'secondary'] as const
-
-/** Neutral tokens and the step (1–12) of the neutral scale each one uses. */
-const NEUTRAL_TOKENS: Array<[name: string, step: number]> = [
-  ['bg', 1],
-  ['bg-subtle', 2],
-  ['bg-muted', 3],
-  ['bg-hover', 4],
-  ['bg-active', 5],
-  ['border', 6],
-  ['border-strong', 9],
-  ['text', 12],
-  ['text-muted', 11],
-  ['text-disabled', 8],
-]
-
-/** Per-role tokens and the step (1–12) of the role's scale each one uses. */
-const ROLE_TOKENS: Array<[name: string, step: number]> = [
-  ['fill', 9],
-  ['fill-hover', 10],
-  ['bg', 3],
-  ['bg-hover', 4],
-  ['bg-active', 5],
-  ['text', 11],
-  ['text-strong', 12],
-  ['border', 7],
-  ['border-strong', 11],
-]
 
 const tokenCache = new Map<string, Array<[string, string]>>()
 
@@ -83,8 +55,7 @@ function buildTokens(colors: ThemeColors, level: ContrastLevel): Array<[string, 
     const scale: RoleScale | undefined = roles[role]
     if (!scale) continue
     for (const [name, step] of ROLE_TOKENS) {
-      const [property, ...rest] = name.split('-')
-      tokens.push([[property, role, ...rest].join('-'), scale.steps[step - 1]!])
+      tokens.push([roleTokenName(name, role), scale.steps[step - 1]!])
     }
     tokens.push([`on-${role}`, scale.on])
   }
