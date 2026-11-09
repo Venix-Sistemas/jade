@@ -142,6 +142,7 @@ Every theme has a light and a dark palette, exposed as CSS variables (`--color-p
 | `requireConsent` | `boolean`                   | `true`   | Only save the chosen theme after cookie consent — see [Saving preferences](#saving-preferences-cookie-consent) |
 | `seasonal`       | `boolean`                   | `true`   | Seasonal themes — `false` removes them entirely, see [Seasonal themes](#seasonal-themes) |
 | `allowVenixOverride` | `boolean`               | `false`  | Override the colors of the Venix brand theme without the build warning — see [Themes](#themes) |
+| `contrast`       | `'AA' \| 'AAA' \| false`    | `'AA'`   | Experimental. Contrast the [semantic tokens](#semantic-tokens-experimental) aim for, and what the build warns about; `false` skips the warning |
 
 ### Themes
 
@@ -169,7 +170,7 @@ color: {
 }
 ```
 
-Available colors: `primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`, `background`, `background2`, `background3`. Each becomes a `--color-<name>` CSS variable, plus `--color-inverse` (white on dark variants, black on light ones).
+Available colors: `primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`, `background`, `background2`, `background3`. Each becomes a `--color-<name>` CSS variable, plus `--color-inverse` (white on dark variants, black on light ones). For colors that meet WCAG contrast by construction, a theme can opt in to [semantic tokens](#semantic-tokens-experimental) (experimental).
 
 Each variant is applied as `<html data-theme="<id>">`, and the id is also its Vuetify theme name. It defaults to `<theme>-<mode>` (`summerSale-light`); set `id` on a variant to choose it. The built-in themes keep the ids they had before light/dark became separate: `dark` and `light` for Venix, `carnaval`, `natal` and `halloween` for the dark seasonal variants (their light ones are `carnaval-light` and so on). Easter, added later, uses the default `pascoa-light` and `pascoa-dark`.
 
@@ -203,6 +204,95 @@ A seasonal theme with a single variant only takes over automatically when the mo
 To turn seasonal themes off, set `color.seasonal: false`. All of them, built-in and custom, are removed: they get no CSS, aren't listed in pickers and never take over by date. "Automatic" then always means the base theme, so it's left out of the theme list too.
 
 The built-in Carnival theme uses `easter-65` to `easter-46`: 20 days, from the pre-Carnival weeks up to Ash Wednesday. Easter uses `easter-7` to `easter+1`: from Palm Sunday to Easter Monday.
+
+### Semantic tokens (experimental)
+
+> **Experimental.** Opt-in per theme, additive, and the names or steps may still change before it's declared stable. Everything above (`--color-primary`, `--color-background2`…) keeps working exactly as before, and the built-in themes don't use tokens.
+
+A theme with `tokens: true` also gets **semantic tokens**: CSS variables named for where the color goes (`--color-text-primary`, `--color-fill-primary`, `--color-bg-subtle`…), generated from the variant's `primary`, `secondary` and `background`. Each token points at a step of a 12-step scale whose pairs are placed so they meet WCAG 2.1 contrast, so you don't have to guess which shade is readable on which background.
+
+```typescript
+color: {
+  themes: {
+    brand: {
+      tokens: true,
+      translations: { 'en-US': 'Brand', 'pt-BR': 'Marca' },
+      light: { primary: '#FF0000', secondary: '#FF8800', background: '#FAFAFA' },
+      dark: { primary: '#FF6B6B', secondary: '#FFB96A', background: '#0C0C0C' },
+    },
+  },
+  contrast: 'AA', // 'AA' | 'AAA' | false
+}
+```
+
+```css
+.card {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.button {
+  background: var(--color-fill-primary);
+  color: var(--color-on-primary);
+}
+
+.button:hover {
+  background: var(--color-fill-primary-hover);
+}
+```
+
+The old variables stay: a token theme still emits `--color-primary` and `--color-secondary` (the seeds), so CSS written for the original model works on it too. A token theme should set `background`; without one the tokens are built on `#FFFFFF` (light) or `#121212` (dark).
+
+**Names.** `--color-<property>[-<role>][-<variant>][-<state>]`: the property says what the color is for (`bg`, `text`, `fill`, `on`, `border`), the role is `primary` or `secondary`, the variant is `subtle`, `muted`, `strong` or `focus`, and the state is `hover` or `active`. None of them repeats a name from the original model, so both live side by side.
+
+Neutral tokens, built from the theme's `background` (`--color-bg` *is* the background, exactly):
+
+| Token | Use |
+| ----- | --- |
+| `bg` | Page |
+| `bg-subtle` | Card, sidebar, striped row |
+| `bg-muted` | Neutral component at rest: chip, quiet button, disabled field |
+| `bg-hover` / `bg-active` | Neutral item under the pointer / pressed or selected |
+| `border` | Divider, decorative outline |
+| `border-strong` | Outline that identifies a control, like a form field (3:1) |
+| `border-focus` | Keyboard focus ring (3:1) |
+| `text` | Main text |
+| `text-muted` | Helper text, dates, captions |
+| `text-disabled` | Disabled controls (WCAG exempts them) |
+
+Tokens for each role (`primary`, `secondary`), shown for `primary`:
+
+| Token | Use |
+| ----- | --- |
+| `fill-primary` | Main button, strong badge, toggle on. It is the seed, exactly |
+| `fill-primary-hover` | The same under the pointer |
+| `on-primary` | Text and icons on `fill-primary`: white or black, whichever contrasts more |
+| `bg-primary` / `bg-primary-hover` / `bg-primary-active` | Soft tinted background: selected item, highlight box, soft badge |
+| `text-primary` | Link, colored text on neutral backgrounds and on `bg-primary` |
+| `text-primary-strong` | Colored text on `bg-primary-hover` and `bg-primary-active` |
+| `border-primary` | Decorative outline of something on `bg-primary` |
+| `border-primary-strong` | Outline that must be seen (3:1) |
+
+**The scale.** Each seed becomes 12 steps defined by their contrast ratio against the background, not by fixed lightness, so the same ratios work in light and dark mode: 1–2 area backgrounds, 3–5 component backgrounds (rest, hover, pressed), 6–8 borders, 9–10 solid fill (the seed and its hover), 11–12 text. The hover moves away from the text on it: lighter when `on-*` is black, darker when it's white, so the text never loses contrast. A seed that sits close to the background (orange on white) gets its steps squeezed to fit under it.
+
+**Contrast.** `color.contrast` sets the target: `'AA'` (default: text 4.5:1, outlines 3:1) or `'AAA'` (text 7:1). At build time each token variant is checked for these pairs, and one `[jade]` warning per variant lists every pair that falls short, with its ratio:
+
+- `text` on `bg`, `bg-subtle`, `bg-muted`, `bg-hover`, `bg-active`; `text-muted` on `bg`, `bg-subtle`, `bg-muted`
+- `border-strong` and `border-focus` on `bg` and `bg-subtle`
+- per role: `on-<role>` on `fill-<role>` and `fill-<role>-hover`; `text-<role>` on `bg`, `bg-subtle`, `bg-muted` and `bg-<role>`; `text-<role>-strong` on `bg-<role>-hover` and `bg-<role>-active`; `text` on `bg-<role>` and `bg-<role>-active`; `border-<role>-strong` on `bg`
+
+A warning usually means the seed itself can't get there, not that the scale is wrong. The Venix red (`#FF0000`) reaches 5.25:1 with black text, so at `'AAA'` the light variant warns about `on-primary`; pick a darker seed or stay on `'AA'`. `false` skips the warning but still generates the tokens, as AA. With `'AA'`, `on-*` can never fail: the better of black and white always reaches at least 4.58:1.
+
+**Where the tokens show up.**
+
+- **CSS:** in the variant's `[data-theme]` block, after the usual variables.
+- **`useVenixTheme().tokens`:** `all` (every variant's tokens by `data-theme` id), `current` (the applied theme's, `undefined` when it has none) and `cssVar('text-primary')` → `'var(--color-text-primary)'`. See [`useVenixTheme()`](#usevenixtheme).
+- **UnoCSS:** as theme colors named after the token: `bg-fill-primary`, `text-on-primary`, `border-border-strong`, `text-text-muted`. See [UnoCSS preset](#unocss-preset).
+- **Vuetify:** `on-primary`, `on-secondary`, `surface`, `on-surface` and `on-background`. See [Vuetify](#vuetify).
+- **`<VenixThemeSwitcher>`:** its menu follows the tokens on token themes and keeps its fixed palette everywhere else.
+
+The tokens are generated at build time with [Adobe Leonardo](https://github.com/adobe/leonardo) and never reach the client bundle; the client only receives the resulting hex values. Roles in this version are `primary` and `secondary`.
 
 ### Theme transition
 
@@ -483,6 +573,7 @@ It returns:
 - `themes` — every selectable theme as `{ value, name, icon, custom }`, ready to render a picker (see [Theme icons](#theme-icons)); `custom` is `true` for themes your project added in `color.themes`.
 - `mode` — the mode choice: `preference` (`'system'`, `'light'`, `'dark'`), `value` (the mode applied, `'light'` or `'dark'`), `data`, `set(mode)` and `toggle()`.
 - `modes` — the three mode options with names and icons, ready to render.
+- `tokens` — the [semantic tokens](#semantic-tokens-experimental) (experimental) of the themes with `tokens: true`: `all` (every variant's tokens by `data-theme` id), `current` (a computed with the applied theme's tokens, `undefined` when it has none) and `cssVar('text-primary')`, which returns `'var(--color-text-primary)'`.
 - `scrollbar` / `cursor` / `font` — the visitor's switch for the custom [scrollbar](#scrollbar), [cursor](#cursor) and [font](#typography): `available` (the project has it on), `enabled` (a `Ref<boolean>`, `true` unless the visitor turned it off) and `set(enabled)`.
 - `locale` — `current`, `set()` and `translate()` (see [Translation](#translation)).
 - `persistence` — cookie consent controls (see [Saving preferences](#saving-preferences-cookie-consent)).
@@ -750,6 +841,8 @@ export default defineConfig({
 
 It maps every [theme color](#themes), plus `inverse`, to its CSS variable (`primary: 'var(--color-primary)'`, …), so utilities follow the active theme. Colors you define yourself in `uno.config.ts` take precedence.
 
+The [semantic tokens](#semantic-tokens-experimental) (experimental) are theme colors too, named after the token: `bg-fill-primary`, `text-on-primary`, `border-border-strong`, `text-text-muted`, `hover:bg-bg-subtle`. The key is the full token name (hence the doubled `text-text-muted`), so none collides with the colors above: `bg-primary` stays the plain `primary`. They only have a value on themes with `tokens: true`. Pass `venixUnoPreset({ tokens: false })` to leave them out.
+
 It also makes `cursor-default`, `cursor-pointer` and `cursor-text` use the [custom cursor](#cursors-in-your-own-css) (`cursor: var(--cursor-pointer, pointer)`, the system's when the module's cursor is off), with variants and `!` included (`hover:cursor-pointer`, `!cursor-default`). These replace `presetWind`'s rules of the same name wherever the preset sits in `presets`.
 
 The preset has to be added by hand: `@unocss/nuxt` re-reads `uno.config.ts` from disk and discards a `theme` injected by other modules whenever your file declares its own `theme` key. As a preset in your own file, the colors survive that.
@@ -778,6 +871,7 @@ export default defineNuxtConfig({
 
 - **Order matters:** the themes are registered through Vuetify's [`vuetify:registerModule`](https://nuxt.vuetifyjs.com/guide/advanced/layers-and-hooks.html) hook, which only sees modules listed before Vuetify.
 - **Real colors:** Vuetify computes contrast and `on-*` colors in JavaScript, so it receives the actual hex values, not `var(...)`. `background2` also fills Vuetify's `surface` slot (cards, toolbars, …).
+- **Semantic tokens** (experimental): a theme with `tokens: true` also gives Vuetify `on-primary` and `on-secondary` (it would otherwise pick its own, which prefers white on the Venix red, 4.0:1), `surface` from `bg-subtle` (unless the theme sets `background2`), and `on-surface` and `on-background` from `text`. See [Semantic tokens](#semantic-tokens-experimental).
 - **Your values win:** anything you set in `vuetify.vuetifyOptions.theme.themes` is merged per color on top of the generated themes.
 - **Always in sync:** a small runtime plugin starts Vuetify on the same theme the page gets (so the first paint is right, with or without SSR) and applies every later switch with `theme.change()`, inside the same View Transition as the rest of the page.
 - **No flash in SPA mode** (`ssr: false`): Vuetify's theme stylesheet only reaches the DOM after the first render there, so the plugin writes a temporary copy into `<head>` before mount and removes it once Vuetify's own arrives.
