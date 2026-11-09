@@ -93,10 +93,23 @@ export default defineNuxtConfig({
         // isn't shipped in theme.json.
         venixTokens: {
           tokens: true,
+          // The original Venix has plain gray surfaces (`background2`/`3`), so the
+          // neutral tokens stay gray instead of leaning toward the primary's hue.
+          neutralTint: false,
           translations: { 'pt-BR': 'Venix (tokens)', 'en-US': 'Venix (tokens)', 'es-ES': 'Venix (tokens)' },
           icon: '🧪',
-          light: { primary: '#FF0000', secondary: '#FF8800', background: '#FAFAFA' },
-          dark: { primary: '#FF6B6B', secondary: '#FFB96A', background: '#0C0C0C' },
+          // `primary`, `secondary` and `background` are the seeds the tokens are
+          // built from. The status colors below are the original model's, kept
+          // so the playground's chips and Vuetify's `accent` keep working; the
+          // old `background2`/`background3` are gone (`bg-subtle` and `bg-muted`
+          // take their place).
+          // Each mode has its own seeds. The light ones are darker than the
+          // original Venix's (`#FF0000`, `#FF8800`): a seed that is bright
+          // against a light background can't be text at AA (red is 3.8:1,
+          // orange 2.3:1), and `fill-primary` is the seed itself. `#D10100`
+          // reaches 5.4:1 on the page, so it can be text as is.
+          light: { primary: '#D10100', secondary: '#CC6600', background: '#FAFAFA', accent: '#82B1FF', error: '#FF5252', info: '#2196F3', success: '#4CAF50', warning: '#FCCF3D' },
+          dark: { primary: '#FF6B6B', secondary: '#FFB96A', background: '#0C0C0C', accent: '#82B1FF', error: '#FF5252', info: '#2196F3', success: '#4CAF50', warning: '#FCCF3D' },
         },
         oceano: {
           translations: { 'en-US': 'Ocean', 'pt-BR': 'Oceano', 'es-ES': 'Océano' },

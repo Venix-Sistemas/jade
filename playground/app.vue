@@ -50,58 +50,67 @@
         />
 
         <client-only>
-          <div class="demo">
-            <h3 class="demo__title">
-              {{ $t('color.selectorHeading') }}
-            </h3>
-            <p class="demo__hint">
-              {{ $t('color.selectorHint') }}
-            </p>
-
-            <h4 class="demo__label">
-              {{ $t('color.mode') }}
-            </h4>
-            <div class="chips">
-              <button
-                v-for="item in modes"
-                :key="item.value"
-                type="button"
-                class="chip"
-                :class="{ 'chip--active': mode.preference.value === item.value }"
-                @click="mode.set(item.value)"
+          <div class="demo demo--tabs">
+            <div class="tabs">
+              <div
+                class="tabs__list"
+                role="tablist"
+                :aria-label="$t('modules.color.title')"
               >
-                <VenixIcon
-                  v-if="item.icon"
-                  :icon="item.icon.value"
-                  :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
-                />
-                <span>{{ item.name }}</span>
-              </button>
+                <button
+                  v-for="item in colorTabs"
+                  :id="`color-tab-${item}`"
+                  :key="item"
+                  type="button"
+                  role="tab"
+                  class="tab"
+                  :class="{ 'tab--active': colorTab === item }"
+                  :aria-selected="colorTab === item"
+                  :aria-controls="`color-panel-${item}`"
+                  :tabindex="colorTab === item ? 0 : -1"
+                  @click="colorTab = item"
+                  @keydown="onTabKeydown"
+                >
+                  {{ $t(`color.tabs.${item}`) }}
+                </button>
+              </div>
+              <span class="tabs__status">{{ currentThemeName }}</span>
               <button
                 type="button"
-                class="chip chip--outline"
-                @click="mode.toggle()"
+                class="help"
+                :aria-expanded="colorHelpOpen"
+                :aria-label="$t('app.help')"
+                @click="colorHelpOpen = !colorHelpOpen"
               >
-                {{ $t('color.toggle') }}
+                ?
               </button>
             </div>
+            <p
+              v-if="colorHelpOpen"
+              class="tabs__help"
+            >
+              {{ $t(`color.help.${colorTab}`) }}
+            </p>
 
-            <!-- Built-in themes, then the ones this project adds in `color.themes` -->
-            <template
-              v-for="group in themeGroups"
-              :key="group.key"
+            <!-- Theme and mode -->
+            <div
+              v-if="colorTab === 'theme'"
+              id="color-panel-theme"
+              role="tabpanel"
+              aria-labelledby="color-tab-theme"
+              class="panel"
             >
               <h4 class="demo__label">
-                {{ group.label }}
+                {{ $t('color.mode') }}
               </h4>
               <div class="chips">
                 <button
-                  v-for="item in group.items"
+                  v-for="item in modes"
                   :key="item.value"
                   type="button"
                   class="chip"
-                  :class="{ 'chip--active': theme.preference.value === item.value }"
-                  @click="theme.set(item.value)"
+                  :class="{ 'chip--active': mode.preference.value === item.value }"
+                  @click="mode.set(item.value)"
                 >
                   <VenixIcon
                     v-if="item.icon"
@@ -110,63 +119,295 @@
                   />
                   <span>{{ item.name }}</span>
                 </button>
+                <button
+                  type="button"
+                  class="chip chip--outline"
+                  @click="mode.toggle()"
+                >
+                  {{ $t('color.toggle') }}
+                </button>
               </div>
-            </template>
 
-            <p class="demo__status">
-              {{ $t('color.applied') }} <code>data-theme="{{ theme.value.value }}"</code>
-            </p>
-          </div>
+              <!-- Built-in themes, then the ones this project adds in `color.themes` -->
+              <template
+                v-for="group in themeGroups"
+                :key="group.key"
+              >
+                <h4 class="demo__label">
+                  {{ group.label }}
+                </h4>
+                <div class="chips">
+                  <button
+                    v-for="item in group.items"
+                    :key="item.value"
+                    type="button"
+                    class="chip"
+                    :class="{ 'chip--active': theme.preference.value === item.value }"
+                    @click="theme.set(item.value)"
+                  >
+                    <VenixIcon
+                      v-if="item.icon"
+                      :icon="item.icon.value"
+                      :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
+                    />
+                    <span>{{ item.name }}</span>
+                  </button>
+                </div>
+              </template>
 
-          <div class="demo">
-            <h3 class="demo__title">
-              {{ $t('color.paletteHeading', { theme: currentThemeName }) }}
-            </h3>
-            <div class="color-grid">
+              <p class="demo__status">
+                {{ $t('color.applied') }} <code>data-theme="{{ theme.value.value }}"</code>
+              </p>
+            </div>
+
+            <!-- The original model's palette -->
+            <div
+              v-else-if="colorTab === 'palette'"
+              id="color-panel-palette"
+              role="tabpanel"
+              aria-labelledby="color-tab-palette"
+              class="panel"
+            >
+              <div class="color-grid">
+                <div
+                  v-for="color in colorList"
+                  :key="color.name"
+                  class="color-card"
+                >
+                  <div
+                    class="color-card__swatch"
+                    :style="{ backgroundColor: color.value }"
+                  />
+                  <span class="color-card__name">{{ formatColorName(color.name) }}</span>
+                  <code class="color-card__value">{{ color.value }}</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Semantic tokens (experimental): a spec sheet -->
+            <div
+              v-else-if="colorTab === 'tokens'"
+              id="color-panel-tokens"
+              role="tabpanel"
+              aria-labelledby="color-tab-tokens"
+              class="panel"
+            >
+              <template v-if="!tokens.current.value">
+                <p class="demo__status">
+                  {{ $t('color.tokens.pick') }}
+                </p>
+                <div class="chips">
+                  <button
+                    v-for="item in tokenThemes"
+                    :key="item.value"
+                    type="button"
+                    class="chip"
+                    @click="theme.set(item.value)"
+                  >
+                    <VenixIcon
+                      v-if="item.icon"
+                      :icon="item.icon.value"
+                      :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
+                    />
+                    <span>{{ item.name }}</span>
+                  </button>
+                </div>
+              </template>
+
               <div
-                v-for="color in colorList"
-                :key="color.name"
-                class="color-card"
+                v-else
+                class="sheet"
               >
                 <div
-                  class="color-card__swatch"
-                  :style="{ backgroundColor: color.value }"
-                />
-                <span class="color-card__name">{{ formatColorName(color.name) }}</span>
-                <code class="color-card__value">{{ color.value }}</code>
+                  class="sheet__nav"
+                  role="group"
+                  :aria-label="$t('color.tabs.tokens')"
+                >
+                  <button
+                    v-for="item in sheetNav"
+                    :key="item.key"
+                    type="button"
+                    class="sheet__navitem"
+                    :class="{ 'sheet__navitem--active': tokenView === item.key }"
+                    :aria-pressed="tokenView === item.key"
+                    @click="tokenView = item.key"
+                  >
+                    <span>{{ $t(`color.tokens.view.${item.key}`) }}</span>
+                    <span
+                      v-if="item.count"
+                      class="sheet__count"
+                    >{{ item.count }}</span>
+                  </button>
+                </div>
+
+                <div class="sheet__body">
+                  <!-- One group of tokens: swatch, variable, value and use -->
+                  <template v-if="tokenView === 'neutral' || tokenView === 'primary' || tokenView === 'secondary'">
+                    <div
+                      v-for="token in tokenRows"
+                      :key="token.name"
+                      class="token-row"
+                    >
+                      <span
+                        class="token-row__swatch"
+                        :style="{ backgroundColor: token.value }"
+                      />
+                      <code class="token-row__name">{{ token.name }}</code>
+                      <code class="token-row__value">{{ token.value }}</code>
+                      <span class="token-row__use">{{ $t(`color.tokens.usage.${token.usage}`) }}</span>
+                    </div>
+                  </template>
+
+                  <!-- The focus ring on each surface or component -->
+                  <template v-else-if="tokenView === 'focus'">
+                    <p class="sheet__caption">
+                      {{ $t('color.tokens.focusHint') }}
+                    </p>
+                    <div class="focus-grid">
+                      <div
+                        v-for="tile in focusTiles"
+                        :key="tile.name"
+                        class="focus-tile"
+                      >
+                        <div
+                          class="focus-tile__box"
+                          :style="{ backgroundColor: tile.value }"
+                        />
+                        <code class="focus-tile__name">{{ tile.name }}</code>
+                        <span :class="tile.pass ? 'pairs__pass' : 'pairs__fail'">{{ tile.ratio }}:1 {{ tile.pass ? '✓' : '✗' }}</span>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- Contrast of the pairs -->
+                  <template v-else-if="tokenView === 'contrast'">
+                    <p class="sheet__caption">
+                      {{ $t('color.tokens.pairsHint') }}
+                    </p>
+                    <div class="pairs-wrapper">
+                      <table class="pairs">
+                        <thead>
+                          <tr>
+                            <th />
+                            <th>{{ $t('color.tokens.text') }}</th>
+                            <th>{{ $t('color.tokens.surface') }}</th>
+                            <th>{{ $t('color.tokens.ratio') }}</th>
+                            <th>{{ $t('color.tokens.needs') }}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            v-for="row in tokenPairs"
+                            :key="`${row.text}-${row.surface}`"
+                            :class="{ 'pairs__row--original': row.original }"
+                          >
+                            <td>
+                              <span
+                                class="pairs__sample"
+                                :style="{ color: row.textColor, backgroundColor: row.surfaceColor }"
+                              >Aa</span>
+                            </td>
+                            <td><code>{{ row.text }}</code></td>
+                            <td><code>{{ row.surface }}</code></td>
+                            <td :class="row.pass ? 'pairs__pass' : 'pairs__fail'">
+                              {{ row.ratio }}:1 {{ row.pass ? '✓' : '✗' }}
+                            </td>
+                            <td>{{ row.min }}:1</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </template>
+
+                  <!-- The tokens in use -->
+                  <div
+                    v-else
+                    class="token-use"
+                  >
+                    <div class="token-use__card">
+                      <strong class="token-use__title">{{ $t('color.tokens.cardTitle') }}</strong>
+                      <p class="token-use__body">
+                        {{ $t('color.tokens.cardBody') }}<a
+                          href="#color"
+                          class="token-use__link"
+                        >{{ $t('color.tokens.link') }}</a>.
+                      </p>
+                      <p class="token-use__muted">
+                        {{ $t('color.tokens.muted') }}
+                      </p>
+                      <p class="token-use__disabled">
+                        {{ $t('color.tokens.disabled') }}
+                      </p>
+                      <div class="token-use__row">
+                        <span class="token-badge">{{ $t('color.tokens.badge') }}</span>
+                        <span class="token-badge token-badge--secondary">{{ $t('color.tokens.badge') }}</span>
+                      </div>
+                    </div>
+                    <div class="token-use__card">
+                      <div class="token-use__row">
+                        <button
+                          type="button"
+                          class="token-btn"
+                        >
+                          {{ $t('color.tokens.fill') }}
+                        </button>
+                        <button
+                          type="button"
+                          class="token-btn token-btn--secondary"
+                        >
+                          {{ $t('color.tokens.fillSecondary') }}
+                        </button>
+                        <button
+                          type="button"
+                          class="token-btn token-btn--outlined"
+                        >
+                          {{ $t('color.tokens.outlined') }}
+                        </button>
+                      </div>
+                      <label class="token-use__field">
+                        <span>{{ $t('color.tokens.field') }}</span>
+                        <input
+                          type="text"
+                          :placeholder="$t('color.tokens.fieldPlaceholder')"
+                        >
+                      </label>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="demo">
-            <h3 class="demo__title">
-              {{ $t('color.consentHeading') }}
-            </h3>
-            <p class="demo__status">
-              {{ $t('color.consentLabel') }}
-              <strong>{{ persistence.hasConsent.value ? $t('color.granted') : $t('color.notGranted') }}</strong>
-              · {{ $t('color.cookiesLabel') }}
-              <strong>{{ cookiesPresent ? $t('color.written') : $t('color.absent') }}</strong>
-            </p>
-            <div class="chips">
-              <button
-                type="button"
-                class="chip chip--success"
-                @click="grantConsent"
-              >
-                {{ $t('color.grant') }}
-              </button>
-              <button
-                type="button"
-                class="chip chip--error"
-                @click="revokeConsent"
-              >
-                {{ $t('color.revoke') }}
-              </button>
+            <!-- Saving the choice (cookie consent) -->
+            <div
+              v-else
+              id="color-panel-saving"
+              role="tabpanel"
+              aria-labelledby="color-tab-saving"
+              class="panel"
+            >
+              <p class="demo__status">
+                {{ $t('color.consentLabel') }}
+                <strong>{{ persistence.hasConsent.value ? $t('color.granted') : $t('color.notGranted') }}</strong>
+                · {{ $t('color.cookiesLabel') }}
+                <strong>{{ cookiesPresent ? $t('color.written') : $t('color.absent') }}</strong>
+              </p>
+              <div class="chips">
+                <button
+                  type="button"
+                  class="chip chip--success"
+                  @click="grantConsent"
+                >
+                  {{ $t('color.grant') }}
+                </button>
+                <button
+                  type="button"
+                  class="chip chip--error"
+                  @click="revokeConsent"
+                >
+                  {{ $t('color.revoke') }}
+                </button>
+              </div>
             </div>
-            <p class="demo__hint">
-              {{ $t('color.consentHint') }}
-            </p>
           </div>
         </client-only>
       </section>
@@ -378,10 +619,18 @@
         >
           <v-card-title>v-card (surface)</v-card-title>
           <v-card-actions>
-            <v-btn color="primary">
+            <!-- Filled, so the text on them is Vuetify's `on-primary` / `on-secondary`:
+                 the tokens' on-colors on a theme with `tokens: true`. -->
+            <v-btn
+              color="primary"
+              variant="flat"
+            >
               primary
             </v-btn>
-            <v-btn color="secondary">
+            <v-btn
+              color="secondary"
+              variant="flat"
+            >
               secondary
             </v-btn>
             <v-btn
@@ -400,7 +649,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick, h, defineComponent } from 'vue'
 
-const { theme, themes, mode, modes, locale, persistence } = useVenixTheme()
+import { contrastRatio } from '../src/shared/utils/contrast'
+
+const { theme, themes, mode, modes, locale, persistence, tokens } = useVenixTheme()
 
 const { t, locale: i18nLocale, locales: availableLocales, setLocale: setI18nLocale } = useI18n()
 
@@ -421,22 +672,32 @@ const modules = [
   { id: 'vuetify', emoji: '🧩' },
 ]
 
-// Title, `venixTheme.<key>` badge and one-line description of a module section.
+// Title, `venixTheme.<key>` badge and, behind a help button, the description of a module section.
 const ModuleHeader = defineComponent({
   props: {
     id: { type: String, required: true },
     emoji: { type: String, required: true },
   },
   setup(props) {
+    // The description is one click away, not always on screen.
+    const open = ref(false)
+
     return () => h('header', { class: 'module__header' }, [
       h('h2', { class: 'module__title' }, [
         h('span', { 'aria-hidden': 'true' }, props.emoji),
         ` ${t(`modules.${props.id}.title`)}`,
+        h('button', {
+          'type': 'button',
+          'class': 'help',
+          'aria-expanded': open.value,
+          'aria-label': t('app.help'),
+          'onClick': () => { open.value = !open.value },
+        }, '?'),
         h('code', { class: 'module__key' }, `venixTheme.${props.id}`),
       ]),
       // Component names go in as a parameter: written in the message itself,
       // vue-i18n warns about HTML in it (it's rendered as text either way).
-      h('p', { class: 'module__description' }, t(`modules.${props.id}.description`, { component: '<VenixIcon>' })),
+      open.value ? h('p', { class: 'module__description' }, t(`modules.${props.id}.description`, { component: '<VenixIcon>' })) : null,
     ])
   },
 })
@@ -503,6 +764,133 @@ const currentThemeName = computed(() => {
   return `${theme.data.value?.name} · ${mode.data.value?.name}`
 })
 
+// ===== Tabs of the Colors module =====
+
+const colorTabs = ['theme', 'palette', 'tokens', 'saving'] as const
+type ColorTab = typeof colorTabs[number]
+const colorTab = ref<ColorTab>('theme')
+const colorHelpOpen = ref(false)
+
+// Arrow keys move between tabs, as in a tab list.
+const onTabKeydown = (event: KeyboardEvent) => {
+  const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
+  if (!step) return
+
+  event.preventDefault()
+  const next = colorTabs[(colorTabs.indexOf(colorTab.value) + step + colorTabs.length) % colorTabs.length]!
+  colorTab.value = next
+  nextTick(() => document.getElementById(`color-tab-${next}`)?.focus())
+}
+
+// ===== Semantic tokens (experimental) =====
+
+// The themes with `tokens: true`, to offer when the current one has none.
+const tokenThemes = computed(() => themes.value.filter(item => theme.colors.groups[item.value]?.tokens === true))
+
+const FOCUS_TOKEN = 'border-focus'
+
+type TokenView = 'neutral' | 'primary' | 'secondary' | 'focus' | 'contrast' | 'use'
+const tokenView = ref<TokenView>('neutral')
+
+// The current theme's tokens, split by role: neutral ones first, then each role.
+// `usage` is the translation key of the token's one-line description.
+interface TokenEntry { name: string, value: string, usage: string }
+const tokenGroups = computed(() => {
+  const groups: Record<'neutral' | 'primary' | 'secondary', TokenEntry[]> = { neutral: [], primary: [], secondary: [] }
+  const current = tokens.current.value
+  if (!current) return groups
+
+  let focusEntry: TokenEntry | undefined
+  for (const [name, value] of Object.entries(current)) {
+    // `border-focus` has no role in its name, but its color is the primary's
+    // (step 11), so it is listed with the Primary tokens, after the others.
+    const role = FOCUS_TOKEN === name || /(?:^|-)primary(?:-|$)/.test(name) ? 'primary' : /(?:^|-)secondary(?:-|$)/.test(name) ? 'secondary' : 'neutral'
+    const short = role === 'neutral' ? name : name.replace(`-${role}`, '')
+    const entry = { name: `--color-${name}`, value, usage: `${role === 'neutral' ? 'neutral' : 'role'}.${short}` }
+    if (name === FOCUS_TOKEN) focusEntry = entry
+    else groups[role].push(entry)
+  }
+  if (focusEntry) groups.primary.push(focusEntry)
+
+  return groups
+})
+
+const tokenRows = computed(() => {
+  const view = tokenView.value
+  return view === 'neutral' || view === 'primary' || view === 'secondary' ? tokenGroups.value[view] : []
+})
+
+const TEXT_MIN = 4.5
+const OUTLINE_MIN = 3
+
+// What the focus ring can sit against: the surfaces, then the components of each
+// role. The ring is drawn right on the edge of its tile, so what it has to stand
+// out from is the tile's own color.
+const FOCUS_CONTEXTS = ['bg', 'bg-subtle', 'bg-muted', 'bg-primary', 'fill-primary', 'bg-secondary', 'fill-secondary']
+
+// Truncated, not rounded, so 4.496 never reads as a pass against 4.5.
+const formatRatio = (ratio: number) => (Math.floor(ratio * 100) / 100).toFixed(2)
+
+const focusTiles = computed(() => {
+  const current = tokens.current.value
+  const ring = current?.[FOCUS_TOKEN]
+  if (!current || !ring) return []
+
+  return FOCUS_CONTEXTS
+    .filter(name => current[name])
+    .map((name) => {
+      const ratio = contrastRatio(ring, current[name]!)
+      return { name: `--color-${name}`, value: current[name]!, ratio: formatRatio(ratio), pass: ratio >= OUTLINE_MIN }
+    })
+})
+
+// Token pairs worth showing, as [text or outline, what it sits on, the minimum].
+const TOKEN_PAIRS: Array<[string, string, number]> = [
+  ['text', 'bg', TEXT_MIN],
+  ['text-muted', 'bg-muted', TEXT_MIN],
+  ['text-primary', 'bg', TEXT_MIN],
+  ['text-primary', 'bg-primary', TEXT_MIN],
+  ['text-primary-strong', 'bg-primary-active', TEXT_MIN],
+  ['on-primary', 'fill-primary', TEXT_MIN],
+  ['on-primary', 'fill-primary-hover', TEXT_MIN],
+  ['text-secondary', 'bg-secondary', TEXT_MIN],
+  ['on-secondary', 'fill-secondary', TEXT_MIN],
+  ['border-strong', 'bg', OUTLINE_MIN],
+  ['border-focus', 'bg-subtle', OUTLINE_MIN],
+]
+
+// The original model's pair first (`primary` text on the `background`), so the
+// page shows the contrast problem the tokens solve, then the token pairs.
+const tokenPairs = computed(() => {
+  const current = tokens.current.value
+  if (!current) return []
+
+  const rows: Array<{ text: string, surface: string, textColor: string, surfaceColor: string, min: number, original?: boolean }> = []
+  const original = theme.colors.themes[theme.value.value]
+  if (original?.primary && original.background) {
+    rows.push({ text: '--color-primary', surface: '--color-background', textColor: original.primary, surfaceColor: original.background, min: TEXT_MIN, original: true })
+  }
+  for (const [text, surface, min] of TOKEN_PAIRS) {
+    const textColor = current[text]
+    const surfaceColor = current[surface]
+    if (textColor && surfaceColor) rows.push({ text: `--color-${text}`, surface: `--color-${surface}`, textColor, surfaceColor, min })
+  }
+
+  return rows.map((row) => {
+    const ratio = contrastRatio(row.textColor, row.surfaceColor)
+    return { ...row, ratio: formatRatio(ratio), pass: ratio >= row.min }
+  })
+})
+
+const sheetNav = computed(() => [
+  { key: 'neutral', count: tokenGroups.value.neutral.length },
+  { key: 'primary', count: tokenGroups.value.primary.length },
+  { key: 'secondary', count: tokenGroups.value.secondary.length },
+  { key: 'focus', count: focusTiles.value.length },
+  { key: 'contrast', count: tokenPairs.value.length },
+  { key: 'use', count: 0 },
+] as const)
+
 const customSvg = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor" /></svg>'
 
 const iconSamples = computed(() => [
@@ -536,6 +924,37 @@ const colorList = computed(() => {
 </script>
 
 <style>
+/* The playground's own colors. Each one is a semantic token with the original
+   variable as its fallback, so on a theme with `tokens: true` the whole page
+   uses the tokens (legible by construction) and on every other theme it looks
+   as it always did. */
+:root {
+  --pg-bg: var(--color-bg, var(--color-background));
+  --pg-surface: var(--color-bg-subtle, var(--color-background2));
+  --pg-surface-muted: var(--color-bg-muted, var(--color-background3));
+  --pg-border: var(--color-border, var(--color-background3));
+  --pg-field-border: var(--color-border-strong, var(--color-background3));
+  /* Text keeps the original Venix page's colors: primary for the main text and
+     titles, secondary for the supporting text and labels. On a token theme the
+     primary text is the seed itself (\`fill-primary\`), which passes AA on \`bg\`,
+     \`bg-subtle\` and \`bg-muted\` with these seeds. The secondary seed only does so
+     in dark mode (orange on a light background can't), so in light mode it is
+     \`text-secondary\`, the step built for that. \`light-dark()\` follows the
+     \`color-scheme\` each theme sets. */
+  --pg-text: var(--color-fill-primary, var(--color-primary));
+  --pg-text-muted: light-dark(var(--color-text-secondary, var(--color-secondary)), var(--color-fill-secondary, var(--color-secondary)));
+  --pg-title: var(--pg-text);
+  --pg-label: var(--pg-text-muted);
+  /* Fading text with `opacity` would take it below AA on a token theme. The
+     value is a number on the other themes; on a token theme `--color-bg` is a
+     color, so `opacity: var(--pg-dim-*)` is invalid there and falls back to 1. */
+  --pg-dim-label: var(--color-bg, 0.8);
+  --pg-dim-hint: var(--color-bg, 0.85);
+  --pg-dim-size: var(--color-bg, 0.7);
+  --pg-link: var(--pg-text);
+  --pg-accent: var(--color-fill-primary, var(--color-primary));
+  --pg-on-accent: var(--color-on-primary, var(--color-background));
+}
 * {
   margin: 0;
   padding: 0;
@@ -549,8 +968,8 @@ html {
 
 body {
   font-family: var(--font-family-base, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-  background: var(--color-background);
-  color: var(--color-primary);
+  background: var(--pg-bg);
+  color: var(--pg-text);
   transition: all 0.3s ease;
 }
 
@@ -568,7 +987,7 @@ code {
   position: relative;
   text-align: center;
   padding: 1.5rem 1.5rem 1.25rem;
-  background: var(--color-background2);
+  background: var(--pg-surface);
 }
 
 .header__title {
@@ -578,6 +997,7 @@ code {
   gap: 0.6rem;
   font-size: 2rem;
   margin-bottom: 0.25rem;
+  color: var(--pg-title);
 }
 
 .header__logo {
@@ -587,7 +1007,7 @@ code {
 }
 
 .header__subtitle {
-  color: var(--color-secondary);
+  color: var(--pg-label);
 }
 
 /* ===== Module navigation ===== */
@@ -600,9 +1020,9 @@ code {
   /* Room on the right for the switcher (absolutely positioned, so the links
      stay centered on the page) */
   padding: 0.5rem 3.75rem 0.5rem 1rem;
-  background: var(--color-background2);
-  border-top: 1px solid var(--color-background3);
-  border-bottom: 1px solid var(--color-background3);
+  background: var(--pg-surface);
+  border-top: 1px solid var(--pg-border);
+  border-bottom: 1px solid var(--pg-border);
 }
 
 .module-nav__links {
@@ -621,11 +1041,13 @@ code {
   gap: 0.35rem;
   flex-shrink: 0;
   padding: 0.4rem 0.8rem;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pg-accent) 18%, transparent);
   border-radius: 999px;
   /* A light wash of the theme's primary color, so links read as buttons */
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-  color: var(--color-primary);
+  background: color-mix(in srgb, var(--pg-accent) 8%, transparent);
+  /* On a token theme, `text-primary`: the seed itself falls just short of AA on
+     its own wash in light mode. */
+  color: var(--color-text-primary, var(--pg-link));
   font-size: 0.875rem;
   text-decoration: none;
   white-space: nowrap;
@@ -634,8 +1056,10 @@ code {
 
 .module-nav__link:hover,
 .module-nav__link:focus-visible {
-  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
-  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--pg-accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--pg-accent) 35%, transparent);
+  /* The stronger step on the stronger wash (token themes only). */
+  color: var(--color-text-primary-strong, var(--color-text-primary, var(--pg-link)));
 }
 
 .module-nav__switcher {
@@ -659,7 +1083,7 @@ code {
 .module__header {
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--color-background3);
+  border-bottom: 2px solid var(--pg-border);
 }
 
 .module__title {
@@ -668,21 +1092,22 @@ code {
   align-items: center;
   gap: 0.5rem;
   font-size: 1.4rem;
+  color: var(--pg-title);
 }
 
 .module__key {
   margin-left: auto;
   padding: 0.15rem 0.5rem;
   border-radius: 6px;
-  background: var(--color-background3);
-  color: var(--color-secondary);
+  background: var(--pg-surface-muted);
+  color: var(--pg-text-muted);
   font-size: 0.75rem;
   font-weight: normal;
 }
 
 .module__description {
   margin-top: 0.25rem;
-  color: var(--color-secondary);
+  color: var(--pg-text-muted);
   font-size: 0.9rem;
 }
 
@@ -690,8 +1115,8 @@ code {
   padding: 1rem;
   margin-bottom: 0.75rem;
   border-radius: 12px;
-  background: var(--color-background2);
-  border: 1px solid var(--color-background3);
+  background: var(--pg-surface);
+  border: 1px solid var(--pg-border);
 }
 
 .demo-grid {
@@ -711,7 +1136,7 @@ code {
 .demo__title {
   margin-bottom: 0.6rem;
   font-size: 1rem;
-  color: var(--color-secondary);
+  color: var(--pg-label);
 }
 
 .demo__label {
@@ -720,28 +1145,28 @@ code {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--color-secondary);
-  opacity: 0.8;
+  color: var(--pg-label);
+  opacity: var(--pg-dim-label);
 }
 
 .demo__hint {
   margin-top: 0.5rem;
   font-size: 0.8rem;
-  color: var(--color-secondary);
-  opacity: 0.85;
+  color: var(--pg-text-muted);
+  opacity: var(--pg-dim-hint);
 }
 
 .demo__status {
   margin: 0.6rem 0;
   font-size: 0.85rem;
-  color: var(--color-secondary);
+  color: var(--pg-text-muted);
 }
 
 .demo__status code {
   padding: 0.1rem 0.35rem;
   border-radius: 4px;
-  background: var(--color-background3);
-  color: var(--color-primary);
+  background: var(--pg-surface-muted);
+  color: var(--pg-link);
 }
 
 /* ===== Chips (buttons and tags) ===== */
@@ -756,10 +1181,10 @@ code {
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 0.9rem;
-  border: 2px solid var(--color-background3);
+  border: 2px solid var(--pg-border);
   border-radius: 8px;
   background: transparent;
-  color: var(--color-primary);
+  color: var(--pg-text);
   font: inherit;
   font-size: 0.9rem;
   cursor: pointer;
@@ -767,23 +1192,23 @@ code {
 }
 
 .chip:hover {
-  border-color: var(--color-primary);
+  border-color: var(--pg-accent);
 }
 
 .chip--active {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-background);
+  border-color: var(--pg-accent);
+  background: var(--pg-accent);
+  color: var(--pg-on-accent);
 }
 
 .chip--outline {
   border-style: dashed;
-  color: var(--color-secondary);
+  color: var(--pg-text-muted);
 }
 
 .chip--success {
   color: var(--color-success, var(--color-primary));
-  border-color: var(--color-success, var(--color-background3));
+  border-color: var(--color-success, var(--pg-border));
 }
 
 .chip--success:hover {
@@ -793,7 +1218,7 @@ code {
 
 .chip--error {
   color: var(--color-error, var(--color-primary));
-  border-color: var(--color-error, var(--color-background3));
+  border-color: var(--color-error, var(--pg-border));
 }
 
 .chip--error:hover {
@@ -804,7 +1229,7 @@ code {
 .tag {
   padding: 0.3rem 0.7rem;
   border-radius: 999px;
-  background: var(--color-background3);
+  background: var(--pg-surface-muted);
   font-size: 0.85rem;
 }
 
@@ -818,7 +1243,7 @@ code {
 .color-card {
   padding: 0.4rem;
   border-radius: 8px;
-  background: var(--color-background3);
+  background: var(--pg-surface-muted);
   text-align: center;
 }
 
@@ -826,19 +1251,404 @@ code {
   height: 40px;
   margin-bottom: 0.35rem;
   border-radius: 6px;
-  border: 2px solid var(--color-background3);
+  border: 2px solid var(--pg-border);
 }
 
 .color-card__name {
   display: block;
   margin-bottom: 0.15rem;
   font-size: 0.7rem;
-  color: var(--color-secondary);
+  color: var(--pg-text-muted);
 }
 
 .color-card__value {
   font-size: 0.65rem;
-  color: var(--color-primary);
+  color: var(--pg-link);
+}
+
+/* ===== Semantic tokens (experimental) ===== */
+/* ===== Tabs (Colors module) ===== */
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--pg-border);
+}
+
+.tabs__list {
+  display: flex;
+  flex: 1;
+  gap: 1.1rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tab {
+  padding: 0.5rem 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--pg-text-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--pg-text);
+}
+
+.tab--active {
+  border-bottom-color: var(--pg-accent);
+  color: var(--pg-link);
+}
+
+.tabs__status {
+  font-size: 0.8rem;
+  color: var(--pg-text-muted);
+  white-space: nowrap;
+}
+
+.tabs__help {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  color: var(--pg-text-muted);
+}
+
+/* The "?" that shows the text behind a header or a tab bar. */
+.help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0;
+  border: 1px solid var(--pg-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--pg-text-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.help:hover,
+.help[aria-expanded='true'] {
+  border-color: var(--pg-accent);
+  color: var(--pg-link);
+}
+
+.tab:focus-visible,
+.help:focus-visible,
+.sheet__navitem:focus-visible {
+  outline: 2px solid var(--pg-accent);
+  outline-offset: 2px;
+}
+
+/* ===== Spec sheet (semantic tokens) ===== */
+.sheet {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+.sheet__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.sheet__navitem {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--pg-text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sheet__navitem:hover,
+.sheet__navitem--active {
+  background: var(--pg-surface-muted);
+}
+
+.sheet__navitem--active {
+  color: var(--pg-text);
+}
+
+.sheet__count {
+  font-size: 0.75rem;
+  color: var(--pg-text-muted);
+}
+
+.sheet__body {
+  min-width: 0;
+}
+
+.sheet__caption {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  color: var(--pg-text-muted);
+}
+
+/* One token per row: swatch, variable, value and a few words of use. */
+.token-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 16rem) 5.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--pg-border);
+  font-size: 0.8rem;
+}
+
+.token-row:last-child {
+  border-bottom: 0;
+}
+
+.token-row__swatch {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--pg-border);
+  border-radius: 6px;
+}
+
+.token-row__name {
+  color: var(--pg-text);
+  overflow-wrap: anywhere;
+}
+
+.token-row__value,
+.token-row__use {
+  color: var(--pg-text-muted);
+}
+
+@media (max-width: 720px) {
+  .sheet {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sheet__nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .token-row {
+    grid-template-columns: 22px minmax(0, 1fr) 5.5rem;
+  }
+
+  .token-row__use {
+    grid-column: 2 / -1;
+  }
+}
+
+.pairs-wrapper {
+  overflow-x: auto;
+}
+
+.pairs {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.pairs th,
+.pairs td {
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--pg-border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.pairs th {
+  font-weight: 600;
+  color: var(--pg-text-muted);
+}
+
+.pairs__sample {
+  display: inline-block;
+  min-width: 2.5rem;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid var(--pg-border);
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.pairs__row--original td {
+  background: var(--pg-surface-muted);
+}
+
+.pairs__pass {
+  color: var(--pg-text);
+}
+
+/* Bold and underlined, not just another color: the page's own text is already red. */
+.pairs__fail {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.token-use {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+/* Built straight from the tokens: this block only renders on a token theme. */
+.token-use__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.token-use__title {
+  font-size: 1rem;
+}
+
+.token-use__body,
+.token-use__muted,
+.token-use__disabled {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.token-use__link {
+  color: var(--color-text-primary);
+}
+
+.token-use__muted {
+  color: var(--color-text-muted);
+}
+
+.token-use__disabled {
+  color: var(--color-text-disabled);
+}
+
+.token-use__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.token-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: 0.8rem;
+}
+
+.token-badge--secondary {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+}
+
+.token-btn {
+  padding: 0.45rem 0.9rem;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--color-fill-primary);
+  color: var(--color-on-primary);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.token-btn:hover {
+  background: var(--color-fill-primary-hover);
+}
+
+.token-btn:focus-visible,
+.token-use__field input:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.token-btn--secondary {
+  background: var(--color-fill-secondary);
+  color: var(--color-on-secondary);
+}
+
+.token-btn--secondary:hover {
+  background: var(--color-fill-secondary-hover);
+}
+
+.token-btn--outlined {
+  border-color: var(--color-border-primary-strong);
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.token-btn--outlined:hover {
+  background: var(--color-bg-primary-hover);
+}
+
+.token-use__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.token-use__field input {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+/* The focus ring on each surface or component: drawn on the tile's own edge,
+   with no offset, which is the worst case for the ring. */
+.focus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--pg-border);
+  border-radius: 10px;
+  background: var(--color-bg);
+}
+
+.focus-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  font-size: 0.75rem;
+}
+
+.focus-tile__box {
+  height: 44px;
+  margin: 3px;
+  border-radius: 10px;
+  outline: 3px solid var(--color-border-focus);
+}
+
+.focus-tile__name {
+  font-size: 0.68rem;
+  color: var(--pg-text);
+  overflow-wrap: anywhere;
 }
 
 /* ===== Icons ===== */
@@ -857,12 +1667,12 @@ code {
 
 .icon-sample__icon {
   font-size: 1.75rem;
-  color: var(--color-primary);
+  color: var(--pg-link);
 }
 
 .icon-sample__label {
   font-size: 0.8rem;
-  color: var(--color-secondary);
+  color: var(--pg-text-muted);
 }
 
 /* ===== Typography ===== */
@@ -875,7 +1685,7 @@ code {
 }
 
 .specs dt {
-  color: var(--color-secondary);
+  color: var(--pg-text-muted);
 }
 
 .specs dd {
@@ -891,8 +1701,8 @@ code {
   display: inline-block;
   min-width: 4.5rem;
   font-size: 0.75rem;
-  color: var(--color-secondary);
-  opacity: 0.7;
+  color: var(--pg-text-muted);
+  opacity: var(--pg-dim-size);
 }
 
 /* ===== Scrollbar ===== */
@@ -904,7 +1714,7 @@ code {
   padding: 0.75rem;
   overflow-y: auto;
   border-radius: 8px;
-  background: var(--color-background3);
+  background: var(--pg-surface-muted);
 }
 
 .scroll-horizontal {
@@ -913,15 +1723,15 @@ code {
   padding: 0.75rem;
   overflow-x: auto;
   border-radius: 8px;
-  background: var(--color-background3);
+  background: var(--pg-surface-muted);
 }
 
 .scroll-item {
   flex-shrink: 0;
   padding: 0.6rem;
   border-radius: 4px;
-  background: var(--color-background2);
-  color: var(--color-primary);
+  background: var(--pg-surface);
+  color: var(--pg-link);
   text-align: center;
 }
 
@@ -938,7 +1748,7 @@ code {
   gap: 0.25rem;
   min-height: 110px;
   font: inherit;
-  color: var(--color-primary);
+  color: var(--pg-link);
   text-align: left;
 }
 
@@ -946,10 +1756,10 @@ code {
   width: 100%;
   margin-top: 0.5rem;
   padding: 0.5rem 0.6rem;
-  border: 2px solid var(--color-background3);
+  border: 2px solid var(--pg-field-border);
   border-radius: 8px;
-  background: var(--color-background);
-  color: var(--color-primary);
+  background: var(--pg-bg);
+  color: var(--pg-text);
   font: inherit;
 }
 
