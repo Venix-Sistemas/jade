@@ -13,6 +13,12 @@ declare module '@nuxt/schema' {
       iconFormat: 'emote' | 'css' | 'svg'
       requireConsent: boolean
       seasonal: boolean
+      /**
+       * The semantic tokens of every theme variant with `tokens: true`, by
+       * variant id (`{ 'venixTokens-light': { 'text-primary': '#CF0000', ... } }`).
+       * Generated at build time; omitted when no theme uses tokens.
+       */
+      tokens?: Record<string, Record<string, string>>
       icon: {
         aliases: Record<string, string>
       }

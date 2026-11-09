@@ -527,6 +527,10 @@ export const useVenixTheme = () => {
     }
   }
 
+  // Typed here, not read off the config: the config's type is inferred from the
+  // app's own values, which have no `tokens` unless some theme uses them.
+  const tokensByTheme: Record<string, Record<string, string> | undefined> = (core.themeConfig as { tokens?: Record<string, Record<string, string>> } | undefined)?.tokens ?? {}
+
   return {
     theme: {
       value: core.resolvedTheme,
@@ -540,6 +544,18 @@ export const useVenixTheme = () => {
       colors: core.theme.colors,
     },
     themes: core.colors.themes,
+    /**
+     * The semantic color tokens (experimental, v1.4.0) of the themes with
+     * `tokens: true`. `current` follows the applied theme and is `undefined`
+     * when it has none; `all` is every variant's tokens by `data-theme` id.
+     * `cssVar('text-primary')` is `'var(--color-text-primary)'`, to use in
+     * styles that should follow the theme without reading the value.
+     */
+    tokens: {
+      all: tokensByTheme,
+      current: computed(() => tokensByTheme[core.resolvedTheme.value]),
+      cssVar: (name: string) => `var(--color-${name})`,
+    },
     mode: {
       value: core.resolvedMode,
       preference: core.modePreference,

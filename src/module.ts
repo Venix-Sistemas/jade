@@ -5,7 +5,7 @@ import { DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_THEME } from './sha
 import { resolveFeatureOption } from './shared/utils/options'
 import { findDeprecatedThemeEntries, overridesBrandColors } from './shared/utils/merge-themes'
 import { buildResolvedTheme, findInvalidDefaultColor, getBaseThemeEntries } from './shared/utils/theme-config'
-import { findTokenContrastIssues } from './shared/css/tokens'
+import { collectTokens, findTokenContrastIssues } from './shared/css/tokens'
 import { customizeTheme } from './setup/customize-theme'
 import { registerPublicAssets } from './setup/register-assets'
 import { registerThemeComponents } from './setup/register-components'
@@ -137,6 +137,7 @@ export default defineNuxtModule<ModuleOptions>({
     await registerThemeIcon(nuxt, resolver, iconOptions, theme.colors)
 
     // 9. Configure runtimeConfig
+    const tokens = colorOptions.enabled ? collectTokens(theme.colors.themes, colorOptions.contrast || 'AA') : {}
     nuxt.options.runtimeConfig.public.venixTheme = {
       defaultTheme: theme.colors?.defaultColor || DEFAULT_THEME,
       colorThemes: colorOptions.themes,
@@ -148,6 +149,7 @@ export default defineNuxtModule<ModuleOptions>({
       iconFormat: iconOptions.enabled ? colorOptions.iconFormat : 'emote',
       requireConsent: colorOptions.requireConsent,
       seasonal: colorOptions.seasonal,
+      ...(Object.keys(tokens).length ? { tokens } : {}),
       icon: {
         aliases: iconOptions.aliases,
       },

@@ -70,6 +70,19 @@ export function generateTokenVars(colors: ThemeColors, level: ContrastLevel = 'A
     .join('\n')
 }
 
+/**
+ * The tokens of every variant with `tokens: true`, by variant id and token
+ * name, as plain hex values — what the runtime config carries so the client
+ * can read them without the color engine.
+ */
+export function collectTokens(themes: Record<string, ThemeColors>, level: ContrastLevel = 'AA'): Record<string, Record<string, string>> {
+  const collected: Record<string, Record<string, string>> = {}
+  for (const [id, colors] of Object.entries(themes)) {
+    if (colors.tokens === true) collected[id] = Object.fromEntries(generateTokens(colors, level))
+  }
+  return collected
+}
+
 /** A token used as text or outline, the tokens it sits on, and which kind of contrast it needs. */
 type PairRule = [text: string, surfaces: string[], kind: 'text' | 'outline']
 
