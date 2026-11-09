@@ -8,6 +8,7 @@ export { resolveIcon, resolveThemeIcon } from './icon'
 export type { IconKind, ResolvedIcon, ThemeIconFormat, ResolvedThemeIcon } from './icon'
 export { extractIconRefs } from './icon-refs'
 export { hasCookieConsent } from './consent'
+export { contrastRatio, relativeLuminance } from './contrast'
 export {
   isColorTheme,
   getActiveSeasonalTheme,
