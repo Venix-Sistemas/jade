@@ -31,6 +31,9 @@ export interface ThemePalette {
   background3?: string
 }
 
+/** Token name → step of a generated scale (`'neutral-3'`, `'primary-9'`; 1–12). */
+export type TokenOverrides = Record<string, string>
+
 /** One light/dark variant of a theme (`ThemeDefinition.light` / `.dark`). */
 export interface ThemeVariant extends ThemePalette {
   /**
@@ -60,10 +63,16 @@ export interface ThemeMeta {
    * (`--color-text-primary`, `--color-fill-primary`, `--color-bg-subtle`…)
    * from the variant's `primary`, `secondary` and `background`, next to the
    * usual `--color-*` variables, which stay unchanged. Default: `false`.
+   *
+   * An object also turns them on and re-points individual tokens at another
+   * step (1–12) of the generated scales, so a surface can be stronger or
+   * weaker without a fixed color: `{ 'bg-subtle': 'neutral-3' }`. Steps are
+   * the same in light and dark, so one entry covers both modes, and the
+   * contrast check runs on the result. `on-<role>` can't be overridden.
    */
-  tokens?: boolean
+  tokens?: boolean | TokenOverrides
   /**
-   * Only with `tokens: true`. The neutral tokens (`bg`, `bg-subtle`, `text`,
+   * Only with `tokens`. The neutral tokens (`bg`, `bg-subtle`, `text`,
    * `border`…) lean slightly toward the hue of `primary` by default, so the
    * theme feels of one piece. `false` makes them plain grays, like a theme
    * built on `background2`/`background3` greys. Contrast is the same either

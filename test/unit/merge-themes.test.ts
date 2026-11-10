@@ -300,3 +300,20 @@ describe('neutralTint (experimental)', () => {
     expect(merged.t).toMatchObject({ tokens: true, neutralTint: false, light, dark })
   })
 })
+
+describe('tokens com overrides', () => {
+  const light = { primary: '#FF0000', background: '#FAFAFA' }
+  const dark = { primary: '#FF6B6B', background: '#0C0C0C' }
+
+  it('deve levar os overrides de `tokens` do tema para as duas variantes', () => {
+    const tokens = { 'bg-subtle': 'neutral-3' }
+    const { themes } = normalizeColorThemes({ t: { tokens, light, dark } })
+    expect(themes['t-light']).toMatchObject({ tokens })
+    expect(themes['t-dark']).toMatchObject({ tokens })
+  })
+
+  it('deve trocar os overrides por outros em vez de misturá-los', () => {
+    const merged = mergeColorThemes({ t: { tokens: { 'bg-subtle': 'neutral-3' }, light, dark } }, { t: { tokens: { 'bg-muted': 'neutral-4' } } })
+    expect((merged.t as { tokens: unknown }).tokens).toEqual({ 'bg-muted': 'neutral-4' })
+  })
+})

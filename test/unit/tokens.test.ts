@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { checkTokenContrast, findTokenContrastIssues, generateTokens, generateTokenVars } from '../../src/shared/css/tokens'
+import { checkTokenContrast, findTokenContrastIssues, findTokenOverrideIssues, generateTokens, generateTokenVars } from '../../src/shared/css/tokens'
 import { contrastRatio } from '../../src/shared/utils/contrast'
 import type { ThemeColors } from '../../src/shared/types'
 
@@ -185,5 +185,63 @@ describe('neutralTint', () => {
     const gray = toMap({ ...LIGHT, neutralTint: false })
     expect(gray['bg-subtle']).not.toBe(tinted['bg-subtle'])
     expect(toMap(LIGHT)['bg-subtle']).toBe(tinted['bg-subtle'])
+  })
+})
+
+describe('tokens com overrides de passo', () => {
+  const GRAY = { neutralTint: false }
+
+  it('deve apontar o token para outro passo da escala, sem mexer nos demais', () => {
+    const base = toMap({ ...DARK, ...GRAY })
+    const over = toMap({ ...DARK, ...GRAY, tokens: { 'bg-subtle': 'neutral-3', 'fill-primary': 'primary-10' } })
+    expect(over['bg-subtle']).toBe(base['bg-muted'])
+    expect(over['fill-primary']).toBe(base['fill-primary-hover'])
+    expect(over['bg-muted']).toBe(base['bg-muted'])
+    expect(over.bg).toBe(base.bg)
+  })
+
+  it('deve valer nos dois modos com a mesma referência', () => {
+    for (const colors of [LIGHT, DARK]) {
+      const base = toMap(colors)
+      const over = toMap({ ...colors, tokens: { 'bg-subtle': 'neutral-3' } })
+      expect(over['bg-subtle']).toBe(base['bg-muted'])
+    }
+  })
+
+  it('deve seguir o fundo do tema, sem cor fixa', () => {
+    const over = (background: string) => toMap({ ...DARK, tokens: { 'bg-subtle': 'neutral-3' }, background })['bg-subtle']
+    expect(over('#0C0C0C')).not.toBe(over('#1A1A2E'))
+  })
+
+  it('não deve misturar o resultado com e sem override no cache', () => {
+    const plain = toMap(DARK)['bg-subtle']
+    expect(toMap({ ...DARK, tokens: { 'bg-subtle': 'neutral-3' } })['bg-subtle']).not.toBe(plain)
+    expect(toMap(DARK)['bg-subtle']).toBe(plain)
+  })
+
+  it('deve ignorar nome, passo e papel inválidos', () => {
+    const base = toMap(DARK)
+    const over = toMap({ ...DARK, tokens: { 'bg-subtle': 'neutral-13', 'nada': 'neutral-3', 'on-primary': 'neutral-1', 'bg-muted': '#FFFFFF', 'text-muted': 'tertiary-5' } })
+    expect(over).toEqual(base)
+  })
+
+  it('deve entrar na checagem de contraste', () => {
+    // texto muted sobre o passo 12 não passa
+    const over = { ...DARK, tokens: { 'bg-subtle': 'neutral-11' } }
+    const issues = checkTokenContrast(generateTokens(over), 'AA')
+    expect(issues.some(issue => issue.surface === 'bg-subtle')).toBe(true)
+    expect(findTokenContrastIssues({ d: over }, 'AA')[0]).toContain('bg-subtle')
+  })
+})
+
+describe('findTokenOverrideIssues', () => {
+  it('não deve avisar de overrides válidos nem de tema sem override', () => {
+    expect(findTokenOverrideIssues({ a: DARK, b: { ...DARK, tokens: { 'bg-subtle': 'neutral-3', 'text-primary': 'primary-12' } } })).toEqual([])
+  })
+
+  it('deve avisar do que foi ignorado', () => {
+    const [message] = findTokenOverrideIssues({ x: { dark: true, primary: '#FF6B6B', background: '#0C0C0C', tokens: { 'nada': 'neutral-3', 'bg-muted': 'cinza', 'on-primary': 'neutral-1', 'text-secondary': 'secondary-11' } } })
+    expect(message).toContain('`x`')
+    for (const part of ['`nada`', '`bg-muted`', '`cinza`', '`on-primary`', 'no `secondary` seed']) expect(message).toContain(part)
   })
 })

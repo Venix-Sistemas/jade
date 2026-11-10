@@ -5,7 +5,7 @@ import type { Nuxt } from '@nuxt/schema'
 import type { ThemeConfig, ColorsConfig, ContrastLevel, ThemeColors } from '../shared/types'
 import { isColorTheme, getThemeHexColors } from '../shared/utils/theme-resolve'
 import { generateTokens } from '../shared/css/tokens'
-import { TOKEN_ROLES } from '../shared/token-names'
+import { TOKEN_ROLES, tokensEnabled } from '../shared/token-names'
 
 interface VuetifyThemeDefinition {
   dark: boolean
@@ -68,7 +68,7 @@ export function buildVuetifyThemes(colors: ColorsConfig): Record<string, Vuetify
     if (themeColors.background2) vuetifyColors.surface = themeColors.background2
     vuetifyColors.inverse = isDark ? '#FFFFFF' : '#000000'
 
-    if (themeColors.tokens === true) Object.assign(vuetifyColors, tokenColorsForVuetify(themeColors, colors.contrast || 'AA', !!themeColors.background2))
+    if (tokensEnabled(themeColors)) Object.assign(vuetifyColors, tokenColorsForVuetify(themeColors, colors.contrast || 'AA', !!themeColors.background2))
 
     themes[name] = { dark: isDark, colors: vuetifyColors }
   }

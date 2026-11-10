@@ -1,6 +1,7 @@
 // src/shared/css/colors.ts
 import type { ContrastLevel, ThemeColors } from '../types'
 import { getThemeHexColors } from '../utils/theme-resolve'
+import { tokensEnabled } from '../token-names'
 import { generateTokenVars } from './tokens'
 
 export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: ContrastLevel): string {
@@ -9,7 +10,7 @@ export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: 
     .join('\n')
 
   // Opt-in (experimental): themes without `tokens: true` produce the same CSS as before.
-  const tokenVars = colors.tokens === true
+  const tokenVars = tokensEnabled(colors)
     ? `\n  /* Semantic tokens */\n${generateTokenVars(colors, contrast)}`
     : ''
 

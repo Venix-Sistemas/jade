@@ -3,7 +3,7 @@ import type { ContrastLevel, ThemeColors } from '../types'
 import { contrastRatio } from '../utils/contrast'
 import { generateScales } from '../utils/scale'
 import type { RoleScale } from '../utils/scale'
-import { NEUTRAL_TOKENS, ROLE_TOKENS, TOKEN_ROLES as ROLES, roleTokenName } from '../token-names'
+import { NEUTRAL_TOKENS, OVERRIDABLE_TOKEN_NAMES, ROLE_TOKENS, TOKEN_ROLES as ROLES, parseStepRef, roleTokenName, tokenOverrides, tokensEnabled } from '../token-names'
 
 /**
  * The semantic color tokens of a theme variant (v1.4.0, experimental).
@@ -26,7 +26,7 @@ const tokenCache = new Map<string, Array<[string, string]>>()
  * written. Memoized: the CSS and the build check ask for the same variant.
  */
 export function generateTokens(colors: ThemeColors, level: ContrastLevel = 'AA'): Array<[string, string]> {
-  const key = JSON.stringify([colors.dark === true, colors.background, colors.primary, colors.secondary, level, colors.neutralTint !== false])
+  const key = JSON.stringify([colors.dark === true, colors.background, colors.primary, colors.secondary, level, colors.neutralTint !== false, tokenOverrides(colors)])
   let tokens = tokenCache.get(key)
   if (!tokens) {
     tokens = buildTokens(colors, level)
@@ -60,7 +60,30 @@ function buildTokens(colors: ThemeColors, level: ContrastLevel): Array<[string, 
     tokens.push([`on-${role}`, scale.on])
   }
 
+  applyOverrides(tokens, tokenOverrides(colors), neutral, roles)
+
   return tokens
+}
+
+/**
+ * Re-points the overridden tokens at another step of the same generated
+ * scales (`{ 'bg-subtle': 'neutral-3' }`). Unknown names and references are
+ * skipped here; `findTokenOverrideIssues` reports them at build time.
+ */
+function applyOverrides(
+  tokens: Array<[string, string]>,
+  overrides: Record<string, string>,
+  neutral: string[],
+  roles: Record<string, RoleScale>,
+): void {
+  for (const [name, ref] of Object.entries(overrides)) {
+    const parsed = parseStepRef(ref)
+    const entry = tokens.find(([tokenName]) => tokenName === name)
+    if (!parsed || !entry || !OVERRIDABLE_TOKEN_NAMES.includes(name)) continue
+    const scale = parsed.scale === 'neutral' ? neutral : roles[parsed.scale]?.steps
+    const color = scale?.[parsed.step - 1]
+    if (color) entry[1] = color
+  }
 }
 
 /** The `--color-*` declarations for `generateTokens`, one per line, indented for a theme block. */
@@ -78,7 +101,7 @@ export function generateTokenVars(colors: ThemeColors, level: ContrastLevel = 'A
 export function collectTokens(themes: Record<string, ThemeColors>, level: ContrastLevel = 'AA'): Record<string, Record<string, string>> {
   const collected: Record<string, Record<string, string>> = {}
   for (const [id, colors] of Object.entries(themes)) {
-    if (colors.tokens === true) collected[id] = Object.fromEntries(generateTokens(colors, level))
+    if (tokensEnabled(colors)) collected[id] = Object.fromEntries(generateTokens(colors, level))
   }
   return collected
 }
@@ -148,13 +171,13 @@ const formatRatio = (ratio: number) => (Math.floor(ratio * 100) / 100).toFixed(2
 
 /**
  * One build warning per token theme variant with pairs below `level`, or an
- * empty list when everything passes. Variants without `tokens: true` are skipped.
+ * empty list when everything passes. Variants without tokens are skipped.
  */
 export function findTokenContrastIssues(themes: Record<string, ThemeColors>, level: ContrastLevel): string[] {
   const messages: string[] = []
 
   for (const [id, colors] of Object.entries(themes)) {
-    if (colors.tokens !== true) continue
+    if (!tokensEnabled(colors)) continue
     const issues = checkTokenContrast(generateTokens(colors, level), level)
     if (!issues.length) continue
 
@@ -165,6 +188,29 @@ export function findTokenContrastIssues(themes: Record<string, ThemeColors>, lev
       ? 'Pick another seed, or set `color.contrast` to `\'AA\'` (or `false` to skip this check).'
       : 'Pick another seed, or set `color.contrast` to `false` to skip this check.'
     messages.push(`The semantic tokens of \`${id}\` fall short of WCAG ${level}: ${pairs}. ${hint}`)
+  }
+
+  return messages
+}
+
+/**
+ * One build warning per token theme variant whose `tokens` overrides name an
+ * unknown token (or `on-<role>`), a step that doesn't exist, or a role the
+ * variant has no seed for. Those entries are ignored, so the warning is the
+ * only sign.
+ */
+export function findTokenOverrideIssues(themes: Record<string, ThemeColors>): string[] {
+  const messages: string[] = []
+
+  for (const [id, colors] of Object.entries(themes)) {
+    const problems: string[] = []
+    for (const [name, ref] of Object.entries(tokenOverrides(colors))) {
+      const parsed = parseStepRef(ref)
+      if (!OVERRIDABLE_TOKEN_NAMES.includes(name)) problems.push(`\`${name}\` is not a token that can be overridden`)
+      else if (!parsed) problems.push(`\`${name}\`: \`${String(ref)}\` is not a step (use \`neutral-1\` to \`neutral-12\`, \`primary-1\`…)`)
+      else if (parsed.scale !== 'neutral' && !colors[parsed.scale as 'primary' | 'secondary']) problems.push(`\`${name}\`: the variant has no \`${parsed.scale}\` seed`)
+    }
+    if (problems.length) messages.push(`Some \`tokens\` overrides of \`${id}\` were ignored: ${problems.join('; ')}.`)
   }
 
   return messages

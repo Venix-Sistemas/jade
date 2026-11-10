@@ -1,6 +1,7 @@
 // src/shared/utils/merge-themes.ts
 import type { ThemeColors, ThemeDefinition, ThemeEntry, ThemeMode, ThemePalette, ThemeVariant, ResolvedThemeGroup } from '../types'
 import { COLOR_PROPERTIES, THEME_MODES } from '../constants'
+import { tokensEnabled } from '../token-names'
 
 const META_PROPERTIES = ['seasonal', 'dateRange', 'translations', 'icon', 'tokens', 'neutralTint'] as const
 
@@ -42,9 +43,10 @@ function pickPalette(entry: Partial<ThemeEntry> | ThemeVariant): ThemePalette {
  * `{ tokens: true }` for a theme that opted in (plus `neutralTint: false` when it
  * turned the tint off), nothing otherwise, so other variants stay as they were.
  */
-function tokensFlag(entry: Partial<ThemeEntry>): { tokens?: true, neutralTint?: false } {
-  if (entry.tokens !== true) return {}
-  return entry.neutralTint === false ? { tokens: true, neutralTint: false } : { tokens: true }
+function tokensFlag(entry: Partial<ThemeEntry>): { tokens?: true | Record<string, string>, neutralTint?: false } {
+  if (!tokensEnabled(entry)) return {}
+  const tokens = typeof entry.tokens === 'object' ? { ...entry.tokens } : true as const
+  return entry.neutralTint === false ? { tokens, neutralTint: false } : { tokens }
 }
 
 const variantId = (themeName: string, mode: ThemeMode, variant: ThemeVariant): string =>

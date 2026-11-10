@@ -276,6 +276,22 @@ Tokens for each role (`primary`, `secondary`), shown for `primary`:
 
 **The scale.** Each seed becomes 12 steps defined by their contrast ratio against the background, not by fixed lightness, so the same ratios work in light and dark mode: 1–2 area backgrounds, 3–5 component backgrounds (rest, hover, pressed), 6–8 borders, 9–10 solid fill (the seed and its hover), 11–12 text. The hover moves away from the text on it: lighter when `on-*` is black, darker when it's white, so the text never loses contrast. A seed that sits close to the background (orange on white) gets its steps squeezed to fit under it.
 
+**Stronger or weaker surfaces.** `tokens` can also be an object that re-points individual tokens at another step (1–12) of the generated scales, instead of a fixed color. The reference is `neutral-<n>` or `<role>-<n>`, and the steps mean the same in light and dark, so one entry covers both modes and still follows the seeds. Handy when a surface reads too faint or too heavy for a theme:
+
+```ts
+color: {
+  themes: {
+    brand: {
+      tokens: { 'bg-subtle': 'neutral-3', 'border-strong': 'neutral-10' }, // cards a step above the default
+      light: { primary: '#0B6E8A', background: '#F4FAFC' },
+      dark: { primary: '#4FC3D9', background: '#08141A' },
+    },
+  },
+}
+```
+
+The overridden tokens go through the same contrast check, and moving a surface moves what sits on it: `bg-subtle` at `neutral-3` warns that `border-strong` falls to 2.85:1 on it until that one moves too. Any token can be overridden except `on-<role>`, which is white or black. A token, step or role that doesn't exist is ignored, with a `[jade]` warning. A hex color isn't accepted: it would be the same in both modes.
+
 **Contrast.** `color.contrast` sets the target: `'AA'` (default: text 4.5:1, outlines 3:1) or `'AAA'` (text 7:1). At build time each token variant is checked for these pairs, and one `[jade]` warning per variant lists every pair that falls short, with its ratio:
 
 - `text` on `bg`, `bg-subtle`, `bg-muted`, `bg-hover`, `bg-active`; `text-muted` on `bg`, `bg-subtle`, `bg-muted`

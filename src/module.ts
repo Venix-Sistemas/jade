@@ -5,7 +5,7 @@ import { DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_THEME } from './sha
 import { resolveFeatureOption } from './shared/utils/options'
 import { findDeprecatedThemeEntries, overridesBrandColors } from './shared/utils/merge-themes'
 import { buildResolvedTheme, findInvalidDefaultColor, getBaseThemeEntries } from './shared/utils/theme-config'
-import { collectTokens, findTokenContrastIssues } from './shared/css/tokens'
+import { collectTokens, findTokenContrastIssues, findTokenOverrideIssues } from './shared/css/tokens'
 import { customizeTheme } from './setup/customize-theme'
 import { registerPublicAssets } from './setup/register-assets'
 import { registerThemeComponents } from './setup/register-components'
@@ -94,6 +94,9 @@ export default defineNuxtModule<ModuleOptions>({
       }).colors
       const defaultColorMessage = findInvalidDefaultColor(resolvedColors)
       if (defaultColorMessage) useLogger('jade').warn(defaultColorMessage)
+      for (const message of findTokenOverrideIssues(theme.colors.themes)) {
+        useLogger('jade').warn(message)
+      }
       if (colorOptions.contrast) {
         for (const message of findTokenContrastIssues(theme.colors.themes, colorOptions.contrast)) {
           useLogger('jade').warn(message)

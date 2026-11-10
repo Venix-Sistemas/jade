@@ -54,3 +54,32 @@ export const TOKEN_NAMES: readonly string[] = [
     `on-${role}`,
   ]),
 ]
+
+/** Tokens that can be overridden: every one except `on-<role>`, which is white or black, not a step. */
+export const OVERRIDABLE_TOKEN_NAMES: readonly string[] = TOKEN_NAMES.filter(name => !name.startsWith('on-'))
+
+/** `tokens` of a theme: `true`, or an object of overrides (which also turns the tokens on). */
+export function tokensEnabled(entry: { tokens?: boolean | object }): boolean {
+  return entry.tokens === true || (typeof entry.tokens === 'object' && entry.tokens !== null)
+}
+
+/** The overrides in `tokens`, or none when it's a boolean. */
+export function tokenOverrides(entry: { tokens?: boolean | Record<string, string> }): Record<string, string> {
+  return typeof entry.tokens === 'object' && entry.tokens !== null ? entry.tokens : {}
+}
+
+/**
+ * A step of a generated scale: `neutral-3`, `primary-9`… (1–12). The scale
+ * is the same in light and dark (step 1 is the page, 12 the strongest text),
+ * so one reference suits both modes.
+ */
+export function parseStepRef(ref: unknown): { scale: string, step: number } | null {
+  if (typeof ref !== 'string') return null
+  const match = /^([a-z]+)-(\d{1,2})$/.exec(ref)
+  if (!match) return null
+  const scale = match[1]!
+  const step = Number(match[2])
+  if (step < 1 || step > 12) return null
+  if (scale !== 'neutral' && !(TOKEN_ROLES as readonly string[]).includes(scale)) return null
+  return { scale, step }
+}

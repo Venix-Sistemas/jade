@@ -92,7 +92,18 @@ export default defineNuxtConfig({
         // `--color-bg-subtle`…) from the seeds below. Playground only; it
         // isn't shipped in theme.json.
         venixTokens: {
-          tokens: true,
+          // Each override re-points a token at another step of the generated
+          // scales, so the surfaces sit a step above the default (closer to the
+          // original Venix's `background2`/`3`) and still follow the seeds.
+          // Moving a surface moves what has to stay legible on it, so the
+          // build check asked for the other two: `border-strong` (3:1 on
+          // `bg-subtle`) and `text-muted` (4.5:1 on `bg-muted`).
+          tokens: {
+            'bg-subtle': 'neutral-3',
+            'bg-muted': 'neutral-4',
+            'border-strong': 'neutral-10',
+            'text-muted': 'neutral-12',
+          },
           // The original Venix has plain gray surfaces (`background2`/`3`), so the
           // neutral tokens stay gray instead of leaning toward the primary's hue.
           neutralTint: false,
