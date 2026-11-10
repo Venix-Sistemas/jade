@@ -26,18 +26,29 @@ describe('venixUnoPreset', () => {
     })
   })
 
-  it('deve expor também os tokens semânticos, pelo nome completo, sem repetir nenhuma cor antiga', () => {
-    const { colors } = venixUnoPreset().theme
-    const old = venixUnoPreset({ tokens: false }).theme.colors
+  it('deve expor cada token como uma classe color-<token>, com a propriedade a que ele serve', () => {
+    const { rules, theme } = venixUnoPreset()
+    const byClass = Object.fromEntries(rules.map(([name, css]) => [name, css]))
 
-    expect(colors['text-primary']).toBe('var(--color-text-primary)')
-    expect(colors['fill-primary']).toBe('var(--color-fill-primary)')
-    expect(colors['on-secondary']).toBe('var(--color-on-secondary)')
-    expect(colors['bg-subtle']).toBe('var(--color-bg-subtle)')
-    expect(colors['border-focus']).toBe('var(--color-border-focus)')
-    expect(Object.keys(colors)).toHaveLength(Object.keys(old).length + TOKEN_NAMES.length)
-    for (const [name, value] of Object.entries(old)) expect(colors[name]).toBe(value)
-    expect(TOKEN_NAMES.filter(name => name in old)).toEqual([])
+    expect(byClass['color-bg-subtle']).toEqual({ 'background-color': 'var(--color-bg-subtle)' })
+    expect(byClass['color-fill-primary']).toEqual({ 'background-color': 'var(--color-fill-primary)' })
+    expect(byClass['color-text-muted']).toEqual({ color: 'var(--color-text-muted)' })
+    expect(byClass['color-on-secondary']).toEqual({ color: 'var(--color-on-secondary)' })
+    expect(byClass['color-border-strong']).toEqual({ 'border-color': 'var(--color-border-strong)' })
+    expect(byClass['color-text']).toEqual({ color: 'var(--color-text)' })
+    // uma classe por token, sem nenhuma cor de tema nova
+    for (const name of TOKEN_NAMES) expect(byClass[`color-${name}`]).toBeDefined()
+    expect(Object.keys(theme.colors)).toEqual(Object.keys(venixUnoPreset({ tokens: false }).theme.colors))
+  })
+
+  it('não deve usar nome de classe de outros sistemas de cor (Vuetify, Bootstrap, shadcn)', () => {
+    const names = venixUnoPreset().rules.map(([name]) => name).filter(name => !name.startsWith('cursor-'))
+    expect(names.filter(name => !name.startsWith('color-'))).toEqual([])
+  })
+
+  it('deve deixar os tokens de fora com { tokens: false }', () => {
+    const preset = venixUnoPreset({ tokens: false })
+    expect(preset.rules.map(([name]) => name).filter(name => name.startsWith('color-'))).toEqual([])
   })
 
   it('não deve carregar o motor de cores (nada de scale, Leonardo ou css/tokens no preset)', () => {
@@ -47,7 +58,7 @@ describe('venixUnoPreset', () => {
 
   it('deve levar cursor-default/pointer/text às variáveis do cursor, com o do sistema como reserva', () => {
     const preset = venixUnoPreset()
-    expect(preset.rules).toEqual([
+    expect(preset.rules.filter(([name]) => name.startsWith('cursor-'))).toEqual([
       ['cursor-default', { cursor: 'var(--cursor-default, default)' }],
       ['cursor-pointer', { cursor: 'var(--cursor-pointer, pointer)' }],
       ['cursor-text', { cursor: 'var(--cursor-text, text)' }],

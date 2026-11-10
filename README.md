@@ -304,7 +304,7 @@ A warning usually means the seed itself can't get there, not that the scale is w
 
 - **CSS:** in the variant's `[data-theme]` block, after the usual variables.
 - **`useVenixTheme().tokens`:** `all` (every variant's tokens by `data-theme` id), `current` (the applied theme's, `undefined` when it has none) and `cssVar('text-primary')` → `'var(--color-text-primary)'`. See [`useVenixTheme()`](#usevenixtheme).
-- **UnoCSS:** as theme colors named after the token: `bg-fill-primary`, `text-on-primary`, `border-border-strong`, `text-text-muted`. See [UnoCSS preset](#unocss-preset).
+- **UnoCSS:** one class per token, with the `color-` prefix: `color-bg-subtle`, `color-text-muted`, `color-fill-primary`. See [UnoCSS preset](#unocss-preset).
 - **Vuetify:** `on-primary`, `on-secondary`, `surface`, `on-surface` and `on-background`. See [Vuetify](#vuetify).
 - **`<VenixThemeSwitcher>`:** its menu follows the tokens on token themes and keeps its fixed palette everywhere else.
 
@@ -857,7 +857,7 @@ export default defineConfig({
 
 It maps every [theme color](#themes), plus `inverse`, to its CSS variable (`primary: 'var(--color-primary)'`, …), so utilities follow the active theme. Colors you define yourself in `uno.config.ts` take precedence.
 
-The [semantic tokens](#semantic-tokens-experimental) (experimental) are theme colors too, named after the token: `bg-fill-primary`, `text-on-primary`, `border-border-strong`, `text-text-muted`, `hover:bg-bg-subtle`. The key is the full token name (hence the doubled `text-text-muted`), so none collides with the colors above: `bg-primary` stays the plain `primary`. They only have a value on themes with `tokens: true`. Pass `venixUnoPreset({ tokens: false })` to leave them out.
+The [semantic tokens](#semantic-tokens-experimental) (experimental) are classes named after their CSS variable, with the `color-` prefix: `--color-bg-subtle` → `color-bg-subtle`, `color-text-muted`, `color-border-strong`, `color-fill-primary`, `color-on-primary`, `hover:color-bg-hover`. Each sets the property the token is for (`bg-*` and `fill-*` the background, `text-*` and `on-*` the text color, `border-*` the border color). The prefix keeps them apart from other color systems' classes (Vuetify's `text-primary`, or the `text-muted` and `bg-muted` of Bootstrap and shadcn), and from the plain `bg-primary` / `text-primary` above. They are rules, not theme colors, so there is no `/50` opacity (it doesn't apply to a `var()` anyway) and no ring, divider or gradient version. They only have a value on themes with `tokens: true`. Pass `venixUnoPreset({ tokens: false })` to leave them out.
 
 It also makes `cursor-default`, `cursor-pointer` and `cursor-text` use the [custom cursor](#cursors-in-your-own-css) (`cursor: var(--cursor-pointer, pointer)`, the system's when the module's cursor is off), with variants and `!` included (`hover:cursor-pointer`, `!cursor-default`). These replace `presetWind`'s rules of the same name wherever the preset sits in `presets`.
 
