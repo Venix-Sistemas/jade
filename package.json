@@ -1,6 +1,6 @@
 {
   "name": "@venix-sistemas/jade",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "UI foundation for Nuxt in one module: light/dark and seasonal color themes that switch by date or OS, with SSR and cookie consent; semantic color tokens built for WCAG contrast; plus typography, custom scrollbar and cursor, Iconify icons, i18n, and UnoCSS and Vuetify integrations.",
   "keywords": [
     "nuxt",

@@ -1,6 +1,28 @@
 # Changelog
 
 
+## v1.4.1
+
+[compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.4.0...v1.4.1)
+
+### 🔥 Performance
+
+- **init:** Send the inline script only the theme data it reads ([e28de8b](https://github.com/Venix-Sistemas/jade/commit/e28de8b))
+
+### 🩹 Fixes
+
+- **deps:** Resolve the open Dependabot security alerts ([1425874](https://github.com/Venix-Sistemas/jade/commit/1425874))
+- **color:** Warn about theme values the module silently ignores ([9c2aa60](https://github.com/Venix-Sistemas/jade/commit/9c2aa60))
+- **composable:** Follow the cookie consent changed in another tab ([706a518](https://github.com/Venix-Sistemas/jade/commit/706a518))
+
+### 🏡 Chore
+
+- Declare Nuxt 4 compatibility, drop dead exports and loadTheme arg ([ca6256e](https://github.com/Venix-Sistemas/jade/commit/ca6256e))
+
+### ❤️ Contributors
+
+- Vinicius ([@VBviniciusVB](https://github.com/VBviniciusVB))
+
 ## v1.4.0
 
 [compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.3.0...v1.4.0)
