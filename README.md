@@ -750,7 +750,7 @@ Keep it off with `@nuxtjs/i18n` or similar: that module follows the current rout
 </p>
 
 <p align="center">
-  <img src="./docs/images/readme/icons.png" alt="VenixIcon rendering an animated Iconify icon, an emoji, inline SVG and aliases" width="800">
+  <img src="./docs/images/readme/icons.png" alt="VenixIcon rendering an animated Iconify icon, an emoji, inline SVG and aliases" width="528">
 </p>
 
 Installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon), so every [Iconify](https://icon-sets.iconify.design/) icon is available in your app.
