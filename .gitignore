@@ -57,3 +57,6 @@ Temporary Items
 
 # Claude Code
 .claude
+
+# What scripts/readme-media generates
+scripts/readme-media/out/
