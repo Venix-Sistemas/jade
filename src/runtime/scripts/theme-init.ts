@@ -148,7 +148,31 @@ export function createInitThemeOptions(requireConsent: boolean): InitThemeOption
   }
 }
 
+/**
+ * Only what the script's theme resolution reads, so the HTML doesn't carry
+ * every color, translation and icon of every theme on each response: the
+ * name, variants, `seasonal` and `dateRange` of each group, and per variant
+ * whether it is a color theme (`isColorTheme` looks at `primary` and
+ * `background`). `defaultColor` stays as is.
+ */
+export function toInitThemeData(themeData: ResolvedTheme): ResolvedTheme {
+  const { themes = {}, groups = {}, defaultColor } = themeData.colors ?? {}
+
+  const slimThemes: ResolvedTheme['colors']['themes'] = {}
+  for (const [id, colors] of Object.entries(themes)) {
+    const { primary, background } = colors
+    slimThemes[id] = { ...(primary && { primary }), ...(background && { background }) }
+  }
+
+  const slimGroups: ResolvedTheme['colors']['groups'] = {}
+  for (const [name, { variants, seasonal, dateRange }] of Object.entries(groups)) {
+    slimGroups[name] = { variants, ...(seasonal !== undefined && { seasonal }), ...(dateRange && { dateRange }) }
+  }
+
+  return { colors: { themes: slimThemes, groups: slimGroups, defaultColor } } as ResolvedTheme
+}
+
 /** The inline script's source: `initTheme` as an IIFE, with its arguments serialized. */
 export function renderInitThemeScript(themeData: ResolvedTheme, options: InitThemeOptions): string {
-  return `(${initTheme.toString()})(${createThemeResolver.toString()}, ${toInlineScriptJson(themeData)}, ${toInlineScriptJson(options)})`
+  return `(${initTheme.toString()})(${createThemeResolver.toString()}, ${toInlineScriptJson(toInitThemeData(themeData))}, ${toInlineScriptJson(options)})`
 }
