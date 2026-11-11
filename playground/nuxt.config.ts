@@ -87,41 +87,6 @@ export default defineNuxtConfig({
         // <VenixThemeSwitcher> and follows the light/dark mode like the
         // built-in ones. Leave out `seasonal`/`dateRange` for a theme the
         // user picks by hand; add them to make it take over by date.
-        // Experimental (v1.4.0): `tokens: true` also generates the semantic
-        // tokens (`--color-text-primary`, `--color-fill-primary`,
-        // `--color-bg-subtle`…) from the seeds below. Playground only; it
-        // isn't shipped in theme.json.
-        venixTokens: {
-          // Each override re-points a token at another step of the generated
-          // scales, so the surfaces sit a step above the default (closer to the
-          // original Venix's `background2`/`3`) and still follow the seeds.
-          // Moving a surface moves what has to stay legible on it, so the
-          // build check asked for the other two: `border-strong` (3:1 on
-          // `bg-subtle`) and `text-muted` (4.5:1 on `bg-muted`).
-          tokens: {
-            'bg-subtle': 'neutral-3',
-            'bg-muted': 'neutral-4',
-            'border-strong': 'neutral-10',
-            'text-muted': 'neutral-12',
-          },
-          // The original Venix has plain gray surfaces (`background2`/`3`), so the
-          // neutral tokens stay gray instead of leaning toward the primary's hue.
-          neutralTint: false,
-          translations: { 'pt-BR': 'Venix (tokens)', 'en-US': 'Venix (tokens)', 'es-ES': 'Venix (tokens)' },
-          icon: '🧪',
-          // `primary`, `secondary` and `background` are the seeds the tokens are
-          // built from. The status colors below are the original model's, kept
-          // so the playground's chips and Vuetify's `accent` keep working; the
-          // old `background2`/`background3` are gone (`bg-subtle` and `bg-muted`
-          // take their place).
-          // Each mode has its own seeds. The light ones are darker than the
-          // original Venix's (`#FF0000`, `#FF8800`): a seed that is bright
-          // against a light background can't be text at AA (red is 3.8:1,
-          // orange 2.3:1), and `fill-primary` is the seed itself. `#D10100`
-          // reaches 5.4:1 on the page, so it can be text as is.
-          light: { primary: '#D10100', secondary: '#CC6600', background: '#FAFAFA', accent: '#82B1FF', error: '#FF5252', info: '#2196F3', success: '#4CAF50', warning: '#FCCF3D' },
-          dark: { primary: '#FF6B6B', secondary: '#FFB96A', background: '#0C0C0C', accent: '#82B1FF', error: '#FF5252', info: '#2196F3', success: '#4CAF50', warning: '#FCCF3D' },
-        },
         oceano: {
           translations: { 'en-US': 'Ocean', 'pt-BR': 'Oceano', 'es-ES': 'Océano' },
           icon: {
@@ -161,6 +126,11 @@ export default defineNuxtConfig({
       // Falls back to 'emote' automatically for themes that only have an emoji.
       iconFormat: 'svg',
     },
+
+    // Experimental (off by default, build time only): the semantic color
+    // tokens on the project's own themes too (`oceano` here), and on
+    // Vuetify's colors. The built-in themes ship the tokens already.
+    experimental: false,
 
     // Vuetify: enable with `vuetify: true` in projects using vuetify-nuxt-module
     // (must come before it in `modules`). See the "Vuetify integration" section in the README.

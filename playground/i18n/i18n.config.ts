@@ -13,15 +13,15 @@ export default defineI18nConfig(() => ({
       modules: {
         color: { title: 'Colors', description: 'Themes in light and dark mode, seasonal themes, CSS variables and cookie persistence.' },
         translation: { title: 'Translation', description: 'Detects the user\'s locale and translates theme and mode names.' },
-        icon: { title: 'Icons', description: '{component} renders an emoji, an Iconify icon or an inline SVG from a single value.' },
         typography: { title: 'Typography', description: 'Base font family, font size and {\'@\'}font-face rules for custom fonts.' },
         scrollbar: { title: 'Scrollbar', description: 'A custom scrollbar that follows the active theme\'s colors.' },
         cursor: { title: 'Cursor', description: 'Custom cursor images for default, clickable and text areas.' },
-        vuetify: { title: 'Vuetify', description: 'Registers the color themes with Vuetify and keeps it in sync.' },
+        plugins: { title: 'Plugins', description: 'Integrations with other libraries: Vuetify gets the color themes, the UnoCSS preset gives classes, Iconify powers the icons and the locale is shared with the i18n module.' },
       },
       color: {
         mode: 'Mode',
         theme: 'Theme',
+        palette: 'Palette',
         customTheme: 'Custom theme',
         toggle: 'Toggle light/dark',
         applied: 'Applied:',
@@ -35,13 +35,11 @@ export default defineI18nConfig(() => ({
         revoke: 'Revoke cookies',
         tabs: {
           theme: 'Theme',
-          palette: 'Palette',
           tokens: 'Tokens',
           saving: 'Saving',
         },
         help: {
-          theme: 'The same choice as the switcher in the navigation bar: both stay in sync.',
-          palette: 'The original model: one variable per color, such as `--color-primary`.',
+          theme: 'The same choice as the switcher in the navigation bar: both stay in sync. Below, the original model\'s palette: one variable per color, such as `--color-primary`.',
           tokens: 'A theme with `tokens: true` also gets variables named for where the color goes. On those themes this whole page uses them; on the others it keeps the original variables.',
           saving: 'Without consent, switching themes still works — it just isn\'t remembered on the next visit.',
         },
@@ -103,10 +101,7 @@ export default defineI18nConfig(() => ({
       },
       translation: {
         languageHeading: 'Language',
-        appLocale: 'App language ({pkg}):',
-        themeLocale: 'Jade locale:',
         namesHeading: 'Translated names',
-        namesHint: 'Mode and theme names come from Jade itself, in the current locale.',
       },
       icon: {
         iconify: 'Iconify (line-md, animated)',
@@ -114,6 +109,30 @@ export default defineI18nConfig(() => ({
         svg: 'Inline SVG',
         aliasHome: 'Alias → \'home\'',
         aliasStar: 'Alias → \'star\' (emoji)',
+      },
+      plugins: {
+        vuetify: {
+          tagline: 'The color themes registered with Vuetify, kept in sync.',
+          cardTitle: 'Follows the active theme',
+          cardText: 'Surface, buttons, chips and fields take their colors, and the text on them, from the theme you pick.',
+          field: 'Text field',
+        },
+        uno: {
+          tagline: 'Classes for the theme colors and tokens.',
+          card: 'Card',
+          fill: 'Button',
+          soft: 'Badge',
+          field: 'Field',
+        },
+        icon: { tagline: 'Emoji, Iconify icons or inline SVG through one component.' },
+        i18n: {
+          tagline: 'The locale travels in a cookie, so Jade follows the app language.',
+          cookie: 'Cookie',
+          app: 'App language',
+          jade: 'Jade locale',
+          note: 'Pick a language under Translation: both follow it.',
+        },
+        unoHint: 'The preset\'s token classes. They only have a value on themes with tokens, which every built-in theme has; pick Ocean to see them do nothing.',
       },
       typography: {
         sample: 'The quick brown fox jumps over the lazy dog',
@@ -138,15 +157,15 @@ export default defineI18nConfig(() => ({
       modules: {
         color: { title: 'Cores', description: 'Temas nos modos claro e escuro, temas sazonais, variáveis CSS e persistência em cookies.' },
         translation: { title: 'Tradução', description: 'Detecta o idioma do usuário e traduz os nomes de temas e modos.' },
-        icon: { title: 'Ícones', description: '{component} renderiza um emoji, um ícone do Iconify ou um SVG inline a partir de um único valor.' },
         typography: { title: 'Tipografia', description: 'Família e tamanho da fonte base, e regras {\'@\'}font-face para fontes próprias.' },
         scrollbar: { title: 'Scrollbar', description: 'Uma barra de rolagem personalizada que segue as cores do tema ativo.' },
         cursor: { title: 'Cursor', description: 'Imagens de cursor próprias para áreas comuns, clicáveis e de texto.' },
-        vuetify: { title: 'Vuetify', description: 'Registra os temas de cor no Vuetify e o mantém sincronizado.' },
+        plugins: { title: 'Plugins', description: 'Integrações com outras bibliotecas: o Vuetify recebe os temas de cor, o preset do UnoCSS oferece classes, o Iconify cuida dos ícones e o idioma é compartilhado com o módulo de i18n.' },
       },
       color: {
         mode: 'Modo',
         theme: 'Tema',
+        palette: 'Paleta',
         customTheme: 'Tema personalizado',
         toggle: 'Alternar claro/escuro',
         applied: 'Aplicado:',
@@ -160,13 +179,11 @@ export default defineI18nConfig(() => ({
         revoke: 'Revogar cookies',
         tabs: {
           theme: 'Tema',
-          palette: 'Paleta',
           tokens: 'Tokens',
           saving: 'Salvar',
         },
         help: {
-          theme: 'A mesma escolha do seletor na barra de navegação: os dois ficam sincronizados.',
-          palette: 'O modelo original: uma variável por cor, como `--color-primary`.',
+          theme: 'A mesma escolha do seletor na barra de navegação: os dois ficam sincronizados. Abaixo, a paleta do modelo original: uma variável por cor, como `--color-primary`.',
           tokens: 'Um tema com `tokens: true` também ganha variáveis nomeadas pelo lugar onde a cor vai. Nesses temas esta página inteira as usa; nos outros ela mantém as variáveis originais.',
           saving: 'Sem consentimento a troca de tema ainda funciona, só não é lembrada na próxima visita.',
         },
@@ -228,10 +245,7 @@ export default defineI18nConfig(() => ({
       },
       translation: {
         languageHeading: 'Idioma',
-        appLocale: 'Idioma do app ({pkg}):',
-        themeLocale: 'Locale do Jade:',
         namesHeading: 'Nomes traduzidos',
-        namesHint: 'Os nomes de modos e temas vêm do próprio Jade, no idioma atual.',
       },
       icon: {
         iconify: 'Iconify (line-md, animado)',
@@ -239,6 +253,30 @@ export default defineI18nConfig(() => ({
         svg: 'SVG inline',
         aliasHome: 'Alias → \'home\'',
         aliasStar: 'Alias → \'star\' (emoji)',
+      },
+      plugins: {
+        vuetify: {
+          tagline: 'Os temas de cor registrados no Vuetify, sempre sincronizados.',
+          cardTitle: 'Acompanha o tema ativo',
+          cardText: 'Superfície, botões, chips e campos recebem as cores, e o texto sobre elas, do tema escolhido.',
+          field: 'Campo de texto',
+        },
+        uno: {
+          tagline: 'Classes para as cores e os tokens do tema.',
+          card: 'Cartão',
+          fill: 'Botão',
+          soft: 'Selo',
+          field: 'Campo',
+        },
+        icon: { tagline: 'Emoji, ícones do Iconify ou SVG inline em um só componente.' },
+        i18n: {
+          tagline: 'O idioma viaja em um cookie, então o Jade acompanha o idioma do app.',
+          cookie: 'Cookie',
+          app: 'Idioma do app',
+          jade: 'Locale do Jade',
+          note: 'Escolha um idioma em Tradução: os dois o acompanham.',
+        },
+        unoHint: 'As classes de token do preset. Só têm valor em temas com tokens, o que vale para todos os temas embutidos; escolha Oceano para vê-las sem efeito.',
       },
       typography: {
         sample: 'Jovem craque belga prestigia a festa do Natal',
@@ -263,15 +301,15 @@ export default defineI18nConfig(() => ({
       modules: {
         color: { title: 'Colores', description: 'Temas en modo claro y oscuro, temas de temporada, variables CSS y persistencia en cookies.' },
         translation: { title: 'Traducción', description: 'Detecta el idioma del usuario y traduce los nombres de temas y modos.' },
-        icon: { title: 'Iconos', description: '{component} renderiza un emoji, un icono de Iconify o un SVG en línea a partir de un solo valor.' },
         typography: { title: 'Tipografía', description: 'Familia y tamaño de la fuente base, y reglas {\'@\'}font-face para fuentes propias.' },
         scrollbar: { title: 'Scrollbar', description: 'Una barra de desplazamiento personalizada que sigue los colores del tema activo.' },
         cursor: { title: 'Cursor', description: 'Imágenes de cursor propias para áreas normales, clicables y de texto.' },
-        vuetify: { title: 'Vuetify', description: 'Registra los temas de color en Vuetify y lo mantiene sincronizado.' },
+        plugins: { title: 'Plugins', description: 'Integraciones con otras bibliotecas: Vuetify recibe los temas de color, el preset de UnoCSS ofrece clases, Iconify se ocupa de los iconos y el idioma se comparte con el módulo de i18n.' },
       },
       color: {
         mode: 'Modo',
         theme: 'Tema',
+        palette: 'Paleta',
         customTheme: 'Tema personalizado',
         toggle: 'Alternar claro/oscuro',
         applied: 'Aplicado:',
@@ -285,13 +323,11 @@ export default defineI18nConfig(() => ({
         revoke: 'Revocar cookies',
         tabs: {
           theme: 'Tema',
-          palette: 'Paleta',
           tokens: 'Tokens',
           saving: 'Guardar',
         },
         help: {
-          theme: 'La misma elección que el selector de la barra de navegación: ambos se mantienen sincronizados.',
-          palette: 'El modelo original: una variable por color, como `--color-primary`.',
+          theme: 'La misma elección que el selector de la barra de navegación: ambos se mantienen sincronizados. Abajo, la paleta del modelo original: una variable por color, como `--color-primary`.',
           tokens: 'Un tema con `tokens: true` también recibe variables nombradas por el lugar donde va el color. En esos temas toda esta página las usa; en los demás mantiene las variables originales.',
           saving: 'Sin consentimiento, el cambio de tema sigue funcionando — solo no se recuerda en la próxima visita.',
         },
@@ -353,10 +389,7 @@ export default defineI18nConfig(() => ({
       },
       translation: {
         languageHeading: 'Idioma',
-        appLocale: 'Idioma de la app ({pkg}):',
-        themeLocale: 'Locale de Jade:',
         namesHeading: 'Nombres traducidos',
-        namesHint: 'Los nombres de modos y temas vienen del propio Jade, en el idioma actual.',
       },
       icon: {
         iconify: 'Iconify (line-md, animado)',
@@ -364,6 +397,30 @@ export default defineI18nConfig(() => ({
         svg: 'SVG en línea',
         aliasHome: 'Alias → \'home\'',
         aliasStar: 'Alias → \'star\' (emoji)',
+      },
+      plugins: {
+        vuetify: {
+          tagline: 'Los temas de color registrados en Vuetify, siempre sincronizados.',
+          cardTitle: 'Sigue el tema activo',
+          cardText: 'Superficie, botones, chips y campos toman sus colores, y el texto sobre ellos, del tema elegido.',
+          field: 'Campo de texto',
+        },
+        uno: {
+          tagline: 'Clases para los colores y los tokens del tema.',
+          card: 'Tarjeta',
+          fill: 'Botón',
+          soft: 'Etiqueta',
+          field: 'Campo',
+        },
+        icon: { tagline: 'Emoji, iconos de Iconify o SVG en línea en un solo componente.' },
+        i18n: {
+          tagline: 'El idioma viaja en una cookie, así que Jade sigue el idioma de la app.',
+          cookie: 'Cookie',
+          app: 'Idioma de la app',
+          jade: 'Locale de Jade',
+          note: 'Elige un idioma en Traducción: ambos lo siguen.',
+        },
+        unoHint: 'Las clases de token del preset. Solo tienen valor en temas con tokens, como todos los temas integrados; elige Océano para verlas sin efecto.',
       },
       typography: {
         sample: 'El veloz murciélago hindú comía feliz cardillo y kiwi',

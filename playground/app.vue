@@ -98,7 +98,7 @@
               id="color-panel-theme"
               role="tabpanel"
               aria-labelledby="color-tab-theme"
-              class="panel"
+              class="panel panel--compact"
             >
               <h4 class="demo__label">
                 {{ $t('color.mode') }}
@@ -155,19 +155,10 @@
                 </div>
               </template>
 
-              <p class="demo__status">
-                {{ $t('color.applied') }} <code>data-theme="{{ theme.value.value }}"</code>
-              </p>
-            </div>
-
-            <!-- The original model's palette -->
-            <div
-              v-else-if="colorTab === 'palette'"
-              id="color-panel-palette"
-              role="tabpanel"
-              aria-labelledby="color-tab-palette"
-              class="panel"
-            >
+              <!-- The original model's palette: one variable per color -->
+              <h4 class="demo__label">
+                {{ $t('color.palette') }}
+              </h4>
               <div class="color-grid">
                 <div
                   v-for="color in colorList"
@@ -182,6 +173,10 @@
                   <code class="color-card__value">{{ color.value }}</code>
                 </div>
               </div>
+
+              <p class="demo__status">
+                {{ $t('color.applied') }} <code>data-theme="{{ theme.value.value }}"</code>
+              </p>
             </div>
 
             <!-- Semantic tokens (experimental): a spec sheet -->
@@ -223,6 +218,22 @@
                   role="group"
                   :aria-label="$t('color.tabs.tokens')"
                 >
+                  <!-- Contrast first and apart: it is what the tokens are for, and the
+                       count says at a glance whether every pair passes. -->
+                  <button
+                    type="button"
+                    class="sheet__navitem sheet__navitem--featured"
+                    :class="{ 'sheet__navitem--active': tokenView === 'contrast' }"
+                    :aria-pressed="tokenView === 'contrast'"
+                    @click="tokenView = 'contrast'"
+                  >
+                    <span>{{ $t('color.tokens.view.contrast') }}</span>
+                    <span
+                      class="sheet__count"
+                      :class="contrastSummary.failed ? 'pairs__fail' : 'sheet__count--pass'"
+                    >{{ contrastSummary.failed ? `✗ ${contrastSummary.failed}` : `✓ ${contrastSummary.total}` }}</span>
+                  </button>
+                  <hr class="sheet__divider">
                   <button
                     v-for="item in sheetNav"
                     :key="item.key"
@@ -412,113 +423,36 @@
         </client-only>
       </section>
 
-      <!-- ===== Translation ===== -->
+      <!-- ===== Cursor ===== -->
       <section
-        id="translation"
+        id="cursor"
         class="module"
       >
         <ModuleHeader
-          id="translation"
-          emoji="🌐"
+          id="cursor"
+          emoji="🖱️"
         />
 
-        <div class="demo">
-          <h3 class="demo__title">
-            {{ $t('translation.languageHeading') }}
-          </h3>
-          <div class="chips">
-            <button
-              v-for="loc in availableLocales"
-              :key="loc.code"
-              type="button"
-              class="chip"
-              :class="{ 'chip--active': loc.code === i18nLocale }"
-              @click="changeLocale(loc.code)"
+        <div class="demo-grid demo-grid--three">
+          <div class="demo cursor-area">
+            <strong>default</strong>
+            <span class="demo__hint">{{ $t('cursor.default') }}</span>
+          </div>
+          <button
+            type="button"
+            class="demo cursor-area"
+          >
+            <strong>pointer</strong>
+            <span class="demo__hint">{{ $t('cursor.pointer') }}</span>
+          </button>
+          <label class="demo cursor-area">
+            <strong>text</strong>
+            <input
+              type="text"
+              class="cursor-area__input"
+              :placeholder="$t('cursor.text')"
             >
-              {{ loc.name }}
-            </button>
-          </div>
-          <p class="demo__status">
-            {{ $t('translation.appLocale', { pkg: '@nuxtjs/i18n' }) }} <strong>{{ i18nLocale }}</strong>
-            · {{ $t('translation.themeLocale') }} <strong>{{ locale.current.value }}</strong>
-          </p>
-        </div>
-
-        <client-only>
-          <div class="demo">
-            <h3 class="demo__title">
-              {{ $t('translation.namesHeading') }}
-            </h3>
-            <p class="demo__hint">
-              {{ $t('translation.namesHint') }}
-            </p>
-            <div class="chips">
-              <span
-                v-for="item in [...modes, ...themes]"
-                :key="item.value"
-                class="tag"
-              >{{ item.name }}</span>
-            </div>
-          </div>
-        </client-only>
-      </section>
-
-      <!-- ===== Icons ===== -->
-      <section
-        id="icon"
-        class="module"
-      >
-        <ModuleHeader
-          id="icon"
-          emoji="✨"
-        />
-
-        <div class="demo">
-          <div class="icon-row">
-            <div
-              v-for="item in iconSamples"
-              :key="item.label"
-              class="icon-sample"
-            >
-              <VenixIcon
-                :icon="item.icon"
-                class="icon-sample__icon"
-              />
-              <span class="icon-sample__label">{{ item.label }}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ===== Typography ===== -->
-      <section
-        id="typography"
-        class="module"
-      >
-        <ModuleHeader
-          id="typography"
-          emoji="🔤"
-        />
-
-        <div class="demo">
-          <client-only>
-            <dl class="specs">
-              <dt><code>--font-family-base</code></dt>
-              <dd>{{ typography.family }}</dd>
-              <dt><code>--font-size-base</code></dt>
-              <dd>{{ typography.size }}</dd>
-            </dl>
-          </client-only>
-          <div class="specimen">
-            <p
-              v-for="size in [2, 1.5, 1.125, 1, 0.875]"
-              :key="size"
-              :style="{ fontSize: `${size}rem` }"
-            >
-              <span class="specimen__size">{{ size }}rem</span>
-              {{ $t('typography.sample') }}
-            </p>
-          </div>
+          </label>
         </div>
       </section>
 
@@ -570,77 +504,274 @@
         </div>
       </section>
 
-      <!-- ===== Cursor ===== -->
+      <!-- ===== Typography ===== -->
       <section
-        id="cursor"
+        id="typography"
         class="module"
       >
         <ModuleHeader
-          id="cursor"
-          emoji="🖱️"
+          id="typography"
+          emoji="🔤"
         />
 
-        <div class="demo-grid demo-grid--three">
-          <div class="demo cursor-area">
-            <strong>default</strong>
-            <span class="demo__hint">{{ $t('cursor.default') }}</span>
-          </div>
-          <button
-            type="button"
-            class="demo cursor-area"
-          >
-            <strong>pointer</strong>
-            <span class="demo__hint">{{ $t('cursor.pointer') }}</span>
-          </button>
-          <label class="demo cursor-area">
-            <strong>text</strong>
-            <input
-              type="text"
-              class="cursor-area__input"
-              :placeholder="$t('cursor.text')"
+        <div class="demo">
+          <client-only>
+            <dl class="specs">
+              <dt><code>--font-family-base</code></dt>
+              <dd>{{ typography.family }}</dd>
+              <dt><code>--font-size-base</code></dt>
+              <dd>{{ typography.size }}</dd>
+            </dl>
+          </client-only>
+          <div class="specimen">
+            <p
+              v-for="size in [2, 1.5, 1.125, 1, 0.875]"
+              :key="size"
+              :style="{ fontSize: `${size}rem` }"
             >
-          </label>
+              <span class="specimen__size">{{ size }}rem</span>
+              {{ $t('typography.sample') }}
+            </p>
+          </div>
         </div>
       </section>
 
-      <!-- ===== Vuetify ===== -->
+      <!-- ===== Translation ===== -->
       <section
-        id="vuetify"
+        id="translation"
         class="module"
       >
         <ModuleHeader
-          id="vuetify"
-          emoji="🧩"
+          id="translation"
+          emoji="🌐"
         />
 
-        <v-card
-          color="surface"
-          class="pa-4"
-        >
-          <v-card-title>v-card (surface)</v-card-title>
-          <v-card-actions>
-            <!-- Filled, so the text on them is Vuetify's `on-primary` / `on-secondary`:
-                 the tokens' on-colors on a theme with `tokens: true`. -->
-            <v-btn
-              color="primary"
-              variant="flat"
+        <!-- Kept short: how it works with @nuxtjs/i18n is shown under Plugins. -->
+        <div class="demo panel--compact">
+          <h4 class="demo__label">
+            {{ $t('translation.languageHeading') }}
+          </h4>
+          <div class="chips">
+            <button
+              v-for="loc in availableLocales"
+              :key="loc.code"
+              type="button"
+              class="chip"
+              :class="{ 'chip--active': loc.code === i18nLocale }"
+              @click="changeLocale(loc.code)"
             >
-              primary
-            </v-btn>
-            <v-btn
-              color="secondary"
-              variant="flat"
-            >
-              secondary
-            </v-btn>
-            <v-btn
-              color="accent"
-              variant="outlined"
-            >
-              accent
-            </v-btn>
-          </v-card-actions>
-        </v-card>
+              {{ loc.name }}
+            </button>
+          </div>
+
+          <client-only>
+            <h4 class="demo__label">
+              {{ $t('translation.namesHeading') }}
+            </h4>
+            <div class="chips">
+              <span
+                v-for="item in [...modes, ...themes]"
+                :key="item.value"
+                class="tag"
+              >{{ item.name }}</span>
+            </div>
+          </client-only>
+        </div>
+      </section>
+
+      <!-- ===== Plugins ===== -->
+      <section
+        id="plugins"
+        class="module"
+      >
+        <ModuleHeader
+          id="plugins"
+          emoji="🧩"
+          key-label="venixTheme.vuetify · venixTheme.icon · venixUnoPreset()"
+        />
+
+        <div class="demo-grid demo-grid--plugins">
+          <!-- Vuetify: the color themes registered with it, and its colors kept in sync -->
+          <article class="demo plugin">
+            <header class="plugin__header">
+              <span
+                class="plugin__logo plugin__logo--letter"
+                aria-hidden="true"
+              >V</span>
+              <div class="plugin__heading">
+                <h3 class="plugin__title">
+                  Vuetify
+                </h3>
+                <p class="plugin__tagline">
+                  {{ $t('plugins.vuetify.tagline') }}
+                </p>
+              </div>
+              <code class="plugin__option">vuetify: true</code>
+            </header>
+
+            <div class="plugin__stage">
+              <v-card
+                color="surface"
+                variant="flat"
+                border
+                class="plugin__vcard"
+              >
+                <v-card-title>{{ $t('plugins.vuetify.cardTitle') }}</v-card-title>
+                <v-card-text>{{ $t('plugins.vuetify.cardText') }}</v-card-text>
+                <div class="plugin__chips">
+                  <v-chip
+                    v-for="name in vuetifyColors"
+                    :key="name"
+                    :color="name"
+                    size="small"
+                    variant="flat"
+                  >
+                    {{ name }}
+                  </v-chip>
+                </div>
+                <v-text-field
+                  :label="$t('plugins.vuetify.field')"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  class="plugin__field"
+                />
+                <v-card-actions>
+                  <!-- Filled, so the text on them is Vuetify's `on-primary` / `on-secondary`:
+                       the tokens' on-colors on a theme with `tokens: true`. -->
+                  <v-btn
+                    color="primary"
+                    variant="flat"
+                  >
+                    primary
+                  </v-btn>
+                  <v-btn
+                    color="secondary"
+                    variant="flat"
+                  >
+                    secondary
+                  </v-btn>
+                  <v-btn
+                    color="accent"
+                    variant="outlined"
+                  >
+                    accent
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </div>
+          </article>
+
+          <!-- UnoCSS: the preset's token classes, which are plain rules -->
+          <article class="demo plugin">
+            <header class="plugin__header">
+              <span
+                class="plugin__logo"
+                aria-hidden="true"
+              >⚡</span>
+              <div class="plugin__heading">
+                <h3 class="plugin__title">
+                  UnoCSS
+                </h3>
+                <p class="plugin__tagline">
+                  {{ $t('plugins.uno.tagline') }}
+                </p>
+              </div>
+              <code class="plugin__option">venixUnoPreset()</code>
+            </header>
+
+            <div class="plugin__stage">
+              <ul class="uno-list">
+                <li
+                  v-for="sample in unoSamples"
+                  :key="sample.key"
+                  class="uno-row"
+                >
+                  <span
+                    class="uno-box"
+                    :class="[sample.classes, { 'uno-box--outlined': sample.outlined }]"
+                  >{{ $t(`plugins.uno.${sample.key}`) }}</span>
+                  <code class="uno-code">{{ sample.classes }}</code>
+                </li>
+              </ul>
+            </div>
+            <p class="plugin__note">
+              {{ $t('plugins.unoHint') }}
+            </p>
+          </article>
+
+          <!-- Iconify: <VenixIcon> renders an emoji, an Iconify icon or an inline SVG -->
+          <article class="demo plugin">
+            <header class="plugin__header">
+              <span
+                class="plugin__logo plugin__logo--icon"
+                aria-hidden="true"
+              >
+                <VenixIcon icon="line-md:loading-loop" />
+              </span>
+              <div class="plugin__heading">
+                <h3 class="plugin__title">
+                  Iconify
+                </h3>
+                <p class="plugin__tagline">
+                  {{ $t('plugins.icon.tagline') }}
+                </p>
+              </div>
+              <code class="plugin__option">icon: true</code>
+            </header>
+
+            <div class="plugin__stage">
+              <div class="icon-row">
+                <div
+                  v-for="item in iconSamples"
+                  :key="item.label"
+                  class="icon-sample"
+                >
+                  <VenixIcon
+                    :icon="item.icon"
+                    class="icon-sample__icon"
+                  />
+                  <span class="icon-sample__label">{{ item.label }}</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- i18n: the locale cookie shared with the theme module -->
+          <article class="demo plugin">
+            <header class="plugin__header">
+              <span
+                class="plugin__logo plugin__logo--letter"
+                aria-hidden="true"
+              >文</span>
+              <div class="plugin__heading">
+                <h3 class="plugin__title">
+                  @nuxtjs/i18n
+                </h3>
+                <p class="plugin__tagline">
+                  {{ $t('plugins.i18n.tagline') }}
+                </p>
+              </div>
+              <code class="plugin__option">translation.cookieSync</code>
+            </header>
+
+            <div class="plugin__stage">
+              <client-only>
+                <dl class="specs specs--flush">
+                  <dt>{{ $t('plugins.i18n.cookie') }}</dt>
+                  <dd><code>i18n_redirected</code> = <strong>{{ i18nCookie }}</strong></dd>
+                  <dt>{{ $t('plugins.i18n.app') }}</dt>
+                  <dd><strong>{{ i18nLocale }}</strong></dd>
+                  <dt>{{ $t('plugins.i18n.jade') }}</dt>
+                  <dd><strong>{{ locale.current.value }}</strong></dd>
+                </dl>
+              </client-only>
+            </div>
+            <p class="plugin__note">
+              {{ $t('plugins.i18n.note') }}
+            </p>
+          </article>
+        </div>
       </section>
     </main>
   </div>
@@ -661,15 +792,28 @@ useHead({
   link: [{ rel: 'icon', type: 'image/png', href: '/favicon.png' }],
 })
 
-// Same order as the README's module table.
+// The order of the sections below, and of the links at the top.
 const modules = [
   { id: 'color', emoji: '🎨' },
-  { id: 'translation', emoji: '🌐' },
-  { id: 'icon', emoji: '✨' },
-  { id: 'typography', emoji: '🔤' },
-  { id: 'scrollbar', emoji: '📜' },
   { id: 'cursor', emoji: '🖱️' },
-  { id: 'vuetify', emoji: '🧩' },
+  { id: 'scrollbar', emoji: '📜' },
+  { id: 'typography', emoji: '🔤' },
+  { id: 'translation', emoji: '🌐' },
+  { id: 'plugins', emoji: '🧩' },
+]
+
+// The theme colors Vuetify gets, shown as chips.
+const vuetifyColors = ['primary', 'secondary', 'accent', 'success', 'error']
+
+// What the UnoCSS preset gives: the token classes (`jade-<token>`), which are
+// plain rules, so they work here without any utility preset. They only have a
+// value on a theme with tokens (every built-in one). Written out in full so
+// UnoCSS finds them when it scans this file.
+const unoSamples = [
+  { key: 'card', classes: 'jade-bg-subtle jade-text' },
+  { key: 'fill', classes: 'jade-fill-primary jade-on-primary' },
+  { key: 'soft', classes: 'jade-bg-primary jade-text-primary' },
+  { key: 'field', classes: 'jade-bg jade-text-muted jade-border-strong', outlined: true },
 ]
 
 // Title, `venixTheme.<key>` badge and, behind a help button, the description of a module section.
@@ -677,6 +821,8 @@ const ModuleHeader = defineComponent({
   props: {
     id: { type: String, required: true },
     emoji: { type: String, required: true },
+    // The badge on the right, `venixTheme.<id>` unless the section covers more than one module.
+    keyLabel: { type: String, default: '' },
   },
   setup(props) {
     // The description is one click away, not always on screen.
@@ -693,7 +839,7 @@ const ModuleHeader = defineComponent({
           'aria-label': t('app.help'),
           'onClick': () => { open.value = !open.value },
         }, '?'),
-        h('code', { class: 'module__key' }, `venixTheme.${props.id}`),
+        h('code', { class: 'module__key' }, props.keyLabel || `venixTheme.${props.id}`),
       ]),
       // Component names go in as a parameter: written in the message itself,
       // vue-i18n warns about HTML in it (it's rendered as text either way).
@@ -713,6 +859,17 @@ const ModuleHeader = defineComponent({
 const changeLocale = async (code: Parameters<typeof setI18nLocale>[0]) => {
   await setI18nLocale(code)
   locale.set(code)
+  await nextTick()
+  readI18nCookie()
+}
+
+// The locale cookie both share (`translation.cookieSync`, `i18n_redirected` by default).
+// Like the theme cookies, it is only written with consent.
+const i18nCookie = ref('—')
+
+const readI18nCookie = () => {
+  const match = document.cookie.match(/(?:^|; )i18n_redirected=([^;]*)/)
+  i18nCookie.value = match?.[1] ? decodeURIComponent(match[1]) : '—'
 }
 
 const cookiesPresent = ref(false)
@@ -741,6 +898,7 @@ const typography = ref({ family: '', size: '' })
 
 onMounted(() => {
   checkCookies()
+  readI18nCookie()
 
   const rootStyle = getComputedStyle(document.documentElement)
   typography.value = {
@@ -766,7 +924,7 @@ const currentThemeName = computed(() => {
 
 // ===== Tabs of the Colors module =====
 
-const colorTabs = ['theme', 'palette', 'tokens', 'saving'] as const
+const colorTabs = ['theme', 'tokens', 'saving'] as const
 type ColorTab = typeof colorTabs[number]
 const colorTab = ref<ColorTab>('theme')
 const colorHelpOpen = ref(false)
@@ -790,7 +948,7 @@ const tokenThemes = computed(() => themes.value.filter(item => theme.colors.grou
 const FOCUS_TOKEN = 'border-focus'
 
 type TokenView = 'neutral' | 'primary' | 'secondary' | 'focus' | 'contrast' | 'use'
-const tokenView = ref<TokenView>('neutral')
+const tokenView = ref<TokenView>('contrast')
 
 // The current theme's tokens, split by role: neutral ones first, then each role.
 // `usage` is the translation key of the token's one-line description.
@@ -806,7 +964,7 @@ const tokenGroups = computed(() => {
     // (step 11), so it is listed with the Primary tokens, after the others.
     const role = FOCUS_TOKEN === name || /(?:^|-)primary(?:-|$)/.test(name) ? 'primary' : /(?:^|-)secondary(?:-|$)/.test(name) ? 'secondary' : 'neutral'
     const short = role === 'neutral' ? name : name.replace(`-${role}`, '')
-    const entry = { name: `--color-${name}`, value, usage: `${role === 'neutral' ? 'neutral' : 'role'}.${short}` }
+    const entry = { name: `--jade-${name}`, value, usage: `${role === 'neutral' ? 'neutral' : 'role'}.${short}` }
     if (name === FOCUS_TOKEN) focusEntry = entry
     else groups[role].push(entry)
   }
@@ -840,7 +998,7 @@ const focusTiles = computed(() => {
     .filter(name => current[name])
     .map((name) => {
       const ratio = contrastRatio(ring, current[name]!)
-      return { name: `--color-${name}`, value: current[name]!, ratio: formatRatio(ratio), pass: ratio >= OUTLINE_MIN }
+      return { name: `--jade-${name}`, value: current[name]!, ratio: formatRatio(ratio), pass: ratio >= OUTLINE_MIN }
     })
 })
 
@@ -873,7 +1031,7 @@ const tokenPairs = computed(() => {
   for (const [text, surface, min] of TOKEN_PAIRS) {
     const textColor = current[text]
     const surfaceColor = current[surface]
-    if (textColor && surfaceColor) rows.push({ text: `--color-${text}`, surface: `--color-${surface}`, textColor, surfaceColor, min })
+    if (textColor && surfaceColor) rows.push({ text: `--jade-${text}`, surface: `--jade-${surface}`, textColor, surfaceColor, min })
   }
 
   return rows.map((row) => {
@@ -882,14 +1040,21 @@ const tokenPairs = computed(() => {
   })
 })
 
+// The views after Contrast, which has its own button at the top of the list.
 const sheetNav = computed(() => [
   { key: 'neutral', count: tokenGroups.value.neutral.length },
   { key: 'primary', count: tokenGroups.value.primary.length },
   { key: 'secondary', count: tokenGroups.value.secondary.length },
   { key: 'focus', count: focusTiles.value.length },
-  { key: 'contrast', count: tokenPairs.value.length },
   { key: 'use', count: 0 },
 ] as const)
+
+// How many of the token pairs fall short, for the Contrast button. The original
+// model's row doesn't count: it is there to show the problem the tokens solve.
+const contrastSummary = computed(() => {
+  const rows = tokenPairs.value.filter(row => !row.original)
+  return { total: rows.length, failed: rows.filter(row => !row.pass).length }
+})
 
 const customSvg = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor" /></svg>'
 
@@ -929,11 +1094,11 @@ const colorList = computed(() => {
    uses the tokens (legible by construction) and on every other theme it looks
    as it always did. */
 :root {
-  --pg-bg: var(--color-bg, var(--color-background));
-  --pg-surface: var(--color-bg-subtle, var(--color-background2));
-  --pg-surface-muted: var(--color-bg-muted, var(--color-background3));
-  --pg-border: var(--color-border, var(--color-background3));
-  --pg-field-border: var(--color-border-strong, var(--color-background3));
+  --pg-bg: var(--jade-bg, var(--color-background));
+  --pg-surface: var(--jade-bg-subtle, var(--color-background2));
+  --pg-surface-muted: var(--jade-bg-muted, var(--color-background3));
+  --pg-border: var(--jade-border, var(--color-background3));
+  --pg-field-border: var(--jade-border-strong, var(--color-background3));
   /* Text keeps the original Venix page's colors: primary for the main text and
      titles, secondary for the supporting text and labels. On a token theme the
      primary text is the seed itself (\`fill-primary\`), which passes AA on \`bg\`,
@@ -941,19 +1106,19 @@ const colorList = computed(() => {
      in dark mode (orange on a light background can't), so in light mode it is
      \`text-secondary\`, the step built for that. \`light-dark()\` follows the
      \`color-scheme\` each theme sets. */
-  --pg-text: var(--color-fill-primary, var(--color-primary));
-  --pg-text-muted: light-dark(var(--color-text-secondary, var(--color-secondary)), var(--color-fill-secondary, var(--color-secondary)));
+  --pg-text: var(--jade-fill-primary, var(--color-primary));
+  --pg-text-muted: light-dark(var(--jade-text-secondary, var(--color-secondary)), var(--jade-fill-secondary, var(--color-secondary)));
   --pg-title: var(--pg-text);
   --pg-label: var(--pg-text-muted);
   /* Fading text with `opacity` would take it below AA on a token theme. The
-     value is a number on the other themes; on a token theme `--color-bg` is a
+     value is a number on the other themes; on a token theme `--jade-bg` is a
      color, so `opacity: var(--pg-dim-*)` is invalid there and falls back to 1. */
-  --pg-dim-label: var(--color-bg, 0.8);
-  --pg-dim-hint: var(--color-bg, 0.85);
-  --pg-dim-size: var(--color-bg, 0.7);
+  --pg-dim-label: var(--jade-bg, 0.8);
+  --pg-dim-hint: var(--jade-bg, 0.85);
+  --pg-dim-size: var(--jade-bg, 0.7);
   --pg-link: var(--pg-text);
-  --pg-accent: var(--color-fill-primary, var(--color-primary));
-  --pg-on-accent: var(--color-on-primary, var(--color-background));
+  --pg-accent: var(--jade-fill-primary, var(--color-primary));
+  --pg-on-accent: var(--jade-on-primary, var(--color-background));
 }
 * {
   margin: 0;
@@ -1047,7 +1212,7 @@ code {
   background: color-mix(in srgb, var(--pg-accent) 8%, transparent);
   /* On a token theme, `text-primary`: the seed itself falls just short of AA on
      its own wash in light mode. */
-  color: var(--color-text-primary, var(--pg-link));
+  color: var(--jade-text-primary, var(--pg-link));
   font-size: 0.875rem;
   text-decoration: none;
   white-space: nowrap;
@@ -1059,7 +1224,7 @@ code {
   background: color-mix(in srgb, var(--pg-accent) 16%, transparent);
   border-color: color-mix(in srgb, var(--pg-accent) 35%, transparent);
   /* The stronger step on the stronger wash (token themes only). */
-  color: var(--color-text-primary-strong, var(--color-text-primary, var(--pg-link)));
+  color: var(--jade-text-primary-strong, var(--jade-text-primary, var(--pg-link)));
 }
 
 .module-nav__switcher {
@@ -1169,6 +1334,33 @@ code {
   color: var(--pg-link);
 }
 
+/* The Theme panel keeps its groups close together: it holds the most controls of the page. */
+.panel--compact .demo__label {
+  margin: 0.5rem 0 0.25rem;
+}
+
+.panel--compact .demo__label:first-child {
+  margin-top: 0;
+}
+
+.panel--compact .chips {
+  gap: 0.35rem;
+}
+
+.panel--compact .chip {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+.panel--compact .demo__status {
+  margin: 0.5rem 0 0;
+}
+
+.panel--compact .tag {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+}
+
 /* ===== Chips (buttons and tags) ===== */
 .chips {
   display: flex;
@@ -1236,20 +1428,20 @@ code {
 /* ===== Colors ===== */
 .color-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  gap: 0.35rem;
 }
 
 .color-card {
-  padding: 0.4rem;
+  padding: 0.3rem;
   border-radius: 8px;
   background: var(--pg-surface-muted);
   text-align: center;
 }
 
 .color-card__swatch {
-  height: 40px;
-  margin-bottom: 0.35rem;
+  height: 26px;
+  margin-bottom: 0.2rem;
   border-radius: 6px;
   border: 2px solid var(--pg-border);
 }
@@ -1266,6 +1458,191 @@ code {
   color: var(--pg-link);
 }
 
+/* ===== Plugins: one card per integration ===== */
+.demo-grid--plugins {
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+}
+
+.plugin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.1rem;
+}
+
+.plugin__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.plugin__logo {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--pg-border);
+  border-radius: 10px;
+  background: var(--pg-surface-muted);
+  font-size: 1.3rem;
+}
+
+.plugin__heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.plugin__title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--pg-title);
+}
+
+.plugin__tagline {
+  margin: 0.1rem 0 0;
+  font-size: 0.8rem;
+  color: var(--pg-text-muted);
+}
+
+/* What turns the integration on, as it is written in the config. */
+.plugin__option {
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: var(--pg-surface-muted);
+  color: var(--pg-link);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+/* The example sits on the page's own background, like a preview canvas. */
+.plugin__stage {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1rem;
+  border: 1px solid var(--pg-border);
+  border-radius: 10px;
+  background: var(--pg-bg);
+}
+
+.plugin__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.plugin__chips .v-chip {
+  padding-inline: 0.8rem;
+}
+
+/* An Iconify icon as the logo. */
+.plugin__logo--icon {
+  color: var(--pg-link);
+  font-size: 1.5rem;
+}
+
+.specs--flush {
+  margin-bottom: 0;
+}
+
+/* The icon samples in an even grid inside the card, labels centered under each. */
+.plugin__stage .icon-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 1rem 0.75rem;
+}
+
+.plugin__stage .icon-sample__label {
+  text-align: center;
+}
+
+/* The letter that stands for Vuetify, in place of an emoji. */
+.plugin__logo--letter {
+  color: var(--pg-link);
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* The card Vuetify draws. Its spacing is set here: the playground doesn't load
+   Vuetify's utility classes (`pa-4`, `mt-4`…), so a class like that does nothing. */
+.plugin__vcard {
+  padding: 1.25rem;
+  border-radius: 12px;
+}
+
+.plugin__vcard .v-card-title {
+  padding: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.plugin__vcard .v-card-text {
+  padding: 0.4rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.plugin__vcard .plugin__field {
+  margin-top: 1.1rem;
+}
+
+.plugin__vcard .v-card-actions {
+  gap: 0.5rem;
+  min-height: 0;
+  padding: 1.1rem 0 0;
+}
+
+.plugin__note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--pg-text-muted);
+}
+
+/* ===== Plugins: the UnoCSS samples ===== */
+.uno-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.uno-row {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.uno-box {
+  padding: 0.4rem 0.75rem;
+  /* An outline, not a border: it keeps the sample visible on the page's own
+     surface without touching the border the `jade-border-strong` sample sets. */
+  outline: 1px solid var(--pg-border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* Width and style only: the color comes from the `jade-border-strong` class. */
+.uno-box--outlined {
+  border-width: 2px;
+  border-style: solid;
+}
+
+.uno-code {
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: var(--pg-surface-muted);
+  font-size: 0.75rem;
+  color: var(--pg-link);
+  overflow-wrap: anywhere;
+}
+
 /* ===== Semantic tokens (experimental) ===== */
 /* ===== Tabs (Colors module) ===== */
 .tabs {
@@ -1279,30 +1656,36 @@ code {
 .tabs__list {
   display: flex;
   flex: 1;
-  gap: 1.1rem;
+  gap: 0.35rem;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
 
+/* Bigger and bolder than the rest of the panel, so the tabs read as the way in. */
 .tab {
-  padding: 0.5rem 0;
+  padding: 0.6rem 1rem;
   border: 0;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
+  border-radius: 8px 8px 0 0;
   background: transparent;
   color: var(--pg-text-muted);
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .tab:hover {
+  background: var(--pg-surface-muted);
   color: var(--pg-text);
 }
 
 .tab--active {
   border-bottom-color: var(--pg-accent);
+  background: var(--pg-surface-muted);
   color: var(--pg-link);
 }
 
@@ -1390,6 +1773,31 @@ code {
 .sheet__count {
   font-size: 0.75rem;
   color: var(--pg-text-muted);
+}
+
+/* Contrast: the button that stands apart from the token lists. */
+.sheet__navitem--featured {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--pg-border);
+  border-left: 3px solid var(--pg-accent);
+  color: var(--pg-text);
+  font-weight: 600;
+}
+
+.sheet__navitem--featured .sheet__count {
+  font-weight: 600;
+}
+
+.sheet__count--pass {
+  color: var(--pg-link);
+}
+
+.sheet__divider {
+  width: 100%;
+  height: 1px;
+  margin: 0.4rem 0;
+  border: 0;
+  background: var(--pg-border);
 }
 
 .sheet__body {
@@ -1512,10 +1920,10 @@ code {
   flex-direction: column;
   gap: 0.5rem;
   padding: 1rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--jade-border);
   border-radius: 12px;
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--jade-bg);
+  color: var(--jade-text);
 }
 
 .token-use__title {
@@ -1530,15 +1938,15 @@ code {
 }
 
 .token-use__link {
-  color: var(--color-text-primary);
+  color: var(--jade-text-primary);
 }
 
 .token-use__muted {
-  color: var(--color-text-muted);
+  color: var(--jade-text-muted);
 }
 
 .token-use__disabled {
-  color: var(--color-text-disabled);
+  color: var(--jade-text-disabled);
 }
 
 .token-use__row {
@@ -1550,22 +1958,22 @@ code {
 .token-badge {
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
+  background: var(--jade-bg-primary);
+  color: var(--jade-text-primary);
   font-size: 0.8rem;
 }
 
 .token-badge--secondary {
-  background: var(--color-bg-secondary);
-  color: var(--color-text-secondary);
+  background: var(--jade-bg-secondary);
+  color: var(--jade-text-secondary);
 }
 
 .token-btn {
   padding: 0.45rem 0.9rem;
   border: 2px solid transparent;
   border-radius: 8px;
-  background: var(--color-fill-primary);
-  color: var(--color-on-primary);
+  background: var(--jade-fill-primary);
+  color: var(--jade-on-primary);
   font: inherit;
   font-size: 0.9rem;
   cursor: pointer;
@@ -1573,32 +1981,32 @@ code {
 }
 
 .token-btn:hover {
-  background: var(--color-fill-primary-hover);
+  background: var(--jade-fill-primary-hover);
 }
 
 .token-btn:focus-visible,
 .token-use__field input:focus-visible {
-  outline: 2px solid var(--color-border-focus);
+  outline: 2px solid var(--jade-border-focus);
   outline-offset: 2px;
 }
 
 .token-btn--secondary {
-  background: var(--color-fill-secondary);
-  color: var(--color-on-secondary);
+  background: var(--jade-fill-secondary);
+  color: var(--jade-on-secondary);
 }
 
 .token-btn--secondary:hover {
-  background: var(--color-fill-secondary-hover);
+  background: var(--jade-fill-secondary-hover);
 }
 
 .token-btn--outlined {
-  border-color: var(--color-border-primary-strong);
+  border-color: var(--jade-border-primary-strong);
   background: transparent;
-  color: var(--color-text-primary);
+  color: var(--jade-text-primary);
 }
 
 .token-btn--outlined:hover {
-  background: var(--color-bg-primary-hover);
+  background: var(--jade-bg-primary-hover);
 }
 
 .token-use__field {
@@ -1606,15 +2014,15 @@ code {
   flex-direction: column;
   gap: 0.25rem;
   font-size: 0.8rem;
-  color: var(--color-text-muted);
+  color: var(--jade-text-muted);
 }
 
 .token-use__field input {
   padding: 0.45rem 0.6rem;
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--jade-border-strong);
   border-radius: 8px;
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--jade-bg);
+  color: var(--jade-text);
   font: inherit;
 }
 
@@ -1627,7 +2035,7 @@ code {
   padding: 1rem;
   border: 1px solid var(--pg-border);
   border-radius: 10px;
-  background: var(--color-bg);
+  background: var(--jade-bg);
 }
 
 .focus-tile {
@@ -1642,7 +2050,7 @@ code {
   height: 44px;
   margin: 3px;
   border-radius: 10px;
-  outline: 3px solid var(--color-border-focus);
+  outline: 3px solid var(--jade-border-focus);
 }
 
 .focus-tile__name {
