@@ -3,7 +3,7 @@ import { loadTheme } from './shared/utils/load'
 import type { TypographyConfig, ScrollbarConfig, CursorConfig, ColorOptions, TranslationConfig, VuetifyOptions, IconOptions, ExperimentalConfig, VenixRuntimeConfig } from './shared/types'
 import { DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_THEME } from './shared/constants'
 import { resolveFeatureOption } from './shared/utils/options'
-import { findDeprecatedThemeEntries, overridesBrandColors } from './shared/utils/merge-themes'
+import { findDeprecatedThemeEntries, findThemeConfigIssues, overridesBrandColors } from './shared/utils/merge-themes'
 import { buildResolvedTheme, findInvalidDefaultColor, getBaseThemeEntries } from './shared/utils/theme-config'
 import { collectTokens, findTokenContrastIssues, findTokenOverrideIssues } from './shared/css/tokens'
 import { customizeTheme } from './setup/customize-theme'
@@ -90,6 +90,11 @@ export default defineNuxtModule<ModuleOptions>({
     })
     for (const message of findDeprecatedThemeEntries(getBaseThemeEntries(), colorOptions.themes)) {
       useLogger('jade').warn(message)
+    }
+    if (colorOptions.enabled) {
+      for (const message of findThemeConfigIssues(getBaseThemeEntries(), colorOptions.themes)) {
+        useLogger('jade').warn(message)
+      }
     }
     if (colorOptions.enabled && !colorOptions.allowVenixOverride && overridesBrandColors(getBaseThemeEntries(), colorOptions.themes)) {
       useLogger('jade').warn('`color.themes` changes the colors of `venix`, the Venix Sistemas brand theme. For another identity, add a theme of your own (e.g. `color.themes.myBrand`) and set `color.defaultColor` to its name; Venix stays in the switcher next to it. Set `color.allowVenixOverride: true` if changing Venix is intended.')

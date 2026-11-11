@@ -207,6 +207,89 @@ export function overridesBrandColors(
   return false
 }
 
+const HEX_COLOR = /^#(?:[\da-f]{3}|[\da-f]{6})$/i
+const EASTER_BOUND = /^easter(?:[+-]\d+)?$/
+const DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+/** A `dateRange` bound: `MM-DD` (a real day of the year) or `easter±N`. */
+function isValidDateBound(value: unknown): boolean {
+  if (typeof value !== 'string') return false
+  const bound = value.trim()
+  if (EASTER_BOUND.test(bound)) return true
+
+  const match = /^(\d{1,2})-(\d{1,2})$/.exec(bound)
+  if (!match) return false
+  const month = Number(match[1])
+  const day = Number(match[2])
+  return month >= 1 && month <= 12 && day >= 1 && day <= DAYS_IN_MONTH[month - 1]!
+}
+
+/**
+ * Values in the project's `color.themes` that the module would otherwise
+ * drop or never use, without a word: a color that isn't a hex (the CSS, the
+ * tokens and Vuetify only take `#RGB`/`#RRGGBB`), a seasonal theme whose
+ * `dateRange` is missing or malformed (it would never turn on), and two
+ * variants that share an id (the last one overwrites the other). Only the
+ * themes the project set are checked; the built-in ones are the module's own.
+ * Logged once at build time by `module.ts`.
+ */
+export function findThemeConfigIssues(
+  baseThemes: Record<string, ThemeEntry>,
+  overrides?: Record<string, Partial<ThemeEntry>>,
+): string[] {
+  const messages: string[] = []
+  const projectThemes = new Set(Object.keys(overrides ?? {}))
+  const ownersById = new Map<string, Array<{ themeName: string, path: string }>>()
+
+  for (const [themeName, entry] of Object.entries(mergeColorThemes(baseThemes, overrides))) {
+    // Every concrete variant of the entry: its path in `color.themes`, id and colors
+    const variants: Array<{ path: string, id: string, palette: ThemePalette }> = []
+    if (isThemeDefinition(entry)) {
+      for (const mode of THEME_MODES) {
+        const variant = entry[mode]
+        if (variant) variants.push({ path: `${themeName}.${mode}`, id: variantId(themeName, mode, variant), palette: variant })
+      }
+    }
+    else if (isLegacyThemeEntry(entry)) {
+      variants.push({ path: themeName, id: themeName, palette: entry })
+    }
+
+    for (const { path, id, palette } of variants) {
+      ownersById.set(id, [...(ownersById.get(id) ?? []), { themeName, path }])
+
+      if (!projectThemes.has(themeName)) continue
+      for (const key of COLOR_PROPERTIES) {
+        const value = palette[key]
+        if (value === undefined || (typeof value === 'string' && HEX_COLOR.test(value))) continue
+        messages.push(`\`color.themes.${path}.${key}\` is \`${JSON.stringify(value)}\`, which is not a hex color (\`#RGB\` or \`#RRGGBB\`), so it is ignored.`)
+      }
+    }
+
+    if (!projectThemes.has(themeName)) continue
+
+    const { seasonal, dateRange } = entry
+    if (seasonal === true && !dateRange) {
+      messages.push(`\`color.themes.${themeName}\` is \`seasonal\` but has no \`dateRange\`, so it never turns on. Add \`dateRange: { start: 'MM-DD', end: 'MM-DD' }\`.`)
+    }
+    else if (dateRange && seasonal !== true) {
+      messages.push(`\`color.themes.${themeName}.dateRange\` has no effect without \`seasonal: true\`.`)
+    }
+    else if (dateRange) {
+      for (const bound of ['start', 'end'] as const) {
+        if (isValidDateBound(dateRange[bound])) continue
+        messages.push(`\`color.themes.${themeName}.dateRange.${bound}\` is \`${JSON.stringify(dateRange[bound])}\`, which is not a date, so the theme never turns on. Use \`'MM-DD'\`, \`'easter'\`, \`'easter-47'\` or \`'easter+1'\`.`)
+      }
+    }
+  }
+
+  for (const [id, owners] of ownersById) {
+    if (owners.length < 2 || !owners.some(owner => projectThemes.has(owner.themeName))) continue
+    messages.push(`${owners.map(owner => `\`color.themes.${owner.path}\``).join(' and ')} share the id \`${id}\`, so one overwrites the other. Give one of them a different \`id\` (or name).`)
+  }
+
+  return messages
+}
+
 /**
  * Overrides still written in the deprecated flat format, with the message to
  * show for each — logged once at build time by `module.ts`.
