@@ -116,6 +116,7 @@ Jade is a set of independent modules, each configured under its own key in `veni
 | [Translation](#translation) | `translation` | `true`  | Detects the user's locale and translates theme names and your own strings |
 | [Icons](#icons)             | `icon`        | `true`  | `<VenixIcon>`: emoji, Iconify (bundled offline) or inline SVG through one component |
 | [Vuetify](#vuetify)         | `vuetify`     | `false` | Registers the color themes with Vuetify and keeps it in sync          |
+| [Experimental](#built-in-themes-and-experimental) | `experimental` | `false` | Experimental features to try on a project: today, the semantic color tokens on your own themes too, and on Vuetify |
 
 <br>
 
@@ -170,7 +171,7 @@ color: {
 }
 ```
 
-Available colors: `primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`, `background`, `background2`, `background3`. Each becomes a `--color-<name>` CSS variable, plus `--color-inverse` (white on dark variants, black on light ones). For colors that meet WCAG contrast by construction, a theme can opt in to [semantic tokens](#semantic-tokens-experimental) (experimental).
+Available colors: `primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`, `background`, `background2`, `background3`. Each becomes a `--color-<name>` CSS variable, plus `--color-inverse` (white on dark variants, black on light ones). For colors that meet WCAG contrast by construction, the built-in themes also ship [semantic tokens](#semantic-tokens-experimental) (experimental), and your own themes can opt in.
 
 Each variant is applied as `<html data-theme="<id>">`, and the id is also its Vuetify theme name. It defaults to `<theme>-<mode>` (`summerSale-light`); set `id` on a variant to choose it. The built-in themes keep the ids they had before light/dark became separate: `dark` and `light` for Venix, `carnaval`, `natal` and `halloween` for the dark seasonal variants (their light ones are `carnaval-light` and so on). Easter, added later, uses the default `pascoa-light` and `pascoa-dark`.
 
@@ -207,9 +208,9 @@ The built-in Carnival theme uses `easter-65` to `easter-46`: 20 days, from the p
 
 ### Semantic tokens (experimental)
 
-> **Experimental.** Opt-in per theme, additive, and the names or steps may still change before it's declared stable. Everything above (`--color-primary`, `--color-background2`…) keeps working exactly as before, and the built-in themes don't use tokens.
+> **Experimental.** Additive, and the names or steps may still change before it's declared stable. Everything above (`--color-primary`, `--color-background2`…) keeps working exactly as before, next to the tokens: the built-in themes ship both, and your own themes opt in per theme (or all at once with [`experimental`](#built-in-themes-and-experimental)).
 
-A theme with `tokens: true` also gets **semantic tokens**: CSS variables named for where the color goes (`--color-text-primary`, `--color-fill-primary`, `--color-bg-subtle`…), generated from the variant's `primary`, `secondary` and `background`. Each token points at a step of a 12-step scale whose pairs are placed so they meet WCAG 2.1 contrast, so you don't have to guess which shade is readable on which background.
+A theme with `tokens: true` (the built-in themes have it already) also gets **semantic tokens**: CSS variables named for where the color goes (`--jade-text-primary`, `--jade-fill-primary`, `--jade-bg-subtle`…), generated from the variant's `primary`, `secondary` and `background`. Each token points at a step of a 12-step scale whose pairs are placed so they meet WCAG 2.1 contrast, so you don't have to guess which shade is readable on which background.
 
 ```typescript
 color: {
@@ -227,18 +228,18 @@ color: {
 
 ```css
 .card {
-  background: var(--color-bg-subtle);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
+  background: var(--jade-bg-subtle);
+  color: var(--jade-text);
+  border: 1px solid var(--jade-border);
 }
 
 .button {
-  background: var(--color-fill-primary);
-  color: var(--color-on-primary);
+  background: var(--jade-fill-primary);
+  color: var(--jade-on-primary);
 }
 
 .button:hover {
-  background: var(--color-fill-primary-hover);
+  background: var(--jade-fill-primary-hover);
 }
 ```
 
@@ -246,7 +247,7 @@ The old variables stay: a token theme still emits `--color-primary` and `--color
 
 **Names.** `--color-<property>[-<role>][-<variant>][-<state>]`: the property says what the color is for (`bg`, `text`, `fill`, `on`, `border`), the role is `primary` or `secondary`, the variant is `subtle`, `muted`, `strong` or `focus`, and the state is `hover` or `active`. None of them repeats a name from the original model, so both live side by side.
 
-Neutral tokens, built from the theme's `background` (`--color-bg` *is* the background, exactly). By default they lean very slightly toward the hue of `primary`, so the surfaces feel of one piece with the theme. Set `neutralTint: false` next to `tokens: true` for plain grays instead (contrast is the same either way):
+Neutral tokens, built from the theme's `background` (`--jade-bg` *is* the background, exactly). By default they lean very slightly toward the hue of `primary`, so the surfaces feel of one piece with the theme. A `background` that already has a color of its own (a peach `#FFF8F0`, say) is not pulled toward `primary`: its own hue is kept, and the surfaces and borders get more of it the farther they sit from the page, the way a hand-made palette does, so a card doesn't look grayer than the page behind it. A gray `background` (`#FAFAFA`, `#0C0C0C`) works as described above. Set `neutralTint: false` next to `tokens: true` for plain grays instead (contrast is the same either way):
 
 | Token | Use |
 | ----- | --- |
@@ -303,12 +304,33 @@ A warning usually means the seed itself can't get there, not that the scale is w
 **Where the tokens show up.**
 
 - **CSS:** in the variant's `[data-theme]` block, after the usual variables.
-- **`useVenixTheme().tokens`:** `all` (every variant's tokens by `data-theme` id), `current` (the applied theme's, `undefined` when it has none) and `cssVar('text-primary')` → `'var(--color-text-primary)'`. See [`useVenixTheme()`](#usevenixtheme).
-- **UnoCSS:** one class per token, with the `color-` prefix: `color-bg-subtle`, `color-text-muted`, `color-fill-primary`. See [UnoCSS preset](#unocss-preset).
+- **`useVenixTheme().tokens`:** `all` (every variant's tokens by `data-theme` id), `current` (the applied theme's, `undefined` when it has none) and `cssVar('text-primary')` → `'var(--jade-text-primary)'`. See [`useVenixTheme()`](#usevenixtheme).
+- **UnoCSS:** one class per token, with the `jade-` prefix: `jade-bg-subtle`, `jade-text-muted`, `jade-fill-primary`. See [UnoCSS preset](#unocss-preset).
 - **Vuetify:** `on-primary`, `on-secondary`, `surface`, `on-surface` and `on-background`. See [Vuetify](#vuetify).
 - **`<VenixThemeSwitcher>`:** its menu follows the tokens on token themes and keeps its fixed palette everywhere else.
 
 The tokens are generated at build time with [Adobe Leonardo](https://github.com/adobe/leonardo) and never reach the client bundle; the client only receives the resulting hex values. Roles in this version are `primary` and `secondary`.
+
+#### Built-in themes and `experimental`
+
+Venix and the four seasonal themes ship with `tokens: true`, **next to** the old model: `--color-primary`, `--color-background2`… keep exactly the values they had, so nothing written for 1.x changes. Venix keeps plain gray surfaces (`neutralTint: false`) and lifts `bg-subtle` and `bg-muted` a step, close to its old `background2`/`3`; a seasonal theme keeps the hue of its own `background`.
+
+Two things are left as they were for projects that already exist:
+
+- **Vuetify.** The tokens of the built-in themes don't feed Vuetify's colors in 1.x: it keeps picking its own text color on `primary`, so buttons don't change. A theme you set `tokens` on yourself does feed it.
+- **The build's contrast check.** It skips the built-in themes: at `'AAA'` some of their seeds can't reach 7:1, and that isn't yours to fix.
+
+Your own themes opt in per theme with `tokens`. To get the tokens on all of them at once, turn on the `experimental` option. It's **off by default**:
+
+```typescript
+venixTheme: {
+  experimental: true, // or { enabled: true }
+}
+```
+
+Every theme that doesn't set `tokens` itself then gets them, built from its own `primary`, `secondary` and `background`, so `jade-bg-subtle`, `var(--jade-text-primary)` and `useVenixTheme().tokens` work on whichever theme is applied. A theme with `tokens: false` stays out, and one with its own `tokens` keeps them as written. The contrast check covers them, and asking for the tokens everywhere includes Vuetify's colors (see [Vuetify](#vuetify)), the built-in themes' too.
+
+It is a build-time choice, equivalent to writing `tokens: true` on every theme: there is no switch for the visitor. Both models live side by side until 2.0.0, when the old `--color-*` variables and `background2`/`3` go and the tokens become the only model.
 
 ### Theme transition
 
@@ -589,7 +611,7 @@ It returns:
 - `themes` — every selectable theme as `{ value, name, icon, custom }`, ready to render a picker (see [Theme icons](#theme-icons)); `custom` is `true` for themes your project added in `color.themes`.
 - `mode` — the mode choice: `preference` (`'system'`, `'light'`, `'dark'`), `value` (the mode applied, `'light'` or `'dark'`), `data`, `set(mode)` and `toggle()`.
 - `modes` — the three mode options with names and icons, ready to render.
-- `tokens` — the [semantic tokens](#semantic-tokens-experimental) (experimental) of the themes with `tokens: true`: `all` (every variant's tokens by `data-theme` id), `current` (a computed with the applied theme's tokens, `undefined` when it has none) and `cssVar('text-primary')`, which returns `'var(--color-text-primary)'`.
+- `tokens` — the [semantic tokens](#semantic-tokens-experimental) (experimental) of the themes with `tokens: true` (the built-in ones included): `all` (every variant's tokens by `data-theme` id), `current` (a computed with the applied theme's tokens, `undefined` when it has none) and `cssVar('text-primary')`, which returns `'var(--jade-text-primary)'`.
 - `scrollbar` / `cursor` / `font` — the visitor's switch for the custom [scrollbar](#scrollbar), [cursor](#cursor) and [font](#typography): `available` (the project has it on), `enabled` (a `Ref<boolean>`, `true` unless the visitor turned it off) and `set(enabled)`.
 - `locale` — `current`, `set()` and `translate()` (see [Translation](#translation)).
 - `persistence` — cookie consent controls (see [Saving preferences](#saving-preferences-cookie-consent)).
@@ -857,7 +879,7 @@ export default defineConfig({
 
 It maps every [theme color](#themes), plus `inverse`, to its CSS variable (`primary: 'var(--color-primary)'`, …), so utilities follow the active theme. Colors you define yourself in `uno.config.ts` take precedence.
 
-The [semantic tokens](#semantic-tokens-experimental) (experimental) are classes named after their CSS variable, with the `color-` prefix: `--color-bg-subtle` → `color-bg-subtle`, `color-text-muted`, `color-border-strong`, `color-fill-primary`, `color-on-primary`, `hover:color-bg-hover`. Each sets the property the token is for (`bg-*` and `fill-*` the background, `text-*` and `on-*` the text color, `border-*` the border color). The prefix keeps them apart from other color systems' classes (Vuetify's `text-primary`, or the `text-muted` and `bg-muted` of Bootstrap and shadcn), and from the plain `bg-primary` / `text-primary` above. They are rules, not theme colors, so there is no `/50` opacity (it doesn't apply to a `var()` anyway) and no ring, divider or gradient version. They only have a value on themes with `tokens: true`. Pass `venixUnoPreset({ tokens: false })` to leave them out.
+The [semantic tokens](#semantic-tokens-experimental) (experimental) are classes named after their CSS variable, with the `jade-` prefix: `--jade-bg-subtle` → `jade-bg-subtle`, `jade-text-muted`, `jade-border-strong`, `jade-fill-primary`, `jade-on-primary`, `hover:jade-bg-hover`. Each sets the property the token is for (`bg-*` and `fill-*` the background, `text-*` and `on-*` the text color, `border-*` the border color). The prefix keeps them apart from other color systems' classes (Vuetify's `text-primary`, or the `text-muted` and `bg-muted` of Bootstrap and shadcn), and from the plain `bg-primary` / `text-primary` above. They are rules, not theme colors, so there is no `/50` opacity (it doesn't apply to a `var()` anyway) and no ring, divider or gradient version. They only have a value on themes with `tokens: true`. Pass `venixUnoPreset({ tokens: false })` to leave them out.
 
 It also makes `cursor-default`, `cursor-pointer` and `cursor-text` use the [custom cursor](#cursors-in-your-own-css) (`cursor: var(--cursor-pointer, pointer)`, the system's when the module's cursor is off), with variants and `!` included (`hover:cursor-pointer`, `!cursor-default`). These replace `presetWind`'s rules of the same name wherever the preset sits in `presets`.
 
@@ -887,7 +909,7 @@ export default defineNuxtConfig({
 
 - **Order matters:** the themes are registered through Vuetify's [`vuetify:registerModule`](https://nuxt.vuetifyjs.com/guide/advanced/layers-and-hooks.html) hook, which only sees modules listed before Vuetify.
 - **Real colors:** Vuetify computes contrast and `on-*` colors in JavaScript, so it receives the actual hex values, not `var(...)`. `background2` also fills Vuetify's `surface` slot (cards, toolbars, …).
-- **Semantic tokens** (experimental): a theme with `tokens: true` also gives Vuetify `on-primary` and `on-secondary` (it would otherwise pick its own, which prefers white on the Venix red, 4.0:1), `surface` from `bg-subtle` (unless the theme sets `background2`), and `on-surface` and `on-background` from `text`. See [Semantic tokens](#semantic-tokens-experimental).
+- **Semantic tokens** (experimental): a theme you set `tokens: true` on (or every theme, with `experimental`) also gives Vuetify `on-primary` and `on-secondary` (it would otherwise pick its own, which prefers white on the Venix red, 4.0:1), `surface` from `bg-subtle` (unless the theme sets `background2`), and `on-surface` and `on-background` from `text`. The built-in themes carry tokens of their own, but in 1.x those stay out of Vuetify, so its colors don't change under existing projects. See [Semantic tokens](#semantic-tokens-experimental).
 - **Your values win:** anything you set in `vuetify.vuetifyOptions.theme.themes` is merged per color on top of the generated themes.
 - **Always in sync:** a small runtime plugin starts Vuetify on the same theme the page gets (so the first paint is right, with or without SSR) and applies every later switch with `theme.change()`, inside the same View Transition as the rest of the page.
 - **No flash in SPA mode** (`ssr: false`): Vuetify's theme stylesheet only reaches the DOM after the first render there, so the plugin writes a temporary copy into `<head>` before mount and removes it once Vuetify's own arrives.
@@ -906,10 +928,11 @@ To avoid a wrong-theme flash, a small inline script in `<head>` applies the them
 
 ## Third-party packages
 
-Colors, typography, scrollbar, cursor, translation and the switcher are Jade's own code, with no package behind them (the overlay scrollbar aside). These come from third parties:
+Colors, typography, scrollbar, cursor, translation and the switcher are Jade's own code, with no package behind them (the overlay scrollbar and the build-time color engine of the semantic tokens aside). These come from third parties:
 
 | Package | Used for | How it's included | License |
 | ------- | -------- | ----------------- | ------- |
+| [`@adobe/leonardo-contrast-colors`](https://github.com/adobe/leonardo) | Generates the 12-step color scales behind the [semantic tokens](#semantic-tokens-experimental), at build time only: it never reaches the browser bundle | Installed with Jade | Apache 2.0 |
 | [`@nuxt/icon`](https://github.com/nuxt/icon) | Renders Iconify icons for `<Icon>` and `<VenixIcon>` ([Icons](#icons)) | Installed with Jade; skipped with `icon: false` | MIT |
 | [`@iconify/utils`](https://github.com/iconify/iconify) | Picks the icons to bundle offline ([Offline icon collections](#offline-icon-collections)) | Installed with Jade | MIT |
 | [`@iconify-json/line-md`](https://github.com/cyberalien/line-md) | Animated Material Line Icons, by Vjacheslav Trushkin | Installed with Jade, bundled by default | MIT |
