@@ -68,7 +68,9 @@ export function buildVuetifyThemes(colors: ColorsConfig): Record<string, Vuetify
     if (themeColors.background2) vuetifyColors.surface = themeColors.background2
     vuetifyColors.inverse = isDark ? '#FFFFFF' : '#000000'
 
-    if (tokensEnabled(themeColors)) Object.assign(vuetifyColors, tokenColorsForVuetify(themeColors, colors.contrast || 'AA', !!themeColors.background2))
+    // (Not for the module's own default tokens on its built-in themes: in 1.x
+    // Vuetify keeps picking its own text color on `primary`, see `defaultTokens`.)
+    if (tokensEnabled(themeColors) && !colors.defaultTokens?.includes(name)) Object.assign(vuetifyColors, tokenColorsForVuetify(themeColors, colors.contrast || 'AA', !!themeColors.background2))
 
     themes[name] = { dark: isDark, colors: vuetifyColors }
   }

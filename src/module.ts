@@ -1,6 +1,6 @@
 import { defineNuxtModule, createResolver, addImports, useLogger } from '@nuxt/kit'
 import { loadTheme } from './shared/utils/load'
-import type { TypographyConfig, ScrollbarConfig, CursorConfig, ColorOptions, TranslationConfig, VuetifyOptions, IconOptions } from './shared/types'
+import type { TypographyConfig, ScrollbarConfig, CursorConfig, ColorOptions, TranslationConfig, VuetifyOptions, IconOptions, ExperimentalConfig, VenixRuntimeConfig } from './shared/types'
 import { DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_THEME } from './shared/constants'
 import { resolveFeatureOption } from './shared/utils/options'
 import { findDeprecatedThemeEntries, overridesBrandColors } from './shared/utils/merge-themes'
@@ -34,6 +34,13 @@ export interface ModuleOptions {
    * or an inline SVG from a single value. Installs `@nuxt/icon` automatically.
    */
   icon?: boolean | Partial<IconOptions>
+  /**
+   * Experimental features, to try them on a project. Off by default; a
+   * build-time choice, with nothing for the visitor to switch. Today: the
+   * semantic color tokens for every theme, built-in ones included (see
+   * `ExperimentalConfig`).
+   */
+  experimental?: boolean | Partial<ExperimentalConfig>
 }
 
 export default defineNuxtModule<ModuleOptions>({
@@ -49,6 +56,7 @@ export default defineNuxtModule<ModuleOptions>({
     typography: true,
     vuetify: false,
     icon: true,
+    experimental: false,
   },
 
   async setup(options, nuxt) {
@@ -98,7 +106,11 @@ export default defineNuxtModule<ModuleOptions>({
         useLogger('jade').warn(message)
       }
       if (colorOptions.contrast) {
-        for (const message of findTokenContrastIssues(theme.colors.themes, colorOptions.contrast)) {
+        // The module's own default tokens (built-in themes) are not the
+        // project's to fix, so they stay out of this check: at `'AAA'` a
+        // seed can't reach 7:1 and the warning would have no cure.
+        const projectThemes = Object.fromEntries(Object.entries(theme.colors.themes).filter(([id]) => !theme.colors.defaultTokens?.includes(id)))
+        for (const message of findTokenContrastIssues(projectThemes, colorOptions.contrast)) {
           useLogger('jade').warn(message)
         }
       }
@@ -141,7 +153,7 @@ export default defineNuxtModule<ModuleOptions>({
 
     // 9. Configure runtimeConfig
     const tokens = colorOptions.enabled ? collectTokens(theme.colors.themes, colorOptions.contrast || 'AA') : {}
-    nuxt.options.runtimeConfig.public.venixTheme = {
+    const runtimeConfig: VenixRuntimeConfig = {
       defaultTheme: theme.colors?.defaultColor || DEFAULT_THEME,
       colorThemes: colorOptions.themes,
       applyColors: shouldApplyColors,
@@ -152,7 +164,7 @@ export default defineNuxtModule<ModuleOptions>({
       iconFormat: iconOptions.enabled ? colorOptions.iconFormat : 'emote',
       requireConsent: colorOptions.requireConsent,
       seasonal: colorOptions.seasonal,
-      ...(Object.keys(tokens).length ? { tokens } : {}),
+      tokens,
       icon: {
         aliases: iconOptions.aliases,
       },
@@ -169,5 +181,7 @@ export default defineNuxtModule<ModuleOptions>({
         icon: iconOptions.enabled,
       },
     }
+    // Not assigned by property: Nuxt infers that property's type from the app's own config
+    Object.assign(nuxt.options.runtimeConfig.public, { venixTheme: runtimeConfig })
   },
 })

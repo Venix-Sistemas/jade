@@ -388,11 +388,17 @@ describe('generateThemeVars com tokens', () => {
     expect(generateThemeVars('light', { ...flat, tokens: false })).toBe(expected)
   })
 
-  it('deve manter o CSS de todos os temas embutidos sem nenhum token', () => {
-    const css = processTheme(loadTheme())
-    expect(css).not.toContain('Semantic tokens')
-    expect(css).not.toContain('--color-text-primary')
-    expect(css).not.toContain('--color-fill-primary')
+  it('deve dar tokens a todos os temas embutidos, sem mudar nenhuma variável de sempre', () => {
+    const theme = loadTheme()
+    const css = processTheme(theme)
+    expect(css).toContain('/* Semantic tokens */')
+    expect(css).toContain('--jade-text-primary:')
+
+    // Sem o bloco dos tokens, o CSS é o mesmo de um tema sem eles: o modelo antigo segue idêntico
+    const withoutTokens = structuredClone(theme)
+    for (const colors of Object.values(withoutTokens.colors.themes)) delete colors.tokens
+    const tokenBlock = /\n {2}\/\* Semantic tokens \*\/\n[\s\S]*?(?=\n\}\n)/g
+    expect(css.replace(tokenBlock, '')).toBe(processTheme(withoutTokens))
   })
 
   it('deve acrescentar os tokens ao bloco do tema, depois das variáveis de sempre', () => {

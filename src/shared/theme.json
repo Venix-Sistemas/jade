@@ -104,6 +104,14 @@
                 }
             },
             "venix": {
+                "tokens": {
+                    "bg-subtle": "neutral-3",
+                    "bg-muted": "neutral-4",
+                    "border-strong": "neutral-10",
+                    "text-muted": "neutral-12",
+                    "text-secondary": "secondary-12"
+                },
+                "neutralTint": false,
                 "translations": {
                     "pt-BR": "Venix",
                     "en-US": "Venix"
@@ -141,6 +149,7 @@
                 }
             },
             "carnaval": {
+                "tokens": true,
                 "seasonal": true,
                 "dateRange": {
                     "start": "easter-65",
@@ -182,6 +191,7 @@
                 }
             },
             "pascoa": {
+                "tokens": true,
                 "seasonal": true,
                 "dateRange": {
                     "start": "easter-7",
@@ -222,6 +232,7 @@
                 }
             },
             "natal": {
+                "tokens": true,
                 "seasonal": true,
                 "dateRange": {
                     "start": "12-01",
@@ -263,6 +274,7 @@
                 }
             },
             "halloween": {
+                "tokens": true,
                 "seasonal": true,
                 "dateRange": {
                     "start": "10-01",

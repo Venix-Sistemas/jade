@@ -127,6 +127,15 @@ export interface ColorsConfig {
   defaults: boolean
   /** Contrast target of the semantic tokens and their build check (`color.contrast`). Build time only. */
   contrast?: ContrastLevel | false
+  /**
+   * The variants (ids in `themes`) whose tokens are the module's own default
+   * for its built-in themes, not something the project asked for with
+   * `tokens` or `experimental`. In 1.x Vuetify leaves their colors alone, so
+   * its text on `primary` and its surfaces don't change under existing
+   * projects, and the build doesn't warn about their contrast. Build time
+   * only. Removed in 2.0, when the tokens become the only model.
+   */
+  defaultTokens?: string[]
   /** Initial choice for new visitors: a theme name, a variant id (`'dark'`) or `'system'`. */
   defaultColor: string
   /** Every concrete color variant, by id — what `data-theme` receives. */

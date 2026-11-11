@@ -251,11 +251,15 @@ describe('tokens (experimental)', () => {
     expect(groups.t!.tokens).toBe(true)
   })
 
-  it('não deve acrescentar `tokens` a temas que não optaram', () => {
-    const { themes, groups } = normalizeColorThemes({ t: { light, dark }, u: { tokens: false, light } })
+  it('não deve acrescentar `tokens` a temas que não decidiram', () => {
+    const { themes, groups } = normalizeColorThemes({ t: { light, dark } })
     expect(themes['t-light']).not.toHaveProperty('tokens')
-    expect(themes['u-light']).not.toHaveProperty('tokens')
     expect(groups.t).not.toHaveProperty('tokens')
+  })
+
+  it('deve guardar o `tokens: false` de quem recusou, para a opção `experimental` deixá-lo de fora', () => {
+    const { themes } = normalizeColorThemes({ u: { tokens: false, light } })
+    expect(themes['u-light']).toMatchObject({ tokens: false })
   })
 
   it('deve levar `tokens` também no formato antigo (flat)', () => {
