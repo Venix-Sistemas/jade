@@ -479,6 +479,13 @@ function installThemeEffects(core: ThemeCore) {
 
     window.addEventListener(COOKIE_PREFERENCES_UPDATED_EVENT, core.syncPersistence)
 
+    // The event above only fires in the tab that changed the consent. Another
+    // tab hears about it through `storage` (`key` is `null` when the whole
+    // storage was cleared), so its switcher shows the right save option.
+    window.addEventListener('storage', (event) => {
+      if (event.key === null || event.key === COOKIE_CONSENT_STORAGE_KEY) core.syncPersistence()
+    })
+
     // The Cookie Store API reports every change, from any tab or site sharing
     // the cookies, while both stay open side by side. Where it's missing (or
     // as a backup), re-check whenever the visitor comes back to this page.
