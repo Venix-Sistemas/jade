@@ -401,10 +401,10 @@ describe('generateThemeVars com tokens', () => {
     expect(block.startsWith(`:root[data-theme='venixTokens-light'] {`)).toBe(true)
     expect(block.endsWith('}\n')).toBe(true)
     expect(block.indexOf('--color-primary: #FF0000;')).toBeLessThan(block.indexOf('/* Semantic tokens */'))
-    expect(block.indexOf('/* Semantic tokens */')).toBeLessThan(block.indexOf('--color-bg: #FAFAFA;'))
-    expect(block).toContain('--color-fill-primary: #FF0000;')
-    expect(block).toContain('--color-on-primary: #000000;')
-    expect(block).toContain('--color-text-secondary:')
+    expect(block.indexOf('/* Semantic tokens */')).toBeLessThan(block.indexOf('--jade-bg: #FAFAFA;'))
+    expect(block).toContain('--jade-fill-primary: #FF0000;')
+    expect(block).toContain('--jade-on-primary: #000000;')
+    expect(block).toContain('--jade-text-secondary:')
     expect(block.match(/:root\[/g)).toHaveLength(1)
   })
 
@@ -418,8 +418,8 @@ describe('generateThemeVars com tokens', () => {
   it('deve gerar os tokens também no escuro', () => {
     const css = generateThemeVars('d', { dark: true, tokens: true, primary: '#FF6B6B', background: '#0C0C0C' })
     expect(css).toContain('color-scheme: dark;')
-    expect(css).toContain('--color-bg: #0C0C0C;')
-    expect(css).toContain('--color-fill-primary: #FF6B6B;')
+    expect(css).toContain('--jade-bg: #0C0C0C;')
+    expect(css).toContain('--jade-fill-primary: #FF6B6B;')
   })
 })
 

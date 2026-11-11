@@ -18,9 +18,9 @@ export interface VenixUnoPreset {
 export interface VenixUnoPresetOptions {
   /**
    * Also exposes the semantic color tokens (experimental, v1.4.0) as classes
-   * named after the CSS variable, with the `color-` prefix: `--color-bg-subtle`
-   * → `color-bg-subtle`, `color-text-muted`, `color-border-strong`,
-   * `color-fill-primary`, `color-on-primary`… The prefix keeps them from
+   * named after the CSS variable, with the `jade-` prefix: `--jade-bg-subtle`
+   * → `jade-bg-subtle`, `jade-text-muted`, `jade-border-strong`,
+   * `jade-fill-primary`, `jade-on-primary`… The prefix keeps them from
    * clashing with the classes of other color systems (Vuetify's `text-primary`,
    * Bootstrap's or shadcn's `text-muted`/`bg-muted`). They only have a value on
    * themes with `tokens: true`. Default: `true`.
@@ -50,8 +50,8 @@ const TOKEN_PROPERTY: Record<string, string> = {
  * `bg-background2/80` or `border-accent`.
  *
  * With `tokens` (the default), the semantic tokens too, one class per token
- * named after its CSS variable: `--color-text-muted` → `color-text-muted`. They
- * are rules and not theme colors: the class says `color-`, not the utility, and
+ * named after its CSS variable: `--jade-text-muted` → `jade-text-muted`. They
+ * are rules and not theme colors: the class says `jade-`, not the utility, and
  * sets the property the token is for (`bg-*`/`fill-*` the background, `text-*`/`on-*`
  * the text color, `border-*` the border color). See `VenixUnoPresetOptions`.
  *
@@ -94,7 +94,7 @@ export function venixUnoPreset(options: VenixUnoPresetOptions = {}): VenixUnoPre
   if (options.tokens !== false) {
     for (const name of TOKEN_NAMES) {
       const property = TOKEN_PROPERTY[name.split('-')[0]!]!
-      rules.push([`color-${name}`, { [property]: `var(--color-${name})` }])
+      rules.push([`jade-${name}`, { [property]: `var(--jade-${name})` }])
     }
   }
 

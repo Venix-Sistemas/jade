@@ -8,7 +8,7 @@ import { NEUTRAL_TOKENS, OVERRIDABLE_TOKEN_NAMES, ROLE_TOKENS, TOKEN_ROLES as RO
 /**
  * The semantic color tokens of a theme variant (v1.4.0, experimental).
  *
- * Name: `--color-<property>[-<role>][-<variant>][-<state>]`, where the
+ * Name: `--jade-<property>[-<role>][-<variant>][-<state>]`, where the
  * property says what the color is for (`bg`, `text`, `fill`, `on`, `border`).
  * Each token points at a step of the generated scales, whose pairs are
  * placed to meet WCAG contrast by construction (see `utils/scale.ts`).
@@ -22,7 +22,7 @@ const FALLBACK_BACKGROUND = { light: '#FFFFFF', dark: '#121212' } as const
 const tokenCache = new Map<string, Array<[string, string]>>()
 
 /**
- * `[name, hex]` pairs, without the `--color-` prefix, in the order they are
+ * `[name, hex]` pairs, without the `--jade-` prefix, in the order they are
  * written. Memoized: the CSS and the build check ask for the same variant.
  */
 export function generateTokens(colors: ThemeColors, level: ContrastLevel = 'AA'): Array<[string, string]> {
@@ -86,10 +86,10 @@ function applyOverrides(
   }
 }
 
-/** The `--color-*` declarations for `generateTokens`, one per line, indented for a theme block. */
+/** The `--jade-*` declarations for `generateTokens`, one per line, indented for a theme block. */
 export function generateTokenVars(colors: ThemeColors, level: ContrastLevel = 'AA'): string {
   return generateTokens(colors, level)
-    .map(([name, value]) => `  --color-${name}: ${value};`)
+    .map(([name, value]) => `  --jade-${name}: ${value};`)
     .join('\n')
 }
 

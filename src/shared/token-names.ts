@@ -5,7 +5,7 @@
  * the code that generates their values (`css/tokens.ts`, which pulls in the
  * color engine) so the UnoCSS preset can list them without loading it.
  *
- * Name: `--color-<property>[-<role>][-<variant>][-<state>]`, where the
+ * Name: `--jade-<property>[-<role>][-<variant>][-<state>]`, where the
  * property says what the color is for (`bg`, `text`, `fill`, `on`, `border`).
  */
 

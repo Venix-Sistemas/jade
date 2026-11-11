@@ -86,12 +86,12 @@ describe('generateTokens', () => {
 })
 
 describe('generateTokenVars', () => {
-  it('deve escrever uma declaração --color-* por token', () => {
+  it('deve escrever uma declaração --jade-* por token', () => {
     const lines = generateTokenVars(LIGHT).split('\n')
     expect(lines).toHaveLength(generateTokens(LIGHT).length)
-    expect(lines[0]).toBe('  --color-bg: #FAFAFA;')
-    expect(lines).toContain('  --color-fill-primary: #FF0000;')
-    expect(lines.every(line => /^ {2}--color-[a-z-]+: #[0-9A-F]{6};$/.test(line))).toBe(true)
+    expect(lines[0]).toBe('  --jade-bg: #FAFAFA;')
+    expect(lines).toContain('  --jade-fill-primary: #FF0000;')
+    expect(lines.every(line => /^ {2}--jade-[a-z-]+: #[0-9A-F]{6};$/.test(line))).toBe(true)
   })
 })
 

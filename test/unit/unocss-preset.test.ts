@@ -30,25 +30,25 @@ describe('venixUnoPreset', () => {
     const { rules, theme } = venixUnoPreset()
     const byClass = Object.fromEntries(rules.map(([name, css]) => [name, css]))
 
-    expect(byClass['color-bg-subtle']).toEqual({ 'background-color': 'var(--color-bg-subtle)' })
-    expect(byClass['color-fill-primary']).toEqual({ 'background-color': 'var(--color-fill-primary)' })
-    expect(byClass['color-text-muted']).toEqual({ color: 'var(--color-text-muted)' })
-    expect(byClass['color-on-secondary']).toEqual({ color: 'var(--color-on-secondary)' })
-    expect(byClass['color-border-strong']).toEqual({ 'border-color': 'var(--color-border-strong)' })
-    expect(byClass['color-text']).toEqual({ color: 'var(--color-text)' })
+    expect(byClass['jade-bg-subtle']).toEqual({ 'background-color': 'var(--jade-bg-subtle)' })
+    expect(byClass['jade-fill-primary']).toEqual({ 'background-color': 'var(--jade-fill-primary)' })
+    expect(byClass['jade-text-muted']).toEqual({ color: 'var(--jade-text-muted)' })
+    expect(byClass['jade-on-secondary']).toEqual({ color: 'var(--jade-on-secondary)' })
+    expect(byClass['jade-border-strong']).toEqual({ 'border-color': 'var(--jade-border-strong)' })
+    expect(byClass['jade-text']).toEqual({ color: 'var(--jade-text)' })
     // uma classe por token, sem nenhuma cor de tema nova
-    for (const name of TOKEN_NAMES) expect(byClass[`color-${name}`]).toBeDefined()
+    for (const name of TOKEN_NAMES) expect(byClass[`jade-${name}`]).toBeDefined()
     expect(Object.keys(theme.colors)).toEqual(Object.keys(venixUnoPreset({ tokens: false }).theme.colors))
   })
 
   it('não deve usar nome de classe de outros sistemas de cor (Vuetify, Bootstrap, shadcn)', () => {
     const names = venixUnoPreset().rules.map(([name]) => name).filter(name => !name.startsWith('cursor-'))
-    expect(names.filter(name => !name.startsWith('color-'))).toEqual([])
+    expect(names.filter(name => !name.startsWith('jade-'))).toEqual([])
   })
 
   it('deve deixar os tokens de fora com { tokens: false }', () => {
     const preset = venixUnoPreset({ tokens: false })
-    expect(preset.rules.map(([name]) => name).filter(name => name.startsWith('color-'))).toEqual([])
+    expect(preset.rules.map(([name]) => name).filter(name => name.startsWith('jade-'))).toEqual([])
   })
 
   it('não deve carregar o motor de cores (nada de scale, Leonardo ou css/tokens no preset)', () => {
