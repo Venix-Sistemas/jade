@@ -1,6 +1,57 @@
 # Changelog
 
 
+## v1.4.0
+
+[compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.3.0...v1.4.0)
+
+### 🚀 Enhancements
+
+- **theme:** Follow theme cookies changed by other tabs and sites ([c3125af](https://github.com/Venix-Sistemas/jade/commit/c3125af))
+- **switcher:** Remind to save choices made without consent ([7fb92e2](https://github.com/Venix-Sistemas/jade/commit/7fb92e2))
+- **theme:** Warn when the Venix brand theme's colors are overridden ([bc7c198](https://github.com/Venix-Sistemas/jade/commit/bc7c198))
+- **theme:** Warn when defaultColor matches no available theme ([56f85ea](https://github.com/Venix-Sistemas/jade/commit/56f85ea))
+- **unocss:** Use the custom cursor in the cursor utilities ([cf5e375](https://github.com/Venix-Sistemas/jade/commit/cf5e375))
+- **utils:** Add WCAG 2.1 contrast ratio helpers ([70b1d85](https://github.com/Venix-Sistemas/jade/commit/70b1d85))
+- **color:** Generate the 12-step scales for the semantic tokens ([93f6ed0](https://github.com/Venix-Sistemas/jade/commit/93f6ed0))
+- **color:** Emit the semantic tokens for themes with tokens: true ([6ef73a7](https://github.com/Venix-Sistemas/jade/commit/6ef73a7))
+- **color:** Add color.contrast and warn when token pairs fall short ([c083662](https://github.com/Venix-Sistemas/jade/commit/c083662))
+- **unocss:** Expose the semantic tokens as theme colors ([36ff490](https://github.com/Venix-Sistemas/jade/commit/36ff490))
+- **vuetify:** Pass the token on-colors and surfaces to Vuetify ([85d5cd5](https://github.com/Venix-Sistemas/jade/commit/85d5cd5))
+- **theme:** Expose the semantic tokens in useVenixTheme ([ef8a3fc](https://github.com/Venix-Sistemas/jade/commit/ef8a3fc))
+- **switcher:** Follow the semantic tokens on themes that have them ([c37bc3d](https://github.com/Venix-Sistemas/jade/commit/c37bc3d))
+- **color:** Let token themes keep plain gray neutrals ([34baa4c](https://github.com/Venix-Sistemas/jade/commit/34baa4c))
+- **playground:** Show the semantic color tokens ([3160766](https://github.com/Venix-Sistemas/jade/commit/3160766))
+- **color:** Let token themes override tokens by scale step ([131078f](https://github.com/Venix-Sistemas/jade/commit/131078f))
+- **unocss:** Name the token classes color-<token> ([60aff2f](https://github.com/Venix-Sistemas/jade/commit/60aff2f))
+- **color:** Keep a tinted background's hue in the neutral scale ([bbe24f9](https://github.com/Venix-Sistemas/jade/commit/bbe24f9))
+- **tokens:** Use the jade prefix for variables and classes ([e7df9d4](https://github.com/Venix-Sistemas/jade/commit/e7df9d4))
+- **color:** Ship tokens on the built-in themes, add `experimental` ([f409944](https://github.com/Venix-Sistemas/jade/commit/f409944))
+- **playground:** Regroup the sections and add Plugins ([2d99e74](https://github.com/Venix-Sistemas/jade/commit/2d99e74))
+
+### 🩹 Fixes
+
+- **cursor:** Show the custom cursor on Vuetify's clickable components ([37897ca](https://github.com/Venix-Sistemas/jade/commit/37897ca))
+- **color:** Silence the color engine's colorspace deprecation warning ([0af48d9](https://github.com/Venix-Sistemas/jade/commit/0af48d9))
+- **scrollbar:** Fall back to the tokens without background2/3 ([703b276](https://github.com/Venix-Sistemas/jade/commit/703b276))
+
+### 📖 Documentation
+
+- **readme:** Document the experimental semantic color tokens ([1bc181b](https://github.com/Venix-Sistemas/jade/commit/1bc181b))
+- Document the built-in tokens and the experimental option ([a237c4f](https://github.com/Venix-Sistemas/jade/commit/a237c4f))
+- Retake the README images and the switcher animation ([af54d97](https://github.com/Venix-Sistemas/jade/commit/af54d97))
+
+### 🏡 Chore
+
+- Update dependencies ([b340b09](https://github.com/Venix-Sistemas/jade/commit/b340b09))
+- **brand:** Replace the logo with the framed jade gem ([3767ae6](https://github.com/Venix-Sistemas/jade/commit/3767ae6))
+- Add the tools that retake the README pictures ([f4f305f](https://github.com/Venix-Sistemas/jade/commit/f4f305f))
+- Refresh the package description and keywords ([395ded8](https://github.com/Venix-Sistemas/jade/commit/395ded8))
+
+### ❤️ Contributors
+
+- Vinicius ([@VBviniciusVB](https://github.com/VBviniciusVB))
+
 ## v1.3.0
 
 [compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.2.0...v1.3.0)
