@@ -10,6 +10,13 @@ import { OVERLAY_SCROLLBAR_THEME, SCROLLBAR_ATTRIBUTE } from '../constants'
 const ON = `html:not([${SCROLLBAR_ATTRIBUTE}='off'])`
 const on = (pseudo: string): string => `${ON}${pseudo},\n${ON} ${pseudo}`
 
+/** The semantic token that stands in for each of the old model's surfaces (`background`, `background2`, `background3`). */
+const SURFACE_TOKENS: Record<string, string> = {
+  background: 'bg',
+  background2: 'bg-subtle',
+  background3: 'bg-muted',
+}
+
 export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
   const scrollbar = theme.customScrollbar
   if (!scrollbar || !scrollbar.enabled) return ''
@@ -23,7 +30,13 @@ export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
     if (value.startsWith('var(--') || value.startsWith('#') || value.startsWith('rgb')) {
       return value
     }
-    return `var(--color-${value})`
+    // A theme with tokens may leave out the old model's surfaces (the README
+    // says it needn't set `background2`/`3`). An undefined variable would
+    // drop the whole declaration (the thumb's `border` with it, so it would
+    // look thicker, and the track would turn transparent): fall back to the
+    // token that took the surface's place.
+    const token = SURFACE_TOKENS[value]
+    return token ? `var(--color-${value}, var(--jade-${token}))` : `var(--color-${value})`
   }
 
   const thumb = colorVar('thumb', 'primary')

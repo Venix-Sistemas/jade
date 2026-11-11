@@ -89,7 +89,7 @@ describe('processTheme', () => {
     expect(rule).toContain('--os-handle-border-radius: 8px;')
     expect(rule).toContain('--os-handle-bg: var(--color-primary);')
     expect(rule).toContain('--os-handle-bg-hover: var(--color-secondary);')
-    expect(rule).toContain('--os-track-bg: var(--color-background2);')
+    expect(rule).toContain('--os-track-bg: var(--color-background2, var(--jade-bg-subtle));')
   })
 
   it('deve mudar a cor da alça ao passar o mouse em qualquer ponto da scrollbar, não só sobre a alça', () => {
@@ -112,7 +112,20 @@ describe('processTheme', () => {
   })
 
   it('deve pintar o canto entre as duas scrollbars com a cor da trilha', () => {
-    expect(processTheme(theme)).toContain('::-webkit-scrollbar-corner {\n  background: var(--color-background2);\n}')
+    expect(processTheme(theme)).toContain('::-webkit-scrollbar-corner {\n  background: var(--color-background2, var(--jade-bg-subtle));\n}')
+  })
+
+  it('deve cair nos tokens quando o tema não define background2/3 (a borda da alça não pode sumir)', () => {
+    const css = processTheme(theme)
+    expect(css).toContain('border: 3px solid var(--color-background3, var(--jade-bg-muted));')
+    expect(css).toContain('::-webkit-scrollbar-track {\n  background: var(--color-background2, var(--jade-bg-subtle));')
+  })
+
+  it('deve manter a cor escolhida pelo projeto, sem fallback de token', () => {
+    const custom = { ...theme, customScrollbar: { ...theme.customScrollbar, colors: { ...theme.customScrollbar.colors, track: 'accent', border: '#112233' } } }
+    const css = processTheme(custom)
+    expect(css).toContain('::-webkit-scrollbar-track {\n  background: var(--color-accent);')
+    expect(css).toContain('border: 3px solid #112233;')
   })
 
   it('deve gerar CSS de transição de tema junto com as cores', () => {
