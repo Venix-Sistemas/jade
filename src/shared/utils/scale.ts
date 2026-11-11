@@ -3,7 +3,7 @@ import { BackgroundColor, Color, Theme } from '@adobe/leonardo-contrast-colors'
 import type { CssColor } from '@adobe/leonardo-contrast-colors'
 import type { ContrastLevel, ThemeMode } from '../types'
 import { contrastRatio, relativeLuminance } from './contrast'
-import { lightnessOf, normalizeHex, tintToward } from './oklab'
+import { chromaOf, colorWithHue, hexToOklab, lightnessOf, normalizeHex, tintToward } from './oklab'
 
 /**
  * Build-time color scales for the semantic tokens (v1.4.0, experimental).
@@ -146,10 +146,54 @@ function reachTarget(
   return { ratio: current, color }
 }
 
+/** A background with at least this OKLab chroma has a color of its own (`#FFF8F0` is 0.013; `#FAFAFA` is 0). */
+const THEMED_BACKGROUND_CHROMA = 0.004
+/** Surfaces (steps 2–8) of a themed background gain this much chroma per unit of contrast ratio above 1... */
+const SURFACE_CHROMA_GROWTH = 6
+/** ...up to this many times the background's own chroma... */
+const SURFACE_MAX_GROWTH = 3
+/** ...and never beyond this chroma, so a surface stays a neutral. */
+const SURFACE_MAX_CHROMA = 0.04
+/** How far (OKLab lightness) a surface may move to keep its contrast ratio once its chroma changes. */
+const SURFACE_LIGHTNESS_RANGE = 0.03
+
+/**
+ * A surface step with the background's hue and more of its chroma, at the
+ * same contrast ratio against the background. The engine keeps the chroma of
+ * its key (the background, nearly white or black) along the whole scale, so
+ * each step ends up as colorful as the page and no more, and in light mode
+ * the sRGB gamut caps that key's chroma. Surfaces drawn by hand do the
+ * opposite: the farther from the page, the more color. This gives a step the
+ * chroma it would hold at its own lightness, then moves its lightness a
+ * hair to land back on `ratio`.
+ */
+function enrichSurface(step: string, background: string, ratio: number, ownChroma: number): string {
+  const growth = Math.min(SURFACE_MAX_GROWTH, 1 + SURFACE_CHROMA_GROWTH * (ratio - 1))
+  const chroma = Math.min(SURFACE_MAX_CHROMA, ownChroma * growth)
+  const L = hexToOklab(step)[0]
+
+  let best = step
+  let bestOff = Number.POSITIVE_INFINITY
+  for (let i = -30; i <= 30; i++) {
+    const candidate = colorWithHue(L + (i / 30) * SURFACE_LIGHTNESS_RANGE, background, chroma)
+    if (!candidate) continue
+    const off = Math.abs(contrastRatio(candidate, background) - ratio)
+    if (off < bestOff) {
+      best = candidate
+      bestOff = off
+    }
+  }
+  return best
+}
+
 /**
  * The neutral scale: the theme's background and 11 steps leaning toward the
  * hue of `tintSeed` (usually the primary), or plain grays when it is `null`.
  * Step 1 is exactly `background`.
+ * A background that has a color of its own (a peach `#FFF8F0`) is not pulled
+ * toward the seed: its own hue is kept, and the surfaces and borders (steps
+ * 2–8) get more of it the farther they sit from the page, as a hand-made
+ * palette would, so a card doesn't look grayer than the page behind it.
  * Step 9 (outline) reaches 3:1 on steps 1–2 and step 11 (muted text) reaches
  * the level on steps 1–3; step 12 is main text.
  */
@@ -160,7 +204,9 @@ export function generateNeutralScale(
   level: ContrastLevel = 'AA',
 ): string[] {
   const exact = normalizeHex(background)
-  const key = tintSeed ? tintToward(exact, tintSeed) : exact
+  const ownChroma = chromaOf(exact)
+  const themed = tintSeed !== null && ownChroma >= THEMED_BACKGROUND_CHROMA
+  const key = tintSeed && !themed ? tintToward(exact, tintSeed) : exact
 
   // The engine rounds each channel on its own, so a gray comes back a unit off
   // here and there (`#79797A`). With a gray background and no tint, every step
@@ -175,6 +221,9 @@ export function generateNeutralScale(
   ratios[10] = TARGETS[level].text
   const steps = generate(ratios)
   steps[0] = exact
+  if (themed) {
+    for (let i = 1; i <= 7; i++) steps[i] = enrichSurface(steps[i]!, exact, ratios[i]!, ownChroma)
+  }
 
   const withRatio = (index: number, ratio: number) => {
     const attempt = [...ratios]

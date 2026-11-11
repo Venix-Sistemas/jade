@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { generateNeutralScale, generateScale, generateScales } from '../../src/shared/utils/scale'
 import type { ContrastLevel } from '../../src/shared/utils/scale'
 import { contrastRatio, relativeLuminance } from '../../src/shared/utils/contrast'
+import { hexToOklab } from '../../src/shared/utils/oklab'
 
 const HEX = /^#[0-9A-F]{6}$/
 
@@ -213,5 +214,69 @@ describe('neutro sem tom (tint: false)', () => {
 
   it('deve aceitar tintSeed nulo em generateNeutralScale', () => {
     expect(generateNeutralScale('#FAFAFA', null, 'light').every(isGray)).toBe(true)
+  })
+})
+
+describe('fundo com cor própria (o Halloween, #FFF8F0 e #16100C)', () => {
+  const THEMED = [
+    { mode: 'light', background: '#FFF8F0', seeds: { primary: '#C2410C', secondary: '#6A3FB5' }, original: ['#FBEBDD', '#F3DCC8'] },
+    { mode: 'dark', background: '#16100C', seeds: { primary: '#FF8A3D', secondary: '#B98AF0' }, original: ['#1F1711', '#2B1F17'] },
+  ] as const
+
+  const chroma = (hex: string) => {
+    const [, a, b] = hexToOklab(hex)
+    return Math.hypot(a, b)
+  }
+  const hue = (hex: string) => {
+    const [, a, b] = hexToOklab(hex)
+    return Math.atan2(b, a) * 180 / Math.PI
+  }
+
+  it.each(THEMED)('deve manter o matiz do próprio fundo, não o do primary ($mode)', ({ mode, background, seeds }) => {
+    const { neutral } = generateScales(background, seeds, mode)
+    for (const step of neutral.slice(1, 8)) {
+      expect(Math.abs(hue(step) - hue(background))).toBeLessThan(8)
+    }
+  })
+
+  it.each(THEMED)('deve dar às superfícies mais cor que o fundo, crescendo com a distância ($mode)', ({ mode, background, seeds }) => {
+    const { neutral } = generateScales(background, seeds, mode)
+    const surfaces = neutral.slice(1, 6).map(chroma)
+    expect(surfaces[0]).toBeGreaterThanOrEqual(chroma(background))
+    expect(isAscending(surfaces)).toBe(true)
+    // perto das cores que o tema tinha à mão: o degrau 3 (contraste 1.12) faz par com o background2 (1.07 a 1.11)
+    expect(chroma(neutral[2]!)).toBeGreaterThan(chroma(THEMED.find(t => t.mode === mode)!.original[0]) * 0.8)
+  })
+
+  it.each(THEMED)('deve manter os alvos de contraste dos degraus 2 a 8 ($mode)', ({ mode, background, seeds }) => {
+    const { neutral } = generateScales(background, seeds, mode)
+    const targets = [1.05, 1.12, 1.2, 1.3, 1.5, 1.8, 2.3]
+    neutral.slice(1, 8).forEach((step, i) => {
+      expect(Math.abs(contrastRatio(step, background) - targets[i]!)).toBeLessThan(0.03)
+    })
+    expect(isAscending(ratios(neutral, background))).toBe(true)
+  })
+
+  it.each(THEMED)('deve seguir cumprindo o contraste do texto e do contorno ($mode)', ({ mode, background, seeds }) => {
+    const { neutral } = generateScales(background, seeds, mode)
+    expect(neutral[0]).toBe(background)
+    for (const surface of neutral.slice(0, 3)) {
+      expect(contrastRatio(neutral[10]!, surface)).toBeGreaterThanOrEqual(4.5)
+    }
+    for (const surface of neutral.slice(0, 2)) {
+      expect(contrastRatio(neutral[8]!, surface)).toBeGreaterThanOrEqual(3)
+    }
+  })
+
+  it('deve manter o fundo cinza como estava: sem enriquecer e com o tom do primary', () => {
+    const { neutral } = generateScales('#FAFAFA', { primary: '#FF0000' }, 'light')
+    expect(chroma(neutral[1]!)).toBeLessThan(0.012)
+    expect(hue(neutral[1]!)).toBeGreaterThan(0) // puxado para o vermelho, não para o matiz de um fundo
+  })
+
+  it.each(THEMED)('deve deixar em cinza com `tint: false`, mesmo com fundo colorido ($mode)', ({ mode, background, seeds }) => {
+    const { neutral } = generateScales(background, seeds, mode, 'AA', { tint: false })
+    expect(neutral[0]).toBe(background)
+    expect(chroma(neutral[1]!)).toBeLessThan(0.02)
   })
 })

@@ -74,9 +74,11 @@ export interface ThemeMeta {
   /**
    * Only with `tokens`. The neutral tokens (`bg`, `bg-subtle`, `text`,
    * `border`…) lean slightly toward the hue of `primary` by default, so the
-   * theme feels of one piece. `false` makes them plain grays, like a theme
-   * built on `background2`/`background3` greys. Contrast is the same either
-   * way. Default: `true`.
+   * theme feels of one piece; a `background` with a color of its own keeps
+   * its hue instead, and its surfaces gain more of it the farther from the
+   * page. `false` makes them plain grays, like a theme built on
+   * `background2`/`background3` greys. Contrast is the same either way.
+   * Default: `true`.
    */
   neutralTint?: boolean
 }

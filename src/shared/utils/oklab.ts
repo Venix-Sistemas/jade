@@ -62,6 +62,28 @@ export function lightnessOf(hex: string): number {
   return 116 * f - 16
 }
 
+/** OKLab chroma of a color: how far it is from a gray of the same lightness (about 0–0.4). */
+export function chromaOf(hex: string): number {
+  const [, a, b] = hexToOklab(hex)
+  return Math.hypot(a, b)
+}
+
+/**
+ * The color at OKLab lightness `L` that has the hue of `hueOf` and, as far as
+ * the sRGB gamut allows, `chroma`: a chroma that doesn't fit is lowered until
+ * it does. `null` when `hueOf` has no hue (a gray).
+ */
+export function colorWithHue(L: number, hueOf: string, chroma: number): string | null {
+  const [, a, b] = hexToOklab(hueOf)
+  const own = Math.hypot(a, b)
+  if (own < 1e-4) return null
+  for (let c = chroma; c > 0.0005; c *= 0.9) {
+    const candidate = oklabToHex(L, (a / own) * c, (b / own) * c)
+    if (candidate) return candidate
+  }
+  return oklabToHex(L, 0, 0)
+}
+
 /** Chroma tried for the tint, from strongest to none. OKLab chroma, so about 0–0.02. */
 const TINT_CHROMAS = [0.012, 0.01, 0.008, 0.006, 0.004, 0.003, 0.002, 0.001]
 
