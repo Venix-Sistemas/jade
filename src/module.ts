@@ -47,6 +47,9 @@ export default defineNuxtModule<ModuleOptions>({
   meta: {
     name: '@venix-sistemas/jade',
     configKey: 'venixTheme',
+    // The module is built and tested on Nuxt 4 (`@nuxt/kit` ^4). Older
+    // versions get a clear message, not the first error that comes up.
+    compatibility: { nuxt: '>=4.0.0' },
   },
   defaults: {
     translation: true,

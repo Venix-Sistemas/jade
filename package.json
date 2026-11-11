@@ -46,8 +46,7 @@
   "exports": {
     ".": {
       "types": "./dist/types.d.mts",
-      "import": "./dist/module.mjs",
-      "exports": "./src/module.ts"
+      "import": "./dist/module.mjs"
     },
     "./theme.json": "./dist/shared/theme.json",
     "./unocss": {
