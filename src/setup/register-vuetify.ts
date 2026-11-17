@@ -44,9 +44,11 @@ function tokenColorsForVuetify(themeColors: ThemeColors, level: ContrastLevel, h
   const tokens = Object.fromEntries(generateTokens(themeColors, level))
   const colors: Record<string, string> = {}
 
+  // Only for a seed the theme sets: Vuetify has no `secondary` color to put an
+  // `on-secondary` on when the role was derived for the tokens.
   for (const role of VUETIFY_TOKEN_ROLES) {
     const on = tokens[`on-${role}`]
-    if (on) colors[`on-${role}`] = on
+    if (on && themeColors[role]) colors[`on-${role}`] = on
   }
   if (tokens['bg-subtle'] && !hasBackground2) colors.surface = tokens['bg-subtle']
   if (tokens.text) {

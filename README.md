@@ -309,7 +309,7 @@ A warning usually means the seed itself can't get there, not that the scale is w
 - **Vuetify:** `on-primary`, `on-secondary`, `surface`, `on-surface` and `on-background`. See [Vuetify](#vuetify).
 - **`<VenixThemeSwitcher>`:** its menu follows the tokens on token themes and keeps its fixed palette everywhere else.
 
-The tokens are generated at build time with [Adobe Leonardo](https://github.com/adobe/leonardo) and never reach the client bundle; the client only receives the resulting hex values. The roles are `primary`, `secondary`, `accent` and the status colors `error`, `info`, `success` and `warning`: each gets the tokens below from the seed of the same name, and a role the theme has no seed for gets none.
+The tokens are generated at build time with [Adobe Leonardo](https://github.com/adobe/leonardo) and never reach the client bundle; the client only receives the resulting hex values. The roles are `primary`, `secondary`, `accent` and the status colors `error`, `info`, `success` and `warning`: each gets the tokens below from the seed of the same name. A theme that sets only `primary` gets the rest derived from it: `secondary` is the primary's hue turned 30° and `accent` the opposite hue, calmer, both at the primary's lightness; `error`, `info`, `success` and `warning` use the usual red, blue, green and amber, deeper on a light page and lighter on a dark one. A seed the theme sets always wins over the derived one, and a gray `primary` (no hue to turn) derives only the status colors. Without a `primary` nothing is derived.
 
 #### Built-in themes and `experimental`
 

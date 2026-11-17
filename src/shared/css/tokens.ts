@@ -1,6 +1,7 @@
 // src/shared/css/tokens.ts
 import type { ContrastLevel, ThemeColors } from '../types'
 import { contrastRatio } from '../utils/contrast'
+import { deriveSeeds } from '../utils/derive-seeds'
 import { generateScales } from '../utils/scale'
 import type { RoleScale } from '../utils/scale'
 import { NEUTRAL_TOKENS, OVERRIDABLE_TOKEN_NAMES, ROLE_TOKENS, TOKEN_ROLES as ROLES, parseStepRef, roleTokenName, tokenOverrides, tokensEnabled } from '../token-names'
@@ -41,9 +42,17 @@ function buildTokens(colors: ThemeColors, level: ContrastLevel): Array<[string, 
   const mode = colors.dark === true ? 'dark' : 'light'
   const background = colors.background ?? FALLBACK_BACKGROUND[mode]
 
-  const seeds: Record<string, string> = {}
+  // The seeds the theme sets win; the roles it leaves out are derived from its
+  // primary, so a theme with one color still gets every role (see `deriveSeeds`).
+  const given: Record<string, string> = {}
   for (const role of ROLES) {
     const seed = colors[role]
+    if (seed) given[role] = seed
+  }
+  const derived: Partial<Record<string, string>> = deriveSeeds(given, mode)
+  const seeds: Record<string, string> = {}
+  for (const role of ROLES) {
+    const seed = given[role] ?? derived[role]
     if (seed) seeds[role] = seed
   }
 
@@ -214,6 +223,11 @@ export function findTokenContrastIssues(themes: Record<string, ThemeColors>, lev
   return messages
 }
 
+/** Whether the variant gets tokens for `role`: it has the seed, or a `primary` to derive one from. */
+function hasRole(colors: ThemeColors, role: TokenRole): boolean {
+  return Boolean(colors[role] || colors.primary)
+}
+
 /**
  * One build warning per token theme variant whose `tokens` overrides name an
  * unknown token (or `on-<role>`), a step that doesn't exist, or a role the
@@ -229,7 +243,7 @@ export function findTokenOverrideIssues(themes: Record<string, ThemeColors>): st
       const parsed = parseStepRef(ref)
       if (!OVERRIDABLE_TOKEN_NAMES.includes(name)) problems.push(`\`${name}\` is not a token that can be overridden`)
       else if (!parsed) problems.push(`\`${name}\`: \`${String(ref)}\` is not a step (use \`neutral-1\` to \`neutral-12\`, \`primary-1\`…)`)
-      else if (parsed.scale !== 'neutral' && !colors[parsed.scale as TokenRole]) problems.push(`\`${name}\`: the variant has no \`${parsed.scale}\` seed`)
+      else if (parsed.scale !== 'neutral' && !hasRole(colors, parsed.scale as TokenRole)) problems.push(`\`${name}\`: the variant has no \`${parsed.scale}\` seed and no \`primary\` to derive it from`)
     }
     if (problems.length) messages.push(`Some \`tokens\` overrides of \`${id}\` were ignored: ${problems.join('; ')}.`)
   }

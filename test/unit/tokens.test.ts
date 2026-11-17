@@ -16,13 +16,13 @@ describe('generateTokens', () => {
   it('deve gerar os tokens neutros e os de cada papel, com os nomes do plano', () => {
     const names = Object.keys(toMap(LIGHT))
     for (const name of NEUTRAL) expect(names).toContain(name)
-    for (const role of ['primary', 'secondary']) {
+    for (const role of ['primary', 'secondary', 'accent', 'error', 'info', 'success', 'warning']) {
       for (const token of PER_ROLE) {
         const [property, ...rest] = token.split('-')
         expect(names).toContain([property, role, ...rest].join('-'))
       }
     }
-    expect(names).toHaveLength(NEUTRAL.length + PER_ROLE.length * 2)
+    expect(names).toHaveLength(NEUTRAL.length + PER_ROLE.length * 7)
   })
 
   it('deve usar exatamente o fundo e os seeds do tema', () => {
@@ -33,16 +33,19 @@ describe('generateTokens', () => {
     expect(tokens['on-primary']).toBe('#000000')
   })
 
-  it('deve gerar só os papéis que o tema define', () => {
+  it('deve gerar todos os papéis de um tema que só define o primary', () => {
     const names = Object.keys(toMap({ dark: false, tokens: true, primary: '#1D4ED8', background: '#FFFFFF' }))
-    expect(names).toContain('fill-primary')
-    expect(names).not.toContain('fill-secondary')
+    expect(names).toEqual(Object.keys(toMap(LIGHT)))
+    expect(names).toContain('fill-secondary')
+    expect(names).toContain('fill-warning')
   })
 
-  it('deve gerar sem border-focus quando não há primary', () => {
+  it('deve gerar sem border-focus, e só os papéis definidos, quando não há primary', () => {
     const names = Object.keys(toMap({ dark: false, tokens: true, secondary: '#1D4ED8', background: '#FFFFFF' }))
     expect(names).not.toContain('border-focus')
     expect(names).toContain('fill-secondary')
+    expect(names).not.toContain('fill-primary')
+    expect(names).not.toContain('fill-error')
   })
 
   it('deve usar um fundo padrão quando a variante não define background', () => {
@@ -307,8 +310,8 @@ describe('papéis de status e accent', () => {
     expect(a['text-error']).not.toBe(b['text-error'])
   })
 
-  it('não deve gerar os papéis que o tema não define', () => {
-    const names = Object.keys(toMap(LIGHT))
+  it('não deve gerar os papéis que o tema não define quando não há primary de onde derivá-los', () => {
+    const names = Object.keys(toMap({ dark: false, tokens: true, secondary: '#FF8800', background: '#FAFAFA' }))
     expect(names.some(name => name.includes('error') || name.includes('warning') || name.includes('accent'))).toBe(false)
   })
 
@@ -317,7 +320,9 @@ describe('papéis de status e accent', () => {
     const over = toMap({ ...colors, tokens: { 'bg-error': 'error-4' } })
     expect(over['bg-error']).toBe(toMap(colors)['bg-error-hover'])
     expect(findTokenOverrideIssues({ ok: { ...colors, tokens: { 'bg-error': 'error-4' } } })).toEqual([])
-    const [message] = findTokenOverrideIssues({ x: { ...LIGHT, tokens: { 'bg-error': 'error-4' } } })
+    // com primary o papel é derivado, então a referência vale; sem primary não há de onde tirá-lo
+    expect(findTokenOverrideIssues({ y: { ...LIGHT, tokens: { 'bg-error': 'error-4' } } })).toEqual([])
+    const [message] = findTokenOverrideIssues({ x: { dark: false, secondary: '#FF8800', background: '#FAFAFA', tokens: { 'bg-error': 'error-4' } } })
     expect(message).toContain('no `error` seed')
   })
 })
@@ -363,8 +368,8 @@ describe('findTokenOverrideIssues', () => {
   })
 
   it('deve avisar do que foi ignorado', () => {
-    const [message] = findTokenOverrideIssues({ x: { dark: true, primary: '#FF6B6B', background: '#0C0C0C', tokens: { 'nada': 'neutral-3', 'bg-muted': 'cinza', 'on-primary': 'neutral-1', 'text-secondary': 'secondary-11' } } })
+    const [message] = findTokenOverrideIssues({ x: { dark: true, secondary: '#FFB96A', background: '#0C0C0C', tokens: { 'nada': 'neutral-3', 'bg-muted': 'cinza', 'on-primary': 'neutral-1', 'text-error': 'error-11' } } })
     expect(message).toContain('`x`')
-    for (const part of ['`nada`', '`bg-muted`', '`cinza`', '`on-primary`', 'no `secondary` seed']) expect(message).toContain(part)
+    for (const part of ['`nada`', '`bg-muted`', '`cinza`', '`on-primary`', 'no `error` seed']) expect(message).toContain(part)
   })
 })

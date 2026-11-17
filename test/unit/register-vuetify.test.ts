@@ -44,6 +44,13 @@ describe('buildVuetifyThemes', () => {
     expect(theme.colors['on-primary']).toBe('#000000')
   })
 
+  it('não deve dar ao Vuetify o on-secondary de um secondary derivado: não há cor secondary para ele', () => {
+    const theme = buildVuetifyThemes(colors({ t: { dark: false, tokens: true, primary: '#FF0000', background: '#FAFAFA' } })).t!
+    expect(theme.colors['on-primary']).toBe('#000000')
+    expect(theme.colors.secondary).toBeUndefined()
+    expect(theme.colors['on-secondary']).toBeUndefined()
+  })
+
   it('deve usar bg-subtle como surface e o texto principal como on-surface e on-background', () => {
     const theme = buildVuetifyThemes(colors({ t: TOKENS })).t!
     const tokens = Object.fromEntries(generateTokens(TOKENS))

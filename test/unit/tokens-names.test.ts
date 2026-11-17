@@ -14,8 +14,8 @@ describe('nomes dos tokens', () => {
     expect(TOKEN_NAMES).toEqual(generateTokens(FULL).map(([name]) => name))
   })
 
-  it('deve gerar tokens para cada papel que o tema define, e só para esses', () => {
-    const names = generateTokens(LIGHT).map(([name]) => name)
+  it('deve gerar tokens para cada papel que o tema define, e só para esses, quando não há primary', () => {
+    const names = generateTokens({ dark: false, tokens: true, secondary: '#FF8800', background: '#FAFAFA' }).map(([name]) => name)
     expect(names).toContain('fill-secondary')
     expect(names).not.toContain('fill-warning')
     for (const role of ['accent', 'error', 'info', 'success', 'warning']) {

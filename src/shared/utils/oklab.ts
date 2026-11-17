@@ -84,6 +84,27 @@ export function colorWithHue(L: number, hueOf: string, chroma: number): string |
   return oklabToHex(L, 0, 0)
 }
 
+/** OKLCH hue of a color in degrees (0 ≤ h < 360: red about 29, green 142, blue 264), or `null` for a gray. */
+export function hueOf(hex: string): number | null {
+  const [, a, b] = hexToOklab(hex)
+  if (Math.hypot(a, b) < 1e-4) return null
+  return ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360
+}
+
+/**
+ * The color at OKLCH lightness `L` (0–1), chroma `C` and hue `h` (degrees).
+ * A chroma that doesn't fit in the sRGB gamut at that lightness and hue is
+ * lowered, by steps, until it does.
+ */
+export function oklchToHex(L: number, C: number, h: number): string {
+  const radians = (h * Math.PI) / 180
+  for (let c = C; c > 0.0005; c *= 0.95) {
+    const candidate = oklabToHex(L, Math.cos(radians) * c, Math.sin(radians) * c)
+    if (candidate) return candidate
+  }
+  return oklabToHex(L, 0, 0) ?? '#808080'
+}
+
 /** Chroma tried for the tint, from strongest to none. OKLab chroma, so about 0–0.02. */
 const TINT_CHROMAS = [0.012, 0.01, 0.008, 0.006, 0.004, 0.003, 0.002, 0.001]
 
