@@ -13,6 +13,10 @@ export default defineNuxtConfig({
       themes: {
         customFixtureTheme: {
           dark: true,
+          // The semantic tokens too, so the build exercises the color engine
+          // (and the seeds derived from `primary`): it has to stay at build
+          // time, see the bundle test in `test/basic.test.ts`.
+          tokens: true,
           primary: '#123456',
           background: '#000001',
         },

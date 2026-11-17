@@ -57,3 +57,12 @@ jobs:
 
       - name: Build
         run: npm run prepack
+
+      # Reads the built package the way a consumer's tools do (`exports`, types, files)
+      - name: Lint the package
+        run: npx --yes publint@0.3.25
+
+      # The playground is the only place Vuetify, UnoCSS and i18n meet the module:
+      # a break in one of those integrations only shows when it is built
+      - name: Build the playground
+        run: npm run dev:build
