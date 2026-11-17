@@ -291,7 +291,7 @@ color: {
 }
 ```
 
-The overridden tokens go through the same contrast check, and moving a surface moves what sits on it: `bg-subtle` at `neutral-3` warns that `border-strong` falls to 2.85:1 on it until that one moves too. Any token can be overridden except `on-<role>`, which is white or black. A token, step or role that doesn't exist is ignored, with a `[jade]` warning. A hex color isn't accepted: it would be the same in both modes.
+The overridden tokens go through the same contrast check, and moving a surface moves what sits on it: `bg-subtle` at `neutral-3` warns that `border-strong` falls to 2.85:1 on it until that one moves too. `text-muted` is the exception: it is placed over the surfaces you moved (`bg-muted` at `neutral-4`), so it keeps its contrast and stays weaker than `text` without an override. Any token can be overridden except `on-<role>`, which is white or black. A token, step or role that doesn't exist is ignored, with a `[jade]` warning. A hex color isn't accepted: it would be the same in both modes.
 
 **Contrast.** `color.contrast` sets the target: `'AA'` (default: text 4.5:1, outlines 3:1) or `'AAA'` (text 7:1). At build time each token variant is checked for these pairs, and one `[jade]` warning per variant lists every pair that falls short, with its ratio:
 

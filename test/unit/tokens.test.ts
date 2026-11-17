@@ -225,6 +225,29 @@ describe('tokens com overrides de passo', () => {
     expect(over).toEqual(base)
   })
 
+  it('deve manter o texto muted mais fraco que o texto e dentro do nível nas superfícies elevadas', () => {
+    // superfícies do venix: bg-subtle e bg-muted um passo acima do padrão
+    const lifted = { 'bg-subtle': 'neutral-3', 'bg-muted': 'neutral-4' }
+    for (const colors of [LIGHT, DARK]) {
+      const base = toMap(colors)
+      const over = toMap({ ...colors, tokens: lifted })
+      expect(over.text).toBe(base.text)
+      expect(over['text-muted']).not.toBe(over.text)
+      for (const surface of ['bg', 'bg-subtle', 'bg-muted']) {
+        expect(contrastRatio(over['text-muted']!, over[surface]!), `text-muted sobre ${surface}`).toBeGreaterThanOrEqual(4.5)
+      }
+      // a mesma hierarquia: o texto fica mais longe do fundo que o muted
+      expect(contrastRatio(over.text!, over.bg!)).toBeGreaterThan(contrastRatio(over['text-muted']!, over.bg!))
+      expect(checkTokenContrast(generateTokens({ ...colors, tokens: lifted }), 'AA').filter(issue => issue.text === 'text-muted')).toEqual([])
+    }
+  })
+
+  it('não deve mexer no texto muted quando as superfícies seguem o padrão', () => {
+    for (const colors of [LIGHT, DARK]) {
+      expect(toMap({ ...colors, tokens: { 'bg-hover': 'neutral-5', 'bg-subtle': 'neutral-2' } })['text-muted']).toBe(toMap(colors)['text-muted'])
+    }
+  })
+
   it('deve entrar na checagem de contraste', () => {
     // texto muted sobre o passo 12 não passa
     const over = { ...DARK, tokens: { 'bg-subtle': 'neutral-11' } }

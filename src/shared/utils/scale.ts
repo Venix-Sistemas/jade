@@ -49,6 +49,8 @@ const STRONG_TEXT_FACTOR = 1.4
 const MAX_RATIO = 15
 /** WCAG 1.4.11: what a control's outline needs against what surrounds it. */
 const OUTLINE_TARGET = 3
+/** The neutral steps (1–N) muted text must reach the level on: `bg`, `bg-subtle` and `bg-muted`. */
+const DEFAULT_MUTED_OVER = 3
 /** Extra distance asked of a text step each time it falls short of its target. */
 const NUDGE = 1.01
 const MAX_NUDGES = 8
@@ -195,13 +197,18 @@ function enrichSurface(step: string, background: string, ratio: number, ownChrom
  * 2–8) get more of it the farther they sit from the page, as a hand-made
  * palette would, so a card doesn't look grayer than the page behind it.
  * Step 9 (outline) reaches 3:1 on steps 1–2 and step 11 (muted text) reaches
- * the level on steps 1–3; step 12 is main text.
+ * the level on steps 1–`mutedOver` (3 by default); step 12 is main text.
+ * A theme that lifts its surfaces to a later step (`bg-muted: neutral-4`)
+ * passes that step as `mutedOver`, so muted text still reaches the level on
+ * them without reaching for step 12, which would erase the difference
+ * between the two.
  */
 export function generateNeutralScale(
   background: string,
   tintSeed: string | null,
   mode: ThemeMode,
   level: ContrastLevel = 'AA',
+  mutedOver: number = DEFAULT_MUTED_OVER,
 ): string[] {
   const exact = normalizeHex(background)
   const ownChroma = chromaOf(exact)
@@ -233,7 +240,7 @@ export function generateNeutralScale(
 
   // Step 9 outlines form fields: 3:1 on the page and on the subtle area.
   steps[8] = reachTarget(ratios[8]!, OUTLINE_TARGET, steps.slice(0, 2), r => withRatio(8, r)).color
-  steps[10] = reachTarget(ratios[10]!, TARGETS[level].text, steps.slice(0, 3), r => withRatio(10, r)).color
+  steps[10] = reachTarget(ratios[10]!, TARGETS[level].text, steps.slice(0, Math.min(10, Math.max(DEFAULT_MUTED_OVER, mutedOver))), r => withRatio(10, r)).color
 
   return steps
 }
@@ -316,11 +323,11 @@ export function generateScales(
   seeds: Record<string, string>,
   mode: ThemeMode,
   level: ContrastLevel = 'AA',
-  options: { tint?: boolean } = {},
+  options: { tint?: boolean, mutedOver?: number } = {},
 ): GeneratedScales {
   const entries = Object.entries(seeds)
   const tintSeed = options.tint === false ? null : (entries[0]?.[1] ?? background)
-  const neutral = generateNeutralScale(background, tintSeed, mode, level)
+  const neutral = generateNeutralScale(background, tintSeed, mode, level, options.mutedOver)
 
   const roles: Record<string, RoleScale> = {}
   for (const [role, seed] of entries) roles[role] = generateScale(seed, neutral, mode, level)

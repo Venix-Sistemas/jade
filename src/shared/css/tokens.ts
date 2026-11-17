@@ -45,7 +45,11 @@ function buildTokens(colors: ThemeColors, level: ContrastLevel): Array<[string, 
     if (seed) seeds[role] = seed
   }
 
-  const { neutral, roles } = generateScales(background, seeds, mode, level, { tint: colors.neutralTint !== false })
+  const overrides = tokenOverrides(colors)
+  const { neutral, roles } = generateScales(background, seeds, mode, level, {
+    tint: colors.neutralTint !== false,
+    mutedOver: farthestNeutralSurface(overrides),
+  })
   const tokens: Array<[string, string]> = NEUTRAL_TOKENS.map(([name, step]) => [name, neutral[step - 1]!])
 
   const primary = roles.primary
@@ -60,9 +64,24 @@ function buildTokens(colors: ThemeColors, level: ContrastLevel): Array<[string, 
     tokens.push([`on-${role}`, scale.on])
   }
 
-  applyOverrides(tokens, tokenOverrides(colors), neutral, roles)
+  applyOverrides(tokens, overrides, neutral, roles)
 
   return tokens
+}
+
+/**
+ * The farthest neutral step (1–12) the surfaces `text-muted` sits on were
+ * moved to by `overrides` (`bg-muted: 'neutral-4'` → 4), or 0 when none moved.
+ * Muted text is placed to reach the level over those, not only over the
+ * default steps 1–3.
+ */
+function farthestNeutralSurface(overrides: Record<string, string>): number {
+  let farthest = 0
+  for (const name of ['bg', 'bg-subtle', 'bg-muted']) {
+    const parsed = parseStepRef(overrides[name])
+    if (parsed?.scale === 'neutral') farthest = Math.max(farthest, parsed.step)
+  }
+  return farthest
 }
 
 /**
