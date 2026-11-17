@@ -313,7 +313,7 @@ The tokens are generated at build time with [Adobe Leonardo](https://github.com/
 
 #### Built-in themes and `experimental`
 
-Venix and the four seasonal themes ship with `tokens: true`, **next to** the old model: `--color-primary`, `--color-background2`… keep exactly the values they had, so nothing written for 1.x changes. Venix keeps plain gray surfaces (`neutralTint: false`) and lifts `bg-subtle` and `bg-muted` a step, close to its old `background2`/`3`; a seasonal theme keeps the hue of its own `background`.
+Venix and the four seasonal themes ship with `tokens: true`, **next to** the old model: `--color-primary`, `--color-background2`… keep exactly the values they had, so nothing written for 1.x changes. Venix keeps plain gray surfaces (`neutralTint: false`); a seasonal theme keeps the hue of its own `background`.
 
 Two things are left as they were for projects that already exist:
 

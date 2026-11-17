@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { checkTokenContrast, findTokenContrastIssues, findTokenOverrideIssues, generateTokens, generateTokenVars } from '../../src/shared/css/tokens'
 import { contrastRatio } from '../../src/shared/utils/contrast'
 import type { ThemeColors } from '../../src/shared/types'
+import builtIn from '../../src/shared/theme.json'
 
 const LIGHT: ThemeColors = { dark: false, tokens: true, primary: '#FF0000', secondary: '#FF8800', background: '#FAFAFA' }
 const DARK: ThemeColors = { dark: true, tokens: true, primary: '#FF6B6B', secondary: '#FFB96A', background: '#0C0C0C' }
@@ -255,6 +256,31 @@ describe('tokens com overrides de passo', () => {
     expect(issues.some(issue => issue.surface === 'bg-subtle')).toBe(true)
     expect(findTokenContrastIssues({ d: over }, 'AA')[0]).toContain('bg-subtle')
   })
+})
+
+describe('temas embutidos', () => {
+  // text e text-muted resolviam para a mesma cor no venix (override neutral-12)
+  type BuiltIn = { tokens?: boolean | Record<string, string>, neutralTint?: false } & Record<'dark' | 'light', ThemeColors>
+  const themes = builtIn.colors.themes as unknown as Record<string, Partial<BuiltIn>>
+
+  for (const [name, entry] of Object.entries(themes)) {
+    if (!entry.tokens || !entry.dark || !entry.light) continue
+    describe.each(['dark', 'light'] as const)(`${name} (%s)`, (mode) => {
+      const colors = { ...entry[mode], dark: mode === 'dark', tokens: entry.tokens, neutralTint: entry.neutralTint } as ThemeColors
+      const t = toMap(colors)
+
+      it('deve deixar o texto mais forte que o texto muted', () => {
+        expect(t['text-muted']).not.toBe(t.text)
+        expect(contrastRatio(t.text!, t.bg!)).toBeGreaterThan(contrastRatio(t['text-muted']!, t.bg!))
+      })
+
+      it('deve passar o texto muted em AA nas superfícies neutras', () => {
+        for (const surface of ['bg', 'bg-subtle', 'bg-muted']) {
+          expect(contrastRatio(t['text-muted']!, t[surface]!), `text-muted sobre ${surface}`).toBeGreaterThanOrEqual(4.5)
+        }
+      })
+    })
+  }
 })
 
 describe('findTokenOverrideIssues', () => {
