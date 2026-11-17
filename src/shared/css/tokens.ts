@@ -4,6 +4,7 @@ import { contrastRatio } from '../utils/contrast'
 import { generateScales } from '../utils/scale'
 import type { RoleScale } from '../utils/scale'
 import { NEUTRAL_TOKENS, OVERRIDABLE_TOKEN_NAMES, ROLE_TOKENS, TOKEN_ROLES as ROLES, parseStepRef, roleTokenName, tokenOverrides, tokensEnabled } from '../token-names'
+import type { TokenRole } from '../token-names'
 
 /**
  * The semantic color tokens of a theme variant (v1.4.0, experimental).
@@ -13,7 +14,8 @@ import { NEUTRAL_TOKENS, OVERRIDABLE_TOKEN_NAMES, ROLE_TOKENS, TOKEN_ROLES as RO
  * Each token points at a step of the generated scales, whose pairs are
  * placed to meet WCAG contrast by construction (see `utils/scale.ts`).
  *
- * Roles in this version: `primary` and `secondary`, from the variant's seeds.
+ * Roles: `primary`, `secondary`, `accent` and the status colors (`error`,
+ * `info`, `success`, `warning`), each from the variant's seed of that name.
  */
 
 /** Used when a token theme variant sets no `background`. */
@@ -26,7 +28,7 @@ const tokenCache = new Map<string, Array<[string, string]>>()
  * written. Memoized: the CSS and the build check ask for the same variant.
  */
 export function generateTokens(colors: ThemeColors, level: ContrastLevel = 'AA'): Array<[string, string]> {
-  const key = JSON.stringify([colors.dark === true, colors.background, colors.primary, colors.secondary, level, colors.neutralTint !== false, tokenOverrides(colors)])
+  const key = JSON.stringify([colors.dark === true, colors.background, ROLES.map(role => colors[role]), level, colors.neutralTint !== false, tokenOverrides(colors)])
   let tokens = tokenCache.get(key)
   if (!tokens) {
     tokens = buildTokens(colors, level)
@@ -227,7 +229,7 @@ export function findTokenOverrideIssues(themes: Record<string, ThemeColors>): st
       const parsed = parseStepRef(ref)
       if (!OVERRIDABLE_TOKEN_NAMES.includes(name)) problems.push(`\`${name}\` is not a token that can be overridden`)
       else if (!parsed) problems.push(`\`${name}\`: \`${String(ref)}\` is not a step (use \`neutral-1\` to \`neutral-12\`, \`primary-1\`…)`)
-      else if (parsed.scale !== 'neutral' && !colors[parsed.scale as 'primary' | 'secondary']) problems.push(`\`${name}\`: the variant has no \`${parsed.scale}\` seed`)
+      else if (parsed.scale !== 'neutral' && !colors[parsed.scale as TokenRole]) problems.push(`\`${name}\`: the variant has no \`${parsed.scale}\` seed`)
     }
     if (problems.length) messages.push(`Some \`tokens\` overrides of \`${id}\` were ignored: ${problems.join('; ')}.`)
   }

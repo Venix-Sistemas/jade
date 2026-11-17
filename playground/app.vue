@@ -253,7 +253,7 @@
 
                 <div class="sheet__body">
                   <!-- One group of tokens: swatch, variable, value and use -->
-                  <template v-if="tokenView === 'neutral' || tokenView === 'primary' || tokenView === 'secondary'">
+                  <template v-if="isTokenGroup(tokenView)">
                     <div
                       v-for="token in tokenRows"
                       :key="token.name"
@@ -947,14 +947,19 @@ const tokenThemes = computed(() => themes.value.filter(item => theme.colors.grou
 
 const FOCUS_TOKEN = 'border-focus'
 
-type TokenView = 'neutral' | 'primary' | 'secondary' | 'focus' | 'contrast' | 'use'
+// The roles with their own tokens, in the order the module writes them. Primary
+// and secondary always have a view; the others only when the theme sets them.
+const TOKEN_ROLES = ['primary', 'secondary', 'accent', 'error', 'info', 'success', 'warning'] as const
+type TokenGroup = 'neutral' | typeof TOKEN_ROLES[number]
+type TokenView = TokenGroup | 'focus' | 'contrast' | 'use'
 const tokenView = ref<TokenView>('contrast')
+const isTokenGroup = (view: TokenView): view is TokenGroup => view === 'neutral' || (TOKEN_ROLES as readonly string[]).includes(view)
 
 // The current theme's tokens, split by role: neutral ones first, then each role.
 // `usage` is the translation key of the token's one-line description.
 interface TokenEntry { name: string, value: string, usage: string }
 const tokenGroups = computed(() => {
-  const groups: Record<'neutral' | 'primary' | 'secondary', TokenEntry[]> = { neutral: [], primary: [], secondary: [] }
+  const groups = Object.fromEntries(['neutral', ...TOKEN_ROLES].map(group => [group, [] as TokenEntry[]])) as Record<TokenGroup, TokenEntry[]>
   const current = tokens.current.value
   if (!current) return groups
 
@@ -962,7 +967,7 @@ const tokenGroups = computed(() => {
   for (const [name, value] of Object.entries(current)) {
     // `border-focus` has no role in its name, but its color is the primary's
     // (step 11), so it is listed with the Primary tokens, after the others.
-    const role = FOCUS_TOKEN === name || /(?:^|-)primary(?:-|$)/.test(name) ? 'primary' : /(?:^|-)secondary(?:-|$)/.test(name) ? 'secondary' : 'neutral'
+    const role: TokenGroup = FOCUS_TOKEN === name ? 'primary' : TOKEN_ROLES.find(role => new RegExp(`(?:^|-)${role}(?:-|$)`).test(name)) ?? 'neutral'
     const short = role === 'neutral' ? name : name.replace(`-${role}`, '')
     const entry = { name: `--jade-${name}`, value, usage: `${role === 'neutral' ? 'neutral' : 'role'}.${short}` }
     if (name === FOCUS_TOKEN) focusEntry = entry
@@ -975,7 +980,7 @@ const tokenGroups = computed(() => {
 
 const tokenRows = computed(() => {
   const view = tokenView.value
-  return view === 'neutral' || view === 'primary' || view === 'secondary' ? tokenGroups.value[view] : []
+  return isTokenGroup(view) ? tokenGroups.value[view] : []
 })
 
 const TEXT_MIN = 4.5
@@ -1013,6 +1018,11 @@ const TOKEN_PAIRS: Array<[string, string, number]> = [
   ['on-primary', 'fill-primary-hover', TEXT_MIN],
   ['text-secondary', 'bg-secondary', TEXT_MIN],
   ['on-secondary', 'fill-secondary', TEXT_MIN],
+  // accent and the status roles: the text on the soft background, and on the solid one
+  ...(['accent', 'error', 'info', 'success', 'warning'] as const).flatMap((role): Array<[string, string, number]> => [
+    [`text-${role}`, `bg-${role}`, TEXT_MIN],
+    [`on-${role}`, `fill-${role}`, TEXT_MIN],
+  ]),
   ['border-strong', 'bg', OUTLINE_MIN],
   ['border-focus', 'bg-subtle', OUTLINE_MIN],
 ]
@@ -1042,12 +1052,13 @@ const tokenPairs = computed(() => {
 
 // The views after Contrast, which has its own button at the top of the list.
 const sheetNav = computed(() => [
-  { key: 'neutral', count: tokenGroups.value.neutral.length },
-  { key: 'primary', count: tokenGroups.value.primary.length },
-  { key: 'secondary', count: tokenGroups.value.secondary.length },
-  { key: 'focus', count: focusTiles.value.length },
-  { key: 'use', count: 0 },
-] as const)
+  { key: 'neutral' as TokenView, count: tokenGroups.value.neutral.length },
+  ...TOKEN_ROLES
+    .filter(role => role === 'primary' || role === 'secondary' || tokenGroups.value[role].length)
+    .map(role => ({ key: role as TokenView, count: tokenGroups.value[role].length })),
+  { key: 'focus' as TokenView, count: focusTiles.value.length },
+  { key: 'use' as TokenView, count: 0 },
+])
 
 // How many of the token pairs fall short, for the Contrast button. The original
 // model's row doesn't count: it is there to show the problem the tokens solve.

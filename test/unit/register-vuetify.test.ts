@@ -34,6 +34,16 @@ describe('buildVuetifyThemes', () => {
     expect(contrastRatio(theme.colors['on-primary']!, theme.colors.primary!)).toBeGreaterThan(5)
   })
 
+  it('não deve dar ao Vuetify o on-<cor> de accent e dos papéis de status: ele segue escolhendo o texto sobre essas cores', () => {
+    const full: ThemeColors = { ...TOKENS, accent: '#82B1FF', error: '#FF5252', info: '#2196F3', success: '#4CAF50', warning: '#FCCF3D' }
+    const theme = buildVuetifyThemes(colors({ t: full })).t!
+    for (const role of ['accent', 'error', 'info', 'success', 'warning']) {
+      expect(theme.colors[role], role).toBe(full[role as 'accent'])
+      expect(theme.colors[`on-${role}`], `on-${role}`).toBeUndefined()
+    }
+    expect(theme.colors['on-primary']).toBe('#000000')
+  })
+
   it('deve usar bg-subtle como surface e o texto principal como on-surface e on-background', () => {
     const theme = buildVuetifyThemes(colors({ t: TOKENS })).t!
     const tokens = Object.fromEntries(generateTokens(TOKENS))

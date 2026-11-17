@@ -7,5 +7,8 @@ export default defineConfig({
     // sessões/agentes do Claude Code) e outras pastas de build, quebrando a
     // suíte por causa de `tsconfig.json`/config ausentes nesses diretórios.
     exclude: ['**/node_modules/**', '**/dist/**', '**/.nuxt/**', '**/.claude/**'],
+    // Os testes que geram o CSS de todos os temas embutidos calculam as
+    // escalas de 7 papéis por variante (~0,3 s cada); 5 s não bastam.
+    testTimeout: 30_000,
   },
 })

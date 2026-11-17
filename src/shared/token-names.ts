@@ -9,8 +9,14 @@
  * property says what the color is for (`bg`, `text`, `fill`, `on`, `border`).
  */
 
-/** The roles that get their own tokens. */
-export const TOKEN_ROLES = ['primary', 'secondary'] as const
+/**
+ * The roles that get their own tokens: the brand colors, `accent` and the
+ * status colors, each from the seed of the same name in the theme variant.
+ * The first one a variant sets also tints its neutral scale.
+ */
+export const TOKEN_ROLES = ['primary', 'secondary', 'accent', 'error', 'info', 'success', 'warning'] as const
+
+export type TokenRole = typeof TOKEN_ROLES[number]
 
 /** Neutral tokens and the step (1–12) of the neutral scale each one uses. */
 export const NEUTRAL_TOKENS: ReadonlyArray<readonly [name: string, step: number]> = [
@@ -45,7 +51,7 @@ export function roleTokenName(name: string, role: string): string {
   return [property, role, ...rest].join('-')
 }
 
-/** Every token name a theme with both roles and a primary gets, in the order they are written. */
+/** Every token name a theme with all the roles gets, in the order they are written. */
 export const TOKEN_NAMES: readonly string[] = [
   ...NEUTRAL_TOKENS.map(([name]) => name),
   'border-focus',

@@ -5,7 +5,15 @@ import type { Nuxt } from '@nuxt/schema'
 import type { ThemeConfig, ColorsConfig, ContrastLevel, ThemeColors } from '../shared/types'
 import { isColorTheme, getThemeHexColors } from '../shared/utils/theme-resolve'
 import { generateTokens } from '../shared/css/tokens'
-import { TOKEN_ROLES, tokensEnabled } from '../shared/token-names'
+import { tokensEnabled } from '../shared/token-names'
+
+/**
+ * The roles whose `on-<role>` Vuetify takes from the tokens. The other token
+ * roles (`accent`, `error`, `info`, `success`, `warning`) are not handed over
+ * yet: Vuetify keeps choosing the text color on its own status colors, so a
+ * `v-alert` or `v-btn color="error"` looks as it did before the roles existed.
+ */
+const VUETIFY_TOKEN_ROLES = ['primary', 'secondary'] as const
 
 interface VuetifyThemeDefinition {
   dark: boolean
@@ -36,7 +44,7 @@ function tokenColorsForVuetify(themeColors: ThemeColors, level: ContrastLevel, h
   const tokens = Object.fromEntries(generateTokens(themeColors, level))
   const colors: Record<string, string> = {}
 
-  for (const role of TOKEN_ROLES) {
+  for (const role of VUETIFY_TOKEN_ROLES) {
     const on = tokens[`on-${role}`]
     if (on) colors[`on-${role}`] = on
   }

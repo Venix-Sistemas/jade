@@ -258,6 +258,70 @@ describe('tokens com overrides de passo', () => {
   })
 })
 
+describe('papéis de status e accent', () => {
+  const STATUS = ['accent', 'error', 'info', 'success', 'warning'] as const
+  const WITH_STATUS = (colors: ThemeColors): ThemeColors => ({ ...colors, accent: '#82B1FF', error: '#FF5252', info: '#2196F3', success: '#4CAF50', warning: '#FCCF3D' })
+
+  it.each([['claro', LIGHT], ['escuro', DARK]] as const)('deve gerar os 10 tokens de cada papel no tema %s', (_label, colors) => {
+    const t = toMap(WITH_STATUS(colors))
+    for (const role of STATUS) {
+      for (const token of ['fill', 'fill-hover', 'bg', 'bg-hover', 'bg-active', 'text', 'text-strong', 'border', 'border-strong']) {
+        const [property, ...rest] = token.split('-')
+        expect(t[[property, role, ...rest].join('-')], `${token} de ${role}`).toMatch(/^#[0-9A-F]{6}$/)
+      }
+      expect(['#000000', '#FFFFFF']).toContain(t[`on-${role}`])
+    }
+  })
+
+  it('deve usar exatamente o seed de cada papel como fill', () => {
+    const t = toMap(WITH_STATUS(LIGHT))
+    expect(t['fill-error']).toBe('#FF5252')
+    expect(t['fill-warning']).toBe('#FCCF3D')
+    expect(t['fill-accent']).toBe('#82B1FF')
+  })
+
+  it.each([['claro', LIGHT], ['escuro', DARK]] as const)('deve passar todos os pares dos papéis em AA e AAA no tema %s, menos o que o seed não alcança', (_label, colors) => {
+    for (const level of ['AA', 'AAA'] as const) {
+      const issues = checkTokenContrast(generateTokens(WITH_STATUS(colors), level), level)
+      // em AAA um seed de brilho médio pode não alcançar 7:1 com preto nem com branco
+      const unreachable = issues.filter(issue => !issue.text.startsWith('on-'))
+      expect(unreachable, level).toEqual([])
+    }
+  })
+
+  it('deve manter o amarelo vivo como fill e legível como texto (warning)', () => {
+    const light = toMap(WITH_STATUS(LIGHT))
+    expect(light['on-warning']).toBe('#000000')
+    expect(contrastRatio(light['on-warning']!, light['fill-warning']!)).toBeGreaterThan(10)
+    // o mesmo amarelo não passa como texto sobre o fundo claro; o text-warning é um âmbar escuro
+    expect(contrastRatio(light['fill-warning']!, light.bg!)).toBeLessThan(2)
+    expect(contrastRatio(light['text-warning']!, light.bg!)).toBeGreaterThanOrEqual(4.5)
+    expect(light['text-warning']).not.toBe(light['fill-warning'])
+  })
+
+  it('não deve misturar no cache dois temas que só diferem no seed de um papel de status', () => {
+    const a = toMap({ ...LIGHT, error: '#FF5252' })
+    const b = toMap({ ...LIGHT, error: '#2E8B4E' })
+    expect(a['fill-error']).toBe('#FF5252')
+    expect(b['fill-error']).toBe('#2E8B4E')
+    expect(a['text-error']).not.toBe(b['text-error'])
+  })
+
+  it('não deve gerar os papéis que o tema não define', () => {
+    const names = Object.keys(toMap(LIGHT))
+    expect(names.some(name => name.includes('error') || name.includes('warning') || name.includes('accent'))).toBe(false)
+  })
+
+  it('deve aceitar um papel novo como referência de override, e avisar quando falta o seed', () => {
+    const colors = WITH_STATUS(LIGHT)
+    const over = toMap({ ...colors, tokens: { 'bg-error': 'error-4' } })
+    expect(over['bg-error']).toBe(toMap(colors)['bg-error-hover'])
+    expect(findTokenOverrideIssues({ ok: { ...colors, tokens: { 'bg-error': 'error-4' } } })).toEqual([])
+    const [message] = findTokenOverrideIssues({ x: { ...LIGHT, tokens: { 'bg-error': 'error-4' } } })
+    expect(message).toContain('no `error` seed')
+  })
+})
+
 describe('temas embutidos', () => {
   // text e text-muted resolviam para a mesma cor no venix (override neutral-12)
   type BuiltIn = { tokens?: boolean | Record<string, string>, neutralTint?: false } & Record<'dark' | 'light', ThemeColors>
@@ -272,6 +336,16 @@ describe('temas embutidos', () => {
       it('deve deixar o texto mais forte que o texto muted', () => {
         expect(t['text-muted']).not.toBe(t.text)
         expect(contrastRatio(t.text!, t.bg!)).toBeGreaterThan(contrastRatio(t['text-muted']!, t.bg!))
+      })
+
+      it('deve passar todos os pares de contraste em AA, de todos os papéis', () => {
+        expect(checkTokenContrast(generateTokens(colors, 'AA'), 'AA')).toEqual([])
+      })
+
+      it('deve gerar os tokens dos sete papéis que o tema define', () => {
+        for (const role of ['primary', 'secondary', 'accent', 'error', 'info', 'success', 'warning']) {
+          if (entry[mode]![role as 'primary']) expect(t[`fill-${role}`], `fill-${role}`).toBe(entry[mode]![role as 'primary']!.toUpperCase())
+        }
       })
 
       it('deve passar o texto muted em AA nas superfícies neutras', () => {

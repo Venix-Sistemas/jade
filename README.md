@@ -309,7 +309,7 @@ A warning usually means the seed itself can't get there, not that the scale is w
 - **Vuetify:** `on-primary`, `on-secondary`, `surface`, `on-surface` and `on-background`. See [Vuetify](#vuetify).
 - **`<VenixThemeSwitcher>`:** its menu follows the tokens on token themes and keeps its fixed palette everywhere else.
 
-The tokens are generated at build time with [Adobe Leonardo](https://github.com/adobe/leonardo) and never reach the client bundle; the client only receives the resulting hex values. Roles in this version are `primary` and `secondary`.
+The tokens are generated at build time with [Adobe Leonardo](https://github.com/adobe/leonardo) and never reach the client bundle; the client only receives the resulting hex values. The roles are `primary`, `secondary`, `accent` and the status colors `error`, `info`, `success` and `warning`: each gets the tokens below from the seed of the same name, and a role the theme has no seed for gets none.
 
 #### Built-in themes and `experimental`
 
