@@ -19,7 +19,7 @@ export const TOKEN_ROLES = ['primary', 'secondary', 'accent', 'error', 'info', '
 export type TokenRole = typeof TOKEN_ROLES[number]
 
 /** Neutral tokens and the step (1–12) of the neutral scale each one uses. */
-export const NEUTRAL_TOKENS: ReadonlyArray<readonly [name: string, step: number]> = [
+export const NEUTRAL_TOKENS = [
   ['bg', 1],
   ['bg-subtle', 2],
   ['bg-muted', 3],
@@ -30,10 +30,10 @@ export const NEUTRAL_TOKENS: ReadonlyArray<readonly [name: string, step: number]
   ['text', 12],
   ['text-muted', 11],
   ['text-disabled', 8],
-]
+] as const satisfies ReadonlyArray<readonly [name: string, step: number]>
 
 /** Per-role tokens and the step (1–12) of the role's scale each one uses. `on` is not a step: white or black. */
-export const ROLE_TOKENS: ReadonlyArray<readonly [name: string, step: number]> = [
+export const ROLE_TOKENS = [
   ['fill', 9],
   ['fill-hover', 10],
   ['bg', 3],
@@ -43,7 +43,14 @@ export const ROLE_TOKENS: ReadonlyArray<readonly [name: string, step: number]> =
   ['text-strong', 12],
   ['border', 7],
   ['border-strong', 11],
-]
+] as const satisfies ReadonlyArray<readonly [name: string, step: number]>
+
+/** Every token name, as a type: `'bg-subtle'`, `'fill-primary-hover'`, `'on-error'`… Built from the same lists as `TOKEN_NAMES`. */
+export type TokenName = typeof NEUTRAL_TOKENS[number][0] | 'border-focus' | RoleTokenNames<TokenRole> | `on-${TokenRole}`
+
+type RoleTokenNames<R extends string> = typeof ROLE_TOKENS[number][0] extends infer N
+  ? N extends `${infer Property}-${infer Rest}` ? `${Property}-${R}-${Rest}` : N extends string ? `${N}-${R}` : never
+  : never
 
 /** `roleTokenName('fill-hover', 'primary')` → `'fill-primary-hover'`: the role goes after the property. */
 export function roleTokenName(name: string, role: string): string {

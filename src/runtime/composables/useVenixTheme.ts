@@ -12,7 +12,7 @@ import { buildResolvedTheme } from '../../shared/utils/theme-config'
 import { findVariantOwner, isModePreference, isSelectableGroup, normalizeThemeSelection, resolveMode, resolveThemeSelection } from '../../shared/utils/theme-resolve'
 import type { ThemeSelection } from '../../shared/utils/theme-resolve'
 import type { ThemeIconFormat } from '../../shared/utils/icon'
-import type { ThemeMode, ThemeModePreference } from '../../shared/types'
+import type { ThemeMode, ThemeModePreference, ThemeName, ThemeOrVariantName, TokenName } from '../../shared/types'
 
 /**
  * State and actions, with no side effects of its own: every `useVenixTheme()`
@@ -242,8 +242,15 @@ function createThemeCore() {
   }
 
   /** Picks the theme (`'system'` = by date), keeping the current mode. */
-  const setTheme = (name: string) => {
+  const setTheme = (name: ThemeName) => {
     if (name === SYSTEM_THEME || isSelectableGroup(theme.colors, name)) preference.value = name
+    else warnUnknownTheme('theme.set', name)
+  }
+
+  // A name that matches nothing changes nothing, so say so while developing.
+  const warnUnknownTheme = (caller: string, name: string) => {
+    if (!import.meta.dev) return
+    console.warn(`[jade] ${caller}('${name}') did nothing: no such theme. Available: ${[SYSTEM_THEME, ...Object.keys(theme.colors.groups).filter(group => isSelectableGroup(theme.colors, group))].join(', ')}.`)
   }
 
   /** Picks the mode (`'system'` = follow the OS), keeping the current theme. */
@@ -274,7 +281,7 @@ function createThemeCore() {
    * before the theme/mode split), which also sets its mode; or `'system'`,
    * which makes both theme and mode automatic.
    */
-  const toggle = (forceTheme?: string) => {
+  const toggle = (forceTheme?: ThemeOrVariantName) => {
     if (forceTheme === undefined) {
       toggleMode()
       return
@@ -295,6 +302,9 @@ function createThemeCore() {
     if (owner) {
       preference.value = owner.theme
       modePreference.value = owner.mode
+    }
+    else {
+      warnUnknownTheme('theme.toggle', forceTheme)
     }
   }
 
@@ -581,7 +591,7 @@ export const useVenixTheme = () => {
     tokens: {
       all: tokensByTheme,
       current: computed(() => tokensByTheme[core.resolvedTheme.value]),
-      cssVar: (name: string) => `var(--jade-${name})`,
+      cssVar: (name: TokenName | (string & Record<never, never>)) => `var(--jade-${name})`,
     },
     mode: {
       value: core.resolvedMode,

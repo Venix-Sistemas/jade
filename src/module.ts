@@ -12,10 +12,13 @@ import { registerPublicAssets } from './setup/register-assets'
 import { registerThemeComponents } from './setup/register-components'
 import { registerThemePlugins } from './setup/register-plugins'
 import { registerThemeCSS } from './setup/register-css'
+import { registerThemeTypes } from './setup/register-types'
 import { registerFontPreloads } from './setup/register-fonts'
 import { registerOverlayScrollbars } from './setup/register-scrollbar'
 import { registerThemeVuetify } from './setup/register-vuetify'
 import { registerThemeIcon } from './setup/register-icon'
+
+export type { ThemeName, ThemeOrVariantName, TokenName } from './shared/types'
 
 export interface ModuleOptions {
   translation?: boolean | Partial<TranslationConfig>
@@ -146,6 +149,7 @@ export default defineNuxtModule<ModuleOptions>({
     // 5. Register CSS
     registerOverlayScrollbars(nuxt, resolver, theme)
     registerThemeCSS(nuxt, theme)
+    registerThemeTypes(theme)
     registerFontPreloads(nuxt, theme)
 
     // 6. Register plugins

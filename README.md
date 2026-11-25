@@ -634,6 +634,8 @@ It returns:
 - `locale` — `current`, `set()` and `translate()` (see [Translation](#translation)).
 - `persistence` — cookie consent controls (see [Saving preferences](#saving-preferences-cookie-consent)).
 
+**Typed names.** The module writes your project's theme names and variant ids to `.nuxt/types/venix-theme.d.ts`, so `theme.set('')` and `theme.toggle('')` autocomplete the themes you really have (the built-in ones and your own), and `tokens.cssVar('')` the token names (`'fill-warning'`, `'text-error-strong'`…). The types stay open to any string, so a name built at runtime compiles; in development, `theme.set()` and `theme.toggle()` log a `[jade]` warning when a name matches no theme, instead of silently doing nothing. `ThemeName`, `ThemeOrVariantName` and `TokenName` are exported from `@venix-sistemas/jade` if you need the types.
+
 The state is shared app-wide (via Nuxt's `useState`): every component calling `useVenixTheme()` reads and writes the same theme, so they never go out of sync.
 
 <br>
