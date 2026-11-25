@@ -937,6 +937,8 @@ export default defineNuxtConfig({
 - **Always in sync:** a small runtime plugin starts Vuetify on the same theme the page gets (so the first paint is right, with or without SSR) and applies every later switch with `theme.change()`, inside the same View Transition as the rest of the page.
 - **No flash in SPA mode** (`ssr: false`): Vuetify's theme stylesheet only reaches the DOM after the first render there, so the plugin writes a temporary copy into `<head>` before mount and removes it once Vuetify's own arrives.
 
+**Known limit.** With SSR, the server doesn't know the visitor's system color scheme. When the theme is automatic (`defaultColor: 'system'`, or a theme name, whose mode follows the system) and the visitor has no saved cookie (always the case before consent, with `requireConsent` on), the server renders Vuetify with the dark theme. The page's own colors are corrected before the first paint, but Vuetify's components keep the dark colors until the page hydrates, so a visitor with a light system can see a short flash. With the default `defaultColor: 'dark'`, or once a visitor has saved a choice, the server already has the right theme and there is nothing to see.
+
 It's opt-in because it adds a runtime plugin, and it does nothing if `vuetify-nuxt-module` isn't installed. Tested with Vuetify `^4.2.1` and `vuetify-nuxt-module@1.0.0-rc.6`; that module is still pre-1.0, so its hooks may change.
 
 ### Content-Security-Policy
