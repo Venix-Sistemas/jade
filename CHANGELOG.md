@@ -1,6 +1,49 @@
 # Changelog
 
 
+## v1.5.0
+
+[compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.4.1...v1.5.0)
+
+### 🚀 Enhancements
+
+- **tokens:** Add accent and the status roles ([d74b81a](https://github.com/Venix-Sistemas/jade/commit/d74b81a))
+- **tokens:** Derive the missing roles from primary ([0945e74](https://github.com/Venix-Sistemas/jade/commit/0945e74))
+- **color:** Keep theme-color in step with the theme ([78b5958](https://github.com/Venix-Sistemas/jade/commit/78b5958))
+- **types:** Type the project's theme and token names ([6ccb7c3](https://github.com/Venix-Sistemas/jade/commit/6ccb7c3))
+- **color:** Add AAA tokens for prefers-contrast ([5e777f0](https://github.com/Venix-Sistemas/jade/commit/5e777f0))
+
+### 🩹 Fixes
+
+- **color:** Keep text-muted weaker than text on lifted surfaces ([5323113](https://github.com/Venix-Sistemas/jade/commit/5323113))
+- **color:** Drop the Venix surface overrides, use default tokens ([f0c31be](https://github.com/Venix-Sistemas/jade/commit/f0c31be))
+- **assets:** Put fonts and cursors under the app's baseURL ([7a7a2e5](https://github.com/Venix-Sistemas/jade/commit/7a7a2e5))
+
+### 📖 Documentation
+
+- **readme:** Document accent and the status roles ([b1310e8](https://github.com/Venix-Sistemas/jade/commit/b1310e8))
+- **readme:** Show the warning tokens ([0140ca2](https://github.com/Venix-Sistemas/jade/commit/0140ca2))
+- **readme:** Note the Vuetify first-paint limit ([7d1be0f](https://github.com/Venix-Sistemas/jade/commit/7d1be0f))
+- **readme:** Link the live demo ([3ecccb5](https://github.com/Venix-Sistemas/jade/commit/3ecccb5))
+
+### 🏡 Chore
+
+- **release:** V1.4.2-alpha.0 ([2773217](https://github.com/Venix-Sistemas/jade/commit/2773217))
+
+### ✅ Tests
+
+- Keep the color engine out of the client bundle ([8387473](https://github.com/Venix-Sistemas/jade/commit/8387473))
+- **browser:** Drive the theme and the switcher in a real browser ([f4c1e18](https://github.com/Venix-Sistemas/jade/commit/f4c1e18))
+
+### 🤖 CI
+
+- Publish from GitHub Actions with provenance ([a5709f3](https://github.com/Venix-Sistemas/jade/commit/a5709f3))
+- Publish the playground to GitHub Pages ([500230e](https://github.com/Venix-Sistemas/jade/commit/500230e))
+
+### ❤️ Contributors
+
+- Vinicius ([@VBviniciusVB](https://github.com/VBviniciusVB))
+
 ## v1.4.2-alpha.0
 
 [compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.4.1...v1.4.2-alpha.0)
