@@ -1,0 +1,76 @@
+name: release
+
+# Publishes to npm when a version tag is pushed (`changelogen --release` creates
+# it, `git push --follow-tags` sends it). Publishing uses npm trusted publishing
+# (OIDC): no token is stored, and the package page links the tarball to this
+# commit and workflow (provenance). The one-time setup is on npmjs.com, under
+# the package's Settings > Trusted Publisher (workflow filename: release.yml).
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# `id-token` lets the job prove its identity to npm; nothing else is written
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.19.0
+          registry-url: https://registry.npmjs.org
+
+      - run: npm i -g --force corepack@latest && corepack enable
+
+      # Trusted publishing needs npm 11.5.1 or newer
+      - name: Update npm
+        run: npm i -g npm@latest
+
+      - name: Check the tag against package.json
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "The tag $GITHUB_REF_NAME does not match package.json ($version)." >&2
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npx nypm@latest i
+
+      - name: Playground prepare
+        run: npm run dev:prepare
+
+      - name: Install the browser
+        run: npx playwright-core install --with-deps chromium
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Type check
+        run: npm run test:types
+
+      - name: Build
+        run: npm run prepack
+
+      # A prerelease (1.5.0-alpha.0) goes out under its own tag (`alpha`), so
+      # `latest` stays on the last stable version
+      - name: Publish
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          tag=latest
+          case "$version" in
+            *-*) tag="$(echo "$version" | sed -E 's/^[^-]+-([A-Za-z]+).*/\1/')" ;;
+          esac
+          echo "Publishing $version with the tag $tag"
+          npm publish --provenance --access public --tag "$tag"
