@@ -245,7 +245,7 @@ color: {
 
 The old variables stay: a token theme still emits `--color-primary` and `--color-secondary` (the seeds), so CSS written for the original model works on it too. A token theme should set `background`; without one the tokens are built on `#FFFFFF` (light) or `#121212` (dark).
 
-**Names.** `--color-<property>[-<role>][-<variant>][-<state>]`: the property says what the color is for (`bg`, `text`, `fill`, `on`, `border`), the role is `primary` or `secondary`, the variant is `subtle`, `muted`, `strong` or `focus`, and the state is `hover` or `active`. None of them repeats a name from the original model, so both live side by side.
+**Names.** `--color-<property>[-<role>][-<variant>][-<state>]`: the property says what the color is for (`bg`, `text`, `fill`, `on`, `border`), the role is `primary`, `secondary`, `accent`, `error`, `info`, `success` or `warning`, the variant is `subtle`, `muted`, `strong` or `focus`, and the state is `hover` or `active`. None of them repeats a name from the original model, so both live side by side.
 
 Neutral tokens, built from the theme's `background` (`--jade-bg` *is* the background, exactly). By default they lean very slightly toward the hue of `primary`, so the surfaces feel of one piece with the theme. A `background` that already has a color of its own (a peach `#FFF8F0`, say) is not pulled toward `primary`: its own hue is kept, and the surfaces and borders get more of it the farther they sit from the page, the way a hand-made palette does, so a card doesn't look grayer than the page behind it. A gray `background` (`#FAFAFA`, `#0C0C0C`) works as described above. Set `neutralTint: false` next to `tokens: true` for plain grays instead (contrast is the same either way):
 
@@ -262,7 +262,7 @@ Neutral tokens, built from the theme's `background` (`--jade-bg` *is* the backgr
 | `text-muted` | Helper text, dates, captions |
 | `text-disabled` | Disabled controls (WCAG exempts them) |
 
-Tokens for each role (`primary`, `secondary`), shown for `primary`:
+Tokens for each role (`primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`), shown for `primary`:
 
 | Token | Use |
 | ----- | --- |
@@ -274,6 +274,19 @@ Tokens for each role (`primary`, `secondary`), shown for `primary`:
 | `text-primary-strong` | Colored text on `bg-primary-hover` and `bg-primary-active` |
 | `border-primary` | Decorative outline of something on `bg-primary` |
 | `border-primary-strong` | Outline that must be seen (3:1) |
+
+**Status colors and `accent`.** They are roles like the others: `fill-error`, `on-error`, `bg-warning`, `text-success`, `border-info-strong`, `fill-accent`… (the UnoCSS classes are `jade-fill-error`, `jade-text-warning`…). `warning` shows why the tokens exist: a yellow seed stays vivid as `fill-warning` with black `on-warning`, while `text-warning` comes out a dark amber that is readable on the page. Set the seeds in the variant, or leave them out and they are derived from `primary`:
+
+```ts
+color: {
+  themes: {
+    brand: {
+      light: { primary: '#0B6E8A', error: '#C62828', warning: '#F9A825', background: '#F4FAFC' },
+      dark: { primary: '#4FC3D9', background: '#08141A' }, // the rest is derived
+    },
+  },
+}
+```
 
 **The scale.** Each seed becomes 12 steps defined by their contrast ratio against the background, not by fixed lightness, so the same ratios work in light and dark mode: 1–2 area backgrounds, 3–5 component backgrounds (rest, hover, pressed), 6–8 borders, 9–10 solid fill (the seed and its hover), 11–12 text. The hover moves away from the text on it: lighter when `on-*` is black, darker when it's white, so the text never loses contrast. A seed that sits close to the background (orange on white) gets its steps squeezed to fit under it.
 
@@ -317,7 +330,7 @@ Venix and the four seasonal themes ship with `tokens: true`, **next to** the old
 
 Two things are left as they were for projects that already exist:
 
-- **Vuetify.** The tokens of the built-in themes don't feed Vuetify's colors in 1.x: it keeps picking its own text color on `primary`, so buttons don't change. A theme you set `tokens` on yourself does feed it.
+- **Vuetify.** The tokens of the built-in themes don't feed Vuetify's colors in 1.x: it keeps picking its own text color on `primary`, so buttons don't change. A theme you set `tokens` on yourself does feed it, with `on-primary` and `on-secondary` only: Vuetify keeps choosing the text color on its own `error`, `success`, `warning` and `info`, so `v-alert` and `v-btn color="error"` look as before.
 - **The build's contrast check.** It skips the built-in themes: at `'AAA'` some of their seeds can't reach 7:1, and that isn't yours to fix.
 
 Your own themes opt in per theme with `tokens`. To get the tokens on all of them at once, turn on the `experimental` option. It's **off by default**:
