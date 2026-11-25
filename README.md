@@ -11,6 +11,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@venix-sistemas/jade"><img src="https://badge.fury.io/js/@venix-sistemas%2Fjade.svg" alt="npm version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://venix-sistemas.github.io/jade/"><img src="https://img.shields.io/badge/Live_demo-playground-00A86B.svg" alt="Live demo"></a>
 </p>
 
 <p align="center">
