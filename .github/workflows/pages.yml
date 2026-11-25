@@ -1,0 +1,66 @@
+name: pages
+
+# Publishes the playground as the public demo on GitHub Pages
+# (https://<owner>.github.io/<repo>/). It runs after a release is published,
+# or by hand from the Actions tab. The one-time setup is in the repository:
+# Settings > Pages > Source: GitHub Actions.
+
+on:
+  workflow_run:
+    workflows: [release]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; a newer one replaces a waiting one
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # After a release, only when it succeeded
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.19.0
+
+      - run: npm i -g --force corepack@latest && corepack enable
+
+      - name: Install dependencies
+        run: npx nypm@latest i
+
+      - name: Playground prepare
+        run: npm run dev:prepare
+
+      # The site lives under /<repo>/, so the app, the fonts and the cursors are
+      # served from there (`app.baseURL`; the module follows it)
+      - name: Generate the playground
+        run: npx nuxt generate playground --preset github_pages
+        env:
+          NUXT_APP_BASE_URL: /${{ github.event.repository.name }}/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: playground/.output/public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
