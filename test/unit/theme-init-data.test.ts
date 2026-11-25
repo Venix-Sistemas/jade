@@ -48,3 +48,20 @@ describe('toInitThemeData', () => {
     expect(slim).toBeLessThan(full / 2)
   })
 })
+
+describe('toInitThemeData com theme-color', () => {
+  it('mantém só a cor que o theme-color segue, além do que o script já lê', () => {
+    const data = toInitThemeData(theme, 'background2')
+
+    expect(data.colors.themes['reveillon-dark']).toEqual({ primary: '#ffd700', background2: '#222222' })
+    expect(toInlineScriptJson(data)).not.toContain('#111111')
+  })
+
+  it('não muda nada quando o theme-color está desligado', () => {
+    expect(toInitThemeData(theme, null)).toEqual(toInitThemeData(theme))
+  })
+
+  it('não inventa a cor de uma variante que não a define', () => {
+    expect(toInitThemeData(theme, 'background2').colors.themes['reveillon-light']).toEqual({ primary: '#b8860b' })
+  })
+})

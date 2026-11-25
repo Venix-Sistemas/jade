@@ -1,7 +1,8 @@
 import { defineNuxtModule, createResolver, addImports, useLogger } from '@nuxt/kit'
 import { loadTheme } from './shared/utils/load'
 import type { TypographyConfig, ScrollbarConfig, CursorConfig, ColorOptions, TranslationConfig, VuetifyOptions, IconOptions, ExperimentalConfig, VenixRuntimeConfig } from './shared/types'
-import { DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_THEME } from './shared/constants'
+import { COLOR_PROPERTIES, DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_THEME } from './shared/constants'
+import { resolveThemeColorName } from './shared/utils/theme-color'
 import { resolveFeatureOption } from './shared/utils/options'
 import { findDeprecatedThemeEntries, findThemeConfigIssues, overridesBrandColors } from './shared/utils/merge-themes'
 import { buildResolvedTheme, findInvalidDefaultColor, getBaseThemeEntries } from './shared/utils/theme-config'
@@ -90,7 +91,12 @@ export default defineNuxtModule<ModuleOptions>({
       seasonal: true,
       allowVenixOverride: false,
       contrast: 'AA',
+      themeColorMeta: false,
     })
+    const themeColorMeta = resolveThemeColorName(colorOptions.themeColorMeta)
+    if (colorOptions.themeColorMeta && !themeColorMeta) {
+      useLogger('jade').warn(`\`color.themeColorMeta\` is \`${String(colorOptions.themeColorMeta)}\`, which is not a theme color (${COLOR_PROPERTIES.join(', ')}): \`theme-color\` is left alone.`)
+    }
     for (const message of findDeprecatedThemeEntries(getBaseThemeEntries(), colorOptions.themes)) {
       useLogger('jade').warn(message)
     }
@@ -172,6 +178,7 @@ export default defineNuxtModule<ModuleOptions>({
       iconFormat: iconOptions.enabled ? colorOptions.iconFormat : 'emote',
       requireConsent: colorOptions.requireConsent,
       seasonal: colorOptions.seasonal,
+      ...(themeColorMeta && { themeColorMeta }),
       tokens,
       icon: {
         aliases: iconOptions.aliases,

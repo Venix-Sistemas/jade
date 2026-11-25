@@ -32,6 +32,8 @@ export interface InitThemeOptions {
   consentStorageKey: string
   /** The `<html>` attributes that switch the custom scrollbar, cursor and font off. */
   attributes: { scrollbar: string, cursor: string, font: string }
+  /** The color of each variant that drives `<meta name="theme-color">` (`color.themeColorMeta`), or `null` to leave the tag alone. */
+  themeColor: string | null
 }
 
 /**
@@ -112,6 +114,18 @@ export default function initTheme(
   html.setAttribute('data-theme', theme)
   window.__VENIX_INITIAL_THEME__ = theme
 
+  // `theme-color`, so the browser bar has the theme's color on the first
+  // paint. This script is the first thing in `<head>`, so it writes the tag
+  // itself (the one `useVenixTheme` keeps up to date on each switch).
+  const themeColor = options.themeColor
+  const barColor = themeColor ? (colors.themes[theme] as Record<string, string | undefined> | undefined)?.[themeColor] : undefined
+  if (barColor && barColor.charAt(0) === '#') {
+    const meta = document.createElement('meta')
+    meta.setAttribute('name', 'theme-color')
+    meta.setAttribute('content', barColor)
+    document.head.appendChild(meta)
+  }
+
   // The custom scrollbar/cursor/font the visitor turned off, before the
   // first paint too, so they don't show for a moment and then disappear.
   for (const toggle of ['scrollbar', 'cursor', 'font'] as const) {
@@ -131,9 +145,10 @@ export default function initTheme(
   }
 }
 
-export function createInitThemeOptions(requireConsent: boolean): InitThemeOptions {
+export function createInitThemeOptions(requireConsent: boolean, themeColor: string | null = null): InitThemeOptions {
   return {
     requireConsent,
+    themeColor,
     cookies: {
       preference: THEME_PREFERENCE_COOKIE,
       mode: THEME_MODE_COOKIE,
@@ -155,13 +170,15 @@ export function createInitThemeOptions(requireConsent: boolean): InitThemeOption
  * whether it is a color theme (`isColorTheme` looks at `primary` and
  * `background`). `defaultColor` stays as is.
  */
-export function toInitThemeData(themeData: ResolvedTheme): ResolvedTheme {
+export function toInitThemeData(themeData: ResolvedTheme, themeColor: string | null = null): ResolvedTheme {
   const { themes = {}, groups = {}, defaultColor } = themeData.colors ?? {}
 
   const slimThemes: ResolvedTheme['colors']['themes'] = {}
   for (const [id, colors] of Object.entries(themes)) {
     const { primary, background } = colors
-    slimThemes[id] = { ...(primary && { primary }), ...(background && { background }) }
+    // plus the one color `theme-color` follows, when it is on
+    const bar = themeColor ? (colors as Record<string, string | undefined>)[themeColor] : undefined
+    slimThemes[id] = { ...(themeColor && bar && { [themeColor]: bar }), ...(primary && { primary }), ...(background && { background }) }
   }
 
   const slimGroups: ResolvedTheme['colors']['groups'] = {}
@@ -174,5 +191,5 @@ export function toInitThemeData(themeData: ResolvedTheme): ResolvedTheme {
 
 /** The inline script's source: `initTheme` as an IIFE, with its arguments serialized. */
 export function renderInitThemeScript(themeData: ResolvedTheme, options: InitThemeOptions): string {
-  return `(${initTheme.toString()})(${createThemeResolver.toString()}, ${toInlineScriptJson(toInitThemeData(themeData))}, ${toInlineScriptJson(options)})`
+  return `(${initTheme.toString()})(${createThemeResolver.toString()}, ${toInlineScriptJson(toInitThemeData(themeData, options.themeColor))}, ${toInlineScriptJson(options)})`
 }

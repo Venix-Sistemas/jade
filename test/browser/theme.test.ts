@@ -174,6 +174,32 @@ describe('theme in a browser', async () => {
     })
   })
 
+  describe('theme-color', () => {
+    const bar = (page: Page) => page.evaluate(() => [...document.head.querySelectorAll('meta[name="theme-color"]')].map(meta => meta.getAttribute('content')))
+
+    it.each([['light', '#FAFAFA'], ['dark', '#0C0C0C']] as const)('deve pôr a cor do fundo do tema %s antes da hidratação, em uma tag só', async (scheme, background) => {
+      const context = await newContext({ colorScheme: scheme })
+      await followSystem(context)
+      const page = await context.newPage()
+      await page.route('**/_nuxt/**', route => route.abort())
+      await page.goto('/')
+      expect(await bar(page)).toEqual([background])
+    })
+
+    it('deve acompanhar a troca de tema, sem criar outra tag', async () => {
+      const context = await newContext({ colorScheme: 'light' })
+      await followSystem(context)
+      const page = await context.newPage()
+      await page.goto('/')
+      await page.waitForLoadState('networkidle')
+      expect(await bar(page)).toEqual(['#FAFAFA'])
+
+      await pickMode(page, 'Dark')
+      await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark')
+      expect(await bar(page)).toEqual(['#0C0C0C'])
+    })
+  })
+
   describe('duas abas', () => {
     it('deve levar a escolha de uma aba à outra', async () => {
       const context = await newContext({ colorScheme: 'light' })

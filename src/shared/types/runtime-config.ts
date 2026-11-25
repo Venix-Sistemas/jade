@@ -17,6 +17,8 @@ export interface VenixRuntimeConfig {
   iconFormat: 'emote' | 'css' | 'svg'
   requireConsent: boolean
   seasonal: boolean
+  /** The color of each variant that drives `<meta name="theme-color">` (`color.themeColorMeta`); absent when it is off. */
+  themeColorMeta?: string
   /**
    * The semantic tokens of every theme variant with `tokens: true`, by
    * variant id (`{ 'light': { 'text-primary': '#CF0000', ... } }`).

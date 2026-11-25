@@ -22,7 +22,7 @@ export default defineNitroPlugin((nitroApp) => {
   // The pre-hydration script (see `runtime/scripts/theme-init.ts`), injected
   // inline at the top of `<head>`, before the Vue bundle — that's what avoids
   // the wrong-theme flash before hydration.
-  const scriptBody = renderInitThemeScript(theme, createInitThemeOptions(themeConfig?.requireConsent !== false))
+  const scriptBody = renderInitThemeScript(theme, createInitThemeOptions(themeConfig?.requireConsent !== false, themeConfig?.themeColorMeta ?? null))
 
   // `render:html` is added by Nuxt's own Nitro integration, it isn't part of
   // "plain" nitropack's `NitroRuntimeHooks` — cast needed for the same

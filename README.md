@@ -144,6 +144,7 @@ Every theme has a light and a dark palette, exposed as CSS variables (`--color-p
 | `seasonal`       | `boolean`                   | `true`   | Seasonal themes — `false` removes them entirely, see [Seasonal themes](#seasonal-themes) |
 | `allowVenixOverride` | `boolean`               | `false`  | Override the colors of the Venix brand theme without the build warning — see [Themes](#themes) |
 | `contrast`       | `'AA' \| 'AAA' \| false`    | `'AA'`   | Experimental. Contrast the [semantic tokens](#semantic-tokens-experimental) aim for, and what the build warns about; `false` skips the warning |
+| `themeColorMeta` | `boolean \| string`      | `false`  | Keep `<meta name="theme-color">` in step with the theme, so the browser bar on phones and installed apps follows it: `true` uses the variant's `background`, a color name (`'primary'`, `'background2'`…) uses that one. Written before the first paint and updated on each switch; remove a `theme-color` of your own, or there will be two |
 
 ### Themes
 

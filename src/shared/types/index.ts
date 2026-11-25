@@ -21,7 +21,7 @@ export type {
 } from './colors'
 export type { ThemeConfig, ResolvedTheme } from './theme'
 export type { TranslationConfig } from './translation'
-export type { ColorOptions } from './color-options'
+export type { ColorOptions, ThemeColorName } from './color-options'
 export type { VuetifyOptions } from './vuetify'
 export type { IconOptions } from './icon'
 export type { ExperimentalConfig } from './experimental'

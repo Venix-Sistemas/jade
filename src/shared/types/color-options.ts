@@ -1,4 +1,4 @@
-import type { ContrastLevel, ThemeEntry } from './colors'
+import type { ContrastLevel, ThemeEntry, ThemePalette } from './colors'
 
 export interface ColorOptions {
   enabled: boolean
@@ -57,4 +57,17 @@ export interface ColorOptions {
    * tokens, as AA. Default: `'AA'`.
    */
   contrast: ContrastLevel | false
+  /**
+   * Keeps `<meta name="theme-color">` in step with the theme, so the browser
+   * bar on phones and in installed apps follows it. `true` uses the variant's
+   * `background`; a color name (`'primary'`, `'background2'`…) uses that one.
+   * The tag is written by the pre-hydration script (right color on the first
+   * paint, even for the automatic mode) and updated on every switch; remove
+   * a `theme-color` your project writes itself, or there will be two.
+   * Default: `false`.
+   */
+  themeColorMeta: boolean | ThemeColorName
 }
+
+/** A color of a theme variant that can drive `theme-color`: `'background'`, `'primary'`… */
+export type ThemeColorName = keyof ThemePalette

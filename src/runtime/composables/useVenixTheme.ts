@@ -7,6 +7,7 @@ import { useThemeLocale } from './useThemeLocale'
 import { useThemeSeasonal } from './useThemeSeasonal'
 import { useThemeColors } from './useThemeColors'
 import { hasCookieConsent } from '../../shared/utils/consent'
+import { themeColorOf } from '../../shared/utils/theme-color'
 import { buildResolvedTheme } from '../../shared/utils/theme-config'
 import { findVariantOwner, isModePreference, isSelectableGroup, normalizeThemeSelection, resolveMode, resolveThemeSelection } from '../../shared/utils/theme-resolve'
 import type { ThemeSelection } from '../../shared/utils/theme-resolve'
@@ -116,6 +117,24 @@ function createThemeCore() {
   const getResolvedTheme = (selection: ThemeSelection = currentSelection()): string =>
     resolveThemeSelection(selection, theme.colors, getPrefersDark())
 
+  // `color.themeColorMeta`: the browser bar follows the theme. The pre-hydration
+  // script wrote the tag; this keeps it in step on each switch (and writes it
+  // if the script didn't, e.g. a page without the Nitro plugin).
+  const applyThemeColorMeta = (variantId: string) => {
+    const colorName = themeConfig?.themeColorMeta
+    if (!colorName) return
+    const color = themeColorOf(theme.colors.themes as Record<string, Partial<Record<string, string>>>, variantId, colorName)
+    if (!color) return
+
+    let meta = document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"]:not([media])')
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.name = 'theme-color'
+      document.head.append(meta)
+    }
+    meta.content = color
+  }
+
   const apply = (selection: ThemeSelection) => {
     if (!shouldApplyColors) return
 
@@ -127,6 +146,7 @@ function createThemeCore() {
       html.classList.add(resolved)
       html.setAttribute('data-theme', resolved)
       window.__VENIX_INITIAL_THEME__ = resolved
+      applyThemeColorMeta(resolved)
 
       // Synchronous, on purpose — see the THEME_APPLIED_EVENT comment in
       // shared/constants.ts for why integrations (e.g. Vuetify) should
