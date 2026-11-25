@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, it, expect, afterEach } from 'vitest'
 import { setup, url, getBrowser } from '@nuxt/test-utils/e2e'
 import type { BrowserContext, BrowserContextOptions, Page } from 'playwright-core'
+import { contrastRatio } from '../../src/shared/utils/contrast'
 
 /**
  * What only a browser shows: the theme the visitor sees before Vue hydrates,
@@ -197,6 +198,29 @@ describe('theme in a browser', async () => {
       await pickMode(page, 'Dark')
       await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark')
       expect(await bar(page)).toEqual(['#0C0C0C'])
+    })
+  })
+
+  describe('prefers-contrast', () => {
+    /** The contrast of the helper text on the page, as the browser computes the variables. */
+    const mutedContrast = (page: Page) => page.evaluate(() => {
+      const style = getComputedStyle(document.documentElement)
+      return [style.getPropertyValue('--jade-text-muted').trim(), style.getPropertyValue('--jade-bg').trim()]
+    }).then(([text, background]) => contrastRatio(text!, background!))
+
+    it.each(['light', 'dark'] as const)('deve dar texto muted de 7:1 (AAA) a quem pede mais contraste, no tema %s', async (scheme) => {
+      const context = await newContext({ colorScheme: scheme })
+      await followSystem(context)
+      const page = await context.newPage()
+      await page.goto('/')
+
+      await page.emulateMedia({ contrast: 'no-preference' })
+      const regular = await mutedContrast(page)
+      expect(regular).toBeGreaterThanOrEqual(4.5)
+      expect(regular).toBeLessThan(7)
+
+      await page.emulateMedia({ contrast: 'more' })
+      expect(await mutedContrast(page)).toBeGreaterThanOrEqual(7)
     })
   })
 

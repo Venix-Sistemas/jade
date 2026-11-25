@@ -116,6 +116,21 @@ function applyOverrides(
   }
 }
 
+/**
+ * The `--jade-*` declarations for the AAA version of a variant, only for the
+ * tokens whose value differs from the `level` version, or an empty string when
+ * there is nothing to add (`level` is already AAA). Best effort: a pair that
+ * can't reach 7:1 keeps the best the scale can do.
+ */
+export function generateHighContrastVars(colors: ThemeColors, level: ContrastLevel = 'AA'): string {
+  if (level === 'AAA') return ''
+  const base = new Map(generateTokens(colors, level))
+  return generateTokens(colors, 'AAA')
+    .filter(([name, value]) => base.get(name) !== value)
+    .map(([name, value]) => `    --jade-${name}: ${value};`)
+    .join('\n')
+}
+
 /** The `--jade-*` declarations for `generateTokens`, one per line, indented for a theme block. */
 export function generateTokenVars(colors: ThemeColors, level: ContrastLevel = 'AA'): string {
   return generateTokens(colors, level)

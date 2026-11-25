@@ -67,6 +67,17 @@ export interface ColorOptions {
    * Default: `false`.
    */
   themeColorMeta: boolean | ThemeColorName
+  /**
+   * Experimental. Also writes the AAA values (text 7:1) of the semantic
+   * tokens inside `@media (prefers-contrast: more)`, so visitors who ask their
+   * system for more contrast get it with no setting on the site. Only the
+   * tokens that change are written, per theme variant (themes with
+   * `tokens: true`). Best effort: a seed that can't reach 7:1 with black or
+   * white keeps the best it can, without a build warning. Nothing to add when
+   * `contrast` is already `'AAA'`. Costs build time (the scales are computed a
+   * second time) and a little CSS. Default: `false`.
+   */
+  highContrast: boolean
 }
 
 /** A color of a theme variant that can drive `theme-color`: `'background'`, `'primary'`… */

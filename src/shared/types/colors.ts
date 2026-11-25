@@ -127,6 +127,8 @@ export interface ColorsConfig {
   defaults: boolean
   /** Contrast target of the semantic tokens and their build check (`color.contrast`). Build time only. */
   contrast?: ContrastLevel | false
+  /** Also write the AAA token values for `prefers-contrast: more` (`color.highContrast`). Build time only. */
+  highContrast?: boolean
   /**
    * The variants (ids in `themes`) whose tokens are the module's own default
    * for its built-in themes, not something the project asked for with

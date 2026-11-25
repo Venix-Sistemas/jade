@@ -46,6 +46,7 @@ export function customizeTheme(baseTheme: ThemeConfig, options: ModuleOptions): 
     })
     customized.colors = { ...resolved.colors, enabled: customized.colors.enabled }
     if (colorOption.contrast !== undefined) customized.colors.contrast = colorOption.contrast
+    if (colorOption.highContrast !== undefined) customized.colors.highContrast = colorOption.highContrast
   }
 
   // ===== EXPERIMENTAL =====

@@ -95,6 +95,7 @@ export default defineNuxtModule<ModuleOptions>({
       allowVenixOverride: false,
       contrast: 'AA',
       themeColorMeta: false,
+      highContrast: false,
     })
     const themeColorMeta = resolveThemeColorName(colorOptions.themeColorMeta)
     if (colorOptions.themeColorMeta && !themeColorMeta) {

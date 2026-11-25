@@ -2,9 +2,9 @@
 import type { ContrastLevel, ThemeColors } from '../types'
 import { getThemeHexColors } from '../utils/theme-resolve'
 import { tokensEnabled } from '../token-names'
-import { generateTokenVars } from './tokens'
+import { generateHighContrastVars, generateTokenVars } from './tokens'
 
-export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: ContrastLevel): string {
+export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: ContrastLevel, highContrast = false): string {
   const colorVars = getThemeHexColors(colors)
     .map(([key, value]) => `  --color-${key}: ${value};`)
     .join('\n')
@@ -12,6 +12,12 @@ export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: 
   // Opt-in (experimental): themes without `tokens: true` produce the same CSS as before.
   const tokenVars = tokensEnabled(colors)
     ? `\n  /* Semantic tokens */\n${generateTokenVars(colors, contrast)}`
+    : ''
+
+  // Opt-in (`color.highContrast`): the AAA values, for visitors who ask their system for more contrast.
+  const highContrastVars = highContrast && tokensEnabled(colors) ? generateHighContrastVars(colors, contrast) : ''
+  const highContrastBlock = highContrastVars
+    ? `\n@media (prefers-contrast: more) {\n  :root[data-theme='${mode}'] {\n${highContrastVars}\n  }\n}\n`
     : ''
 
   const isDark = colors.dark === true
@@ -27,4 +33,5 @@ export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: 
     + `  --color-inverse: ${inverseColor};\n`
     + colorVars + tokenVars + '\n'
     + `}\n`
+    + highContrastBlock
 }
