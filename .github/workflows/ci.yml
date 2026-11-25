@@ -49,6 +49,10 @@ jobs:
       - name: Playground prepare
         run: npm run dev:prepare
 
+      # The browser tests (test/browser) drive Chromium; locally they use the installed Edge
+      - name: Install the browser
+        run: npx playwright-core install --with-deps chromium
+
       - name: Test
         run: npm run test
 
