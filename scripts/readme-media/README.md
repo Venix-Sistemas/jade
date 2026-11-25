@@ -13,11 +13,11 @@ They drive a headless Chromium (Microsoft Edge by default) over the DevTools pro
    PORT=3056 node playground/.output/server/index.mjs
    ```
 
-2. Take the stills, all of them or some (`switcher`, `palettes`, `icons`, `sections`, `scrollbar`, `cursor-themes`):
+2. Take the stills, all of them or some (`switcher`, `palettes`, `tokens`, `icons`, `sections`, `scrollbar`, `cursor-themes`):
 
    ```bash
    node scripts/readme-media/images.mjs
-   node scripts/readme-media/images.mjs palettes scrollbar
+   node scripts/readme-media/images.mjs palettes tokens scrollbar
    ```
 
 3. Record the animation (`--limit=120` makes a 5-second test run; the real one takes a few minutes):

@@ -275,7 +275,11 @@ Tokens for each role (`primary`, `secondary`, `accent`, `error`, `info`, `succes
 | `border-primary` | Decorative outline of something on `bg-primary` |
 | `border-primary-strong` | Outline that must be seen (3:1) |
 
-**Status colors and `accent`.** They are roles like the others: `fill-error`, `on-error`, `bg-warning`, `text-success`, `border-info-strong`, `fill-accent`… (the UnoCSS classes are `jade-fill-error`, `jade-text-warning`…). `warning` shows why the tokens exist: a yellow seed stays vivid as `fill-warning` with black `on-warning`, while `text-warning` comes out a dark amber that is readable on the page. Set the seeds in the variant, or leave them out and they are derived from `primary`:
+**Status colors and `accent`.** They are roles like the others: `fill-error`, `on-error`, `bg-warning`, `text-success`, `border-info-strong`, `fill-accent`… (the UnoCSS classes are `jade-fill-error`, `jade-text-warning`…). `warning` shows why the tokens exist: a yellow seed stays vivid as `fill-warning` with black `on-warning`, while `text-warning` comes out a dark amber that is readable on the page.
+
+<img src="./docs/images/readme/tokens.png" alt="The warning tokens of Venix, dark and light: the yellow fill and the dark amber text" width="800">
+
+Set the seeds in the variant, or leave them out and they are derived from `primary`:
 
 ```ts
 color: {

@@ -1,5 +1,5 @@
 // Retakes the README's still images from the production build of the playground.
-// usage: node images.mjs [switcher] [palettes] [icons] [sections] [scrollbar] [cursor-themes]
+// usage: node images.mjs [switcher] [palettes] [tokens] [icons] [sections] [scrollbar] [cursor-themes]
 import fs from 'node:fs'
 import path from 'node:path'
 import { BASE_URL, launch, close, open, evaluate, shot, clickOn, mouse, sleep } from './rig.mjs'
@@ -7,7 +7,7 @@ import { BASE_URL, launch, close, open, evaluate, shot, clickOn, mouse, sleep } 
 const URL = BASE_URL
 const OUT = path.resolve(import.meta.dirname, 'out/readme')
 fs.mkdirSync(OUT, { recursive: true })
-const ALL = ['switcher', 'palettes', 'icons', 'sections', 'scrollbar', 'cursor-themes']
+const ALL = ['switcher', 'palettes', 'tokens', 'icons', 'sections', 'scrollbar', 'cursor-themes']
 const want = new Set(process.argv.slice(2).length ? process.argv.slice(2) : ALL)
 
 const cdp = await launch({ width: 1383, height: 836, dpr: 2 })
@@ -131,6 +131,32 @@ async function palettes() {
   save('palettes.png', await composite(cells, { columns: 1, gap: 12, radius: 12 }))
 }
 
+// ------------------------------------------------------------------ tokens
+// The Tokens tab of the playground: Venix's warning role (the yellow stays
+// vivid as a fill, its text is a readable amber) and the roles that sit beside primary.
+async function tokens() {
+  const cells = []
+  for (const [mode, view] of [['Dark', 'Warning'], ['Light', 'Warning']]) {
+    await prepare()
+    await panelChip(mode)
+    await panelChip('Venix')
+    await clickOn(cdp, '[role="tab"]', '^Tokens$')
+    await wait(900)
+    await clickOn(cdp, '#color-panel-tokens .sheet__navitem', '^' + view)
+    await wait(700)
+    await evaluate(cdp, `document.querySelector('#color-panel-tokens .sheet').scrollIntoView({ block: 'center' })`)
+    await mouse(cdp, 'mouseMoved', 5, 5)
+    await wait(500)
+    const rect = await evaluate(cdp, `(() => {
+      const b = document.querySelector('#color-panel-tokens .sheet').getBoundingClientRect()
+      return { x: b.left - 10, y: b.top - 10, width: b.width + 20, height: b.height + 20 }
+    })()`)
+    console.log('tokens', mode, view, '->', await evaluate(cdp, 'document.documentElement.dataset.theme'))
+    cells.push({ b64: (await viewport()).toString('base64'), rect })
+  }
+  save('tokens.png', await composite(cells, { columns: 2, gap: 12, radius: 12 }))
+}
+
 // ------------------------------------------------------------------- icons
 async function icons() {
   await prepare()
@@ -223,6 +249,7 @@ async function cursorThemes() {
 try {
   if (want.has('switcher')) await switcher()
   if (want.has('palettes')) await palettes()
+  if (want.has('tokens')) await tokens()
   if (want.has('icons')) await icons()
   if (want.has('sections')) await sections()
   if (want.has('scrollbar')) await scrollbar()
