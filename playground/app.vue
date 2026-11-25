@@ -789,7 +789,8 @@ const { t, locale: i18nLocale, locales: availableLocales, setLocale: setI18nLoca
 useHead({
   title: 'Jade Playground',
   meta: [{ name: 'description', content: () => t('app.subtitle') }],
-  link: [{ rel: 'icon', type: 'image/png', href: '/favicon.png' }],
+  // under `app.baseURL`, for the public demo served from `/jade/`
+  link: [{ rel: 'icon', type: 'image/png', href: `${useRuntimeConfig().app.baseURL}favicon.png` }],
 })
 
 // The order of the sections below, and of the links at the top.

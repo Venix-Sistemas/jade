@@ -3,6 +3,7 @@ import { loadTheme } from './shared/utils/load'
 import type { TypographyConfig, ScrollbarConfig, CursorConfig, ColorOptions, TranslationConfig, VuetifyOptions, IconOptions, ExperimentalConfig, VenixRuntimeConfig } from './shared/types'
 import { COLOR_PROPERTIES, DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_THEME } from './shared/constants'
 import { resolveThemeColorName } from './shared/utils/theme-color'
+import { withAppBaseURL } from './shared/utils/base-url'
 import { resolveFeatureOption } from './shared/utils/options'
 import { findDeprecatedThemeEntries, findThemeConfigIssues, overridesBrandColors } from './shared/utils/merge-themes'
 import { buildResolvedTheme, findInvalidDefaultColor, getBaseThemeEntries } from './shared/utils/theme-config'
@@ -149,9 +150,11 @@ export default defineNuxtModule<ModuleOptions>({
 
     // 5. Register CSS
     registerOverlayScrollbars(nuxt, resolver, theme)
-    registerThemeCSS(nuxt, theme)
+    // Fonts and cursors are files of the app: under `app.baseURL` when it isn't `/`
+    const assetTheme = withAppBaseURL(theme, nuxt.options.app.baseURL)
+    registerThemeCSS(nuxt, assetTheme)
     registerThemeTypes(theme)
-    registerFontPreloads(nuxt, theme)
+    registerFontPreloads(nuxt, assetTheme)
 
     // 6. Register plugins
     registerThemePlugins(nuxt, resolver, shouldApplyColors)
