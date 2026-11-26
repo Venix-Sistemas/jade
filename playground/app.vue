@@ -673,8 +673,8 @@
                   class="plugin__field"
                 />
                 <v-card-actions>
-                  <!-- Filled, so the text on them is Vuetify's `on-primary` / `on-secondary`:
-                       the tokens' on-colors on a theme with `tokens: true`. -->
+                  <!-- Filled, so the text on them is the legible `on-<color>` Jade
+                       gives Vuetify. An `outlined` button would use the color as text. -->
                   <v-btn
                     color="primary"
                     variant="flat"
@@ -689,7 +689,7 @@
                   </v-btn>
                   <v-btn
                     color="accent"
-                    variant="outlined"
+                    variant="flat"
                   >
                     accent
                   </v-btn>
@@ -1644,6 +1644,11 @@ code {
   flex-wrap: wrap;
   gap: 0.4rem;
   margin-top: 1rem;
+}
+
+/* Vuetify fades a field's label with opacity, under AA on some themes */
+.plugin__field .v-field-label {
+  opacity: 1;
 }
 
 .plugin__chips .v-chip {
