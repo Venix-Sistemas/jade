@@ -87,6 +87,19 @@ function hoverKeepingText(seed: string, generated: string, on: string, min: numb
   return away
 }
 
+/**
+ * `shade` with as much of `seed` (up to `ROLE_HINT`) as every color in `texts`
+ * still reaches the level over: a seed brighter than the shade takes contrast
+ * from the text, and over a panel with little to spare that is too much.
+ */
+function hintKeepingText(shade: string, seed: string, texts: string[], min: number): string {
+  for (let hint = ROLE_HINT; hint > 0; hint -= 0.03) {
+    const candidate = mix(shade, seed, hint)
+    if (texts.every(text => contrastRatio(text, candidate) >= min)) return candidate
+  }
+  return shade
+}
+
 /** `seed` with its lightness moved (hue and chroma kept, as far as the gamut allows) until `text` reaches `target` over it. */
 function fitSurface(seed: string, text: string, target: number): string {
   if (contrastRatio(text, seed) >= target) return seed
@@ -180,9 +193,13 @@ function buildBoldSurface(colors: ThemeColors, level: ContrastLevel): BoldSurfac
     // Its soft backgrounds are the panel's stronger shades with a hint of the
     // role, not the lighter steps the page version uses: they would sit
     // between the panel and the text and take contrast from it.
-    const softBackground = [SURFACE_STEPS['bg-subtle'], SURFACE_STEPS['bg-muted'], SURFACE_STEPS['bg-hover']]
-      .map(share => mix(stronger(share), seed, ROLE_HINT))
-    const byName: Record<string, string> = { 'bg': softBackground[0]!, 'bg-hover': softBackground[1]!, 'bg-active': softBackground[2]! }
+    const soft = (share: number, over: string[]) => hintKeepingText(stronger(share), seed, over, min)
+    const [roleText, roleTextStrong] = [scale.steps[10]!, scale.steps[11]!]
+    const byName: Record<string, string> = {
+      'bg': soft(SURFACE_STEPS['bg-subtle'], [roleText, text]),
+      'bg-hover': soft(SURFACE_STEPS['bg-muted'], [roleTextStrong]),
+      'bg-active': soft(SURFACE_STEPS['bg-hover'], [roleTextStrong, text]),
+    }
     byName['fill-hover'] = hoverKeepingText(seed, scale.steps[9]!, scale.on, min)
     for (const [name, step] of ROLE_TOKENS) tokens.push([roleTokenName(name, role), byName[name] ?? scale.steps[step - 1]!])
     tokens.push([`on-${role}`, scale.on])

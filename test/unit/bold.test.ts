@@ -12,7 +12,8 @@ const GREEN: ThemeColors = { dark: false, tokens: true, surfaces: 'bold', primar
 const GREEN_DARK: ThemeColors = { dark: true, tokens: true, surfaces: 'bold', primary: '#2D900C', secondary: '#64B5F6', background: '#121212' }
 const YELLOW: ThemeColors = { dark: false, tokens: true, surfaces: 'bold', primary: '#F4B400', background: '#FFFFFF' }
 const PINK: ThemeColors = { dark: false, tokens: true, surfaces: 'bold', primary: '#C2185B', background: '#FFFFFF' }
-const VARIANTS = [['verde claro', GREEN], ['verde escuro', GREEN_DARK], ['amarelo', YELLOW], ['rosa', PINK]] as const
+const RED: ThemeColors = { dark: false, tokens: true, surfaces: 'bold', primary: '#FF0000', secondary: '#FF8800', background: '#FAFAFA' }
+const VARIANTS = [['verde claro', GREEN], ['verde escuro', GREEN_DARK], ['amarelo', YELLOW], ['rosa', PINK], ['vermelho', RED]] as const
 
 const BACKGROUNDS = ['bg', 'bg-subtle', 'bg-muted', 'bg-hover', 'bg-active']
 const tokensOf = (colors: ThemeColors, level: 'AA' | 'AAA' = 'AA') => Object.fromEntries(generateBoldSurface(colors, level)!.tokens)
