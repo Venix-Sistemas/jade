@@ -367,7 +367,7 @@ The overridden tokens go through the same contrast check, and moving a surface m
 - `border-strong` and `border-focus` on `bg` and `bg-subtle`
 - per role: `on-<role>` on `fill-<role>` and `fill-<role>-hover`; `text-<role>` on `bg`, `bg-subtle`, `bg-muted` and `bg-<role>`; `text-<role>-strong` on `bg-<role>-hover` and `bg-<role>-active`; `text` on `bg-<role>` and `bg-<role>-active`; `border-<role>-strong` on `bg`
 
-A warning usually means the seed itself can't get there, not that the scale is wrong. The Venix red (`#FF0000`) reaches 5.25:1 with black text, so at `'AAA'` the light variant warns about `on-primary`; pick a darker seed or stay on `'AA'`. `false` skips the warning but still generates the tokens, as AA. With `'AA'`, `on-*` can never fail: the better of black and white always reaches at least 4.58:1.
+A warning usually means the seed itself can't get there, not that the scale is wrong. The light Venix red (`#d80000`) reaches 5.36:1 with white text, so at `'AAA'` the light variant warns about `on-primary`; pick a darker seed or stay on `'AA'`. `false` skips the warning but still generates the tokens, as AA. With `'AA'`, `on-*` can never fail: the better of black and white always reaches at least 4.58:1.
 
 **Where the tokens show up.**
 
@@ -383,7 +383,7 @@ The tokens are generated at build time with [Adobe Leonardo](https://github.com/
 
 #### Built-in themes and `experimental`
 
-Venix and the four seasonal themes ship with `tokens: true`, **next to** the old model: `--color-primary`, `--color-background2`… keep exactly the values they had. Their light variants are bold, as any light variant is by default: the page keeps its `background`, cards, borders and text take the hue of the theme's `primary`, and elements with `data-jade-surface="bold"` are painted in it. The dark ones look as before (Venix with plain gray surfaces, `neutralTint: false`; a seasonal theme with the hue of its own `background`). Set `surfaces: 'soft'` on a theme to give its light variant the subtle tint too, or `surfaces: 'bold'` to make the dark one bold.
+Venix and the four seasonal themes ship with `tokens: true`, **next to** the old model: `--color-primary`, `--color-background2`… keep the values they had (the light Venix red is the one change: `#d80000`, so the text on it is white). Their light variants are bold, as any light variant is by default: the page keeps its `background`, cards, borders and text take the hue of the theme's `primary`, and elements with `data-jade-surface="bold"` are painted in it. The dark ones look as before (Venix with plain gray surfaces, `neutralTint: false`; a seasonal theme with the hue of its own `background`). Set `surfaces: 'soft'` on a theme to give its light variant the subtle tint too, or `surfaces: 'bold'` to make the dark one bold.
 
 Two things are left as they were for projects that already exist:
 

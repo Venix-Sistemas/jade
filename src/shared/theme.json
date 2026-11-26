@@ -130,7 +130,7 @@
                 },
                 "light": {
                     "id": "light",
-                    "primary": "#FF0000",
+                    "primary": "#d80000",
                     "secondary": "#FF8800",
                     "accent": "#82B1FF",
                     "error": "#FF5252",
