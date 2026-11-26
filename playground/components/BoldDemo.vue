@@ -18,8 +18,8 @@ const rows = [
       Superfícies <code>bold</code>
     </h2>
     <p class="bold-demo__hint">
-      A página segue branca (ou escura, no tema escuro); o menu, os cabeçalhos e alguns cards usam
-      <code>data-jade-surface="bold"</code> e ganham a cor da marca.
+      A página segue branca; o menu, os cabeçalhos e alguns cards usam
+      <code>data-jade-surface="bold"</code> e, no tema claro, ganham a cor da marca.
     </p>
 
     <div class="shell">

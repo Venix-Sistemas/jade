@@ -1174,8 +1174,9 @@ const colorList = computed(() => {
   --pg-on-accent: var(--jade-on-primary, var(--color-background));
 }
 /* Inside a bold panel the supporting text is the panel's own `text-muted`:
-   `light-dark(secondary…)` above is made for the page, not for a brand color. */
-[data-jade-surface] {
+   `light-dark(secondary…)` above is made for the page, not for a brand color.
+   Only on the light variants: the dark ones have no bold scope by default. */
+:root[data-theme$='light'] [data-jade-surface] {
   --pg-text-muted: var(--jade-text-muted, var(--color-secondary));
 }
 
