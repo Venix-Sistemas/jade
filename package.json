@@ -89,10 +89,14 @@
     "@nuxt/kit": "^4.7.0"
   },
   "peerDependencies": {
-    "overlayscrollbars": "^2.17.0"
+    "overlayscrollbars": "^2.17.0",
+    "@vuetify/v0": "^1.0.0"
   },
   "peerDependenciesMeta": {
     "overlayscrollbars": {
+      "optional": true
+    },
+    "@vuetify/v0": {
       "optional": true
     }
   },
@@ -104,6 +108,7 @@
     "@nuxt/test-utils": "^4.4.0",
     "@nuxtjs/i18n": "10.6.0",
     "@types/node": "latest",
+    "@vuetify/v0": "1.4.0",
     "changelogen": "^0.6.2",
     "eslint": "^10.15.0",
     "nuxt": "^4.7.0",

@@ -22,7 +22,11 @@ export default defineNuxtConfig({
 
   venixJade: {
     // Only the new `jade` names: nothing that could clash with another package
+    // (Vuetify0 below owns `data-theme`)
     legacyNames: false,
+
+    // Vuetify0 (`@vuetify/v0`): its `--v0-*` variables and `useTheme()` follow the theme
+    vuetify0: true,
 
     // Translation / locale
     translation: {

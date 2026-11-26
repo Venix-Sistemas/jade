@@ -4,11 +4,14 @@ import { getThemeHexColors } from '../utils/theme-resolve'
 import { tokensEnabled } from '../token-names'
 import { generateBoldCss } from './bold'
 import { generateHighContrastVars, generateTokenVars } from './tokens'
+import { vuetify0Vars } from './vuetify0'
 import { THEME_ATTRIBUTE } from '../constants'
 
 export interface ThemeVarsOptions {
   /** Also the `--color-*` names of 1.5 and earlier, as aliases. Default: `true`. */
   legacyNames?: boolean
+  /** Also Vuetify0's `--v0-*`. */
+  vuetify0?: boolean
 }
 
 export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: ContrastLevel, highContrast = false, options: ThemeVarsOptions = {}): string {
@@ -24,6 +27,8 @@ export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: 
       .join('\n')
     : ''
 
+  const v0Vars = options.vuetify0 ? `\n  /* Vuetify0 */\n${vuetify0Vars(colors)}` : ''
+
   // Opt-in (experimental): themes without `tokens: true` produce the same CSS as before.
   const tokenVars = tokensEnabled(colors)
     ? `\n  /* Semantic tokens */\n${generateTokenVars(colors, contrast)}`
@@ -36,7 +41,7 @@ export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: 
     : ''
 
   // `surfaces: 'bold'`: the scope for areas in the brand color, after the variant's own block.
-  const boldBlock = generateBoldCss(mode, colors, contrast, highContrast)
+  const boldBlock = generateBoldCss(mode, colors, contrast, highContrast, options.vuetify0)
 
   const isDark = colors.dark === true
   const colorScheme = isDark ? 'dark' : 'light'
@@ -49,7 +54,7 @@ export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: 
     + `  color-scheme: ${colorScheme};\n`
     + `  --jade-scheme: ${colorScheme === 'dark' ? '#000000' : '#FFFFFF'};\n`
     + `  --jade-inverse: ${inverseColor};\n`
-    + colorVars + legacyVars + tokenVars + '\n'
+    + colorVars + legacyVars + tokenVars + v0Vars + '\n'
     + `}\n`
     + highContrastBlock
     + boldBlock

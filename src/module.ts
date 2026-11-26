@@ -19,6 +19,7 @@ import { registerThemeTypes } from './setup/register-types'
 import { registerFontPreloads } from './setup/register-fonts'
 import { registerOverlayScrollbars } from './setup/register-scrollbar'
 import { registerThemeVuetify } from './setup/register-vuetify'
+import { registerThemeVuetify0 } from './setup/register-vuetify0'
 import { registerThemeIcon } from './setup/register-icon'
 
 export type { ThemeName, ThemeOrVariantName, TokenName } from './shared/types'
@@ -35,6 +36,13 @@ export interface ModuleOptions {
    * Must come BEFORE the Vuetify module in `modules`.
    */
   vuetify?: boolean | Partial<VuetifyOptions>
+  /**
+   * Integrates Vuetify0 (`@vuetify/v0`, installed by the project): fills its
+   * `--v0-*` variables with the theme colors, registers the themes in it and
+   * keeps its `useTheme()` on the same one. Needs `legacyNames: false`, since
+   * Vuetify0 uses `data-theme`. Off by default.
+   */
+  vuetify0?: boolean
   /**
    * Also writes and registers the names used up to 1.5, next to the new
    * `jade` ones: `data-theme` and the bare theme class on `<html>`,
@@ -90,6 +98,7 @@ export default defineNuxtModule<ModuleOptions>({
     cursor: true,
     typography: true,
     vuetify: false,
+    vuetify0: false,
     legacyNames: true,
     icon: true,
     experimental: false,
@@ -204,6 +213,10 @@ export default defineNuxtModule<ModuleOptions>({
       aliases: {},
     })
     await registerThemeIcon(nuxt, resolver, iconOptions, theme.colors, legacyNames)
+
+    // After the icons: Vuetify0 follows the theme state above
+    const vuetify0 = options.vuetify0 === true && colorOptions.enabled
+    if (vuetify0) await registerThemeVuetify0(nuxt, resolver, legacyNames)
 
     // 9. Configure runtimeConfig
     const tokens = colorOptions.enabled ? collectTokens(theme.colors.themes, colorOptions.contrast || 'AA') : {}

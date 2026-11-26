@@ -150,6 +150,7 @@ Jade is a set of independent modules, each configured under its own key in `veni
 | [Translation](#translation) | `translation` | `true`  | Detects the user's locale and translates theme names and your own strings |
 | [Icons](#icons)             | `icon`        | `true`  | `<JadeIcon>`: emoji, Iconify (bundled offline) or inline SVG through one component |
 | [Vuetify](#vuetify)         | `vuetify`     | `false` | Registers the color themes with Vuetify and keeps it in sync          |
+| [Vuetify0](#vuetify0)       | `vuetify0`    | `false` | Paints Vuetify0 with the theme and keeps its theme state in step |
 | [Experimental](#built-in-themes-and-experimental) | `experimental` | `false` | Experimental features to try on a project: today, the semantic color tokens on your own themes too, and on Vuetify |
 | [Old names](#names-and-compatibility) | `legacyNames` | `true` | Also writes the names used up to 1.5; turn it off on a new project |
 
@@ -1026,6 +1027,30 @@ export default defineNuxtConfig({
 **Known limit.** With SSR, the server doesn't know the visitor's system color scheme. When the theme is automatic (`defaultColor: 'system'`, or a theme name, whose mode follows the system) and the visitor has no saved cookie (always the case before consent, with `requireConsent` on), the server renders Vuetify with the dark theme. The page's own colors are corrected before the first paint, but Vuetify's components keep the dark colors until the page hydrates, so a visitor with a light system can see a short flash. With the default `defaultColor: 'dark'`, or once a visitor has saved a choice, the server already has the right theme and there is nothing to see.
 
 It's opt-in because it adds a runtime plugin, and it does nothing if `vuetify-nuxt-module` isn't installed. Tested with Vuetify `^4.2.1` and `vuetify-nuxt-module@1.0.0-rc.6`; that module is still pre-1.0, so its hooks may change.
+
+### Vuetify0
+
+[Vuetify0](https://0.vuetifyjs.com) (`@vuetify/v0`) is headless: you style its components. Turn on the integration so it uses the active theme:
+
+```bash
+pnpm add @vuetify/v0
+```
+
+```ts
+export default defineNuxtConfig({
+  modules: ['@venix-sistemas/jade'],
+  venixJade: {
+    vuetify0: true,
+    legacyNames: false, // Vuetify0 uses `data-theme`
+  },
+})
+```
+
+- **Colors:** `--v0-primary`, `--v0-on-primary`, the other roles, `--v0-background`, `--v0-surface`, `--v0-on-surface` and `--v0-divider` point at the theme, in the module's own CSS, so there is no flash before hydration. With [semantic tokens](#semantic-tokens-experimental) they come from the tokens (and change inside a [bold panel](#surfaces)); without, from the theme colors, with black or white for the `on-*`.
+- **Theme state:** the color themes are registered in Vuetify0 with the same ids, and the two stay in step: `useJade()` and the switcher change Vuetify0, and `useTheme().select('natal-light')` changes Jade (theme and mode). Don't call `createThemePlugin()` yourself.
+- **Cursor:** slider thumbs (`role="slider"`) show the [open and closed hands](#cursor).
+
+The integration is independent of the [Vuetify](#vuetify) one.
 
 ### Content-Security-Policy
 

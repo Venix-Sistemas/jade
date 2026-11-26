@@ -65,3 +65,34 @@ describe('chave `venixTheme`', () => {
     expect(withLegacyConfigKey(defaults, { venixJade: {} })).toEqual({ options: defaults })
   })
 })
+
+describe('vuetify0', () => {
+  const output = css({ vuetify0: true, legacyNames: false })
+  const block = (selector: string) => output.slice(output.indexOf(selector)).split('\n}')[0]!
+
+  it('deve apontar as variáveis do Vuetify0 para os tokens em cada tema', () => {
+    const light = block(':root[data-jade-theme=\'light\'] {')
+    expect(light).toContain('--v0-primary: var(--jade-fill-primary);')
+    expect(light).toContain('--v0-on-primary: var(--jade-on-primary);')
+    expect(light).toContain('--v0-surface: var(--jade-bg-subtle);')
+  })
+
+  it('deve declará-las de novo no painel bold, para lerem as cores dele', () => {
+    expect(block(':root[data-jade-theme=\'light\'] [data-jade-surface=\'bold\'] {')).toContain('--v0-primary: var(--jade-fill-primary);')
+  })
+
+  it('deve usar as cores do tema, com preto ou branco por cima, sem tokens', () => {
+    const flat = css({ vuetify0: true, color: { themes: { own: { tokens: false, light: { primary: '#0B3D91', background: '#FFFFFF' } } } } })
+    const own = flat.slice(flat.indexOf(':root[data-jade-theme=\'own-light\']')).split('\n}')[0]!
+    expect(own).toContain('--v0-primary: var(--jade-primary);')
+    expect(own).toContain('--v0-on-primary: #FFFFFF;')
+    expect(own).toContain('--v0-on-background: #000000;')
+    expect(own).toContain('--v0-surface: var(--jade-background);')
+  })
+
+  it('deve dar a mão de arrastar aos sliders, só com a opção', () => {
+    expect(output).toContain('[role="slider"]')
+    expect(css()).not.toContain('[role="slider"]')
+    expect(css()).not.toContain('--v0-')
+  })
+})

@@ -95,6 +95,10 @@ const VUETIFY_GRABBING = [
 // module's image cursors (Venix) have no hands, and they leave in 2.0.
 const HANDS: CursorType[] = ['grab', 'grabbing']
 
+// Vuetify0 is headless, with no cursor of its own: its slider thumbs, with `vuetify0`
+const VUETIFY0_GRAB = ['[role="slider"]']
+const VUETIFY0_GRABBING = ['[role="slider"]:active']
+
 /** OKLab lightness a drawn cursor is lifted to on a light variant with no dark one to take the tone from. */
 const LIGHT_CURSOR_LIGHTNESS = 0.72
 
@@ -257,12 +261,12 @@ textarea,
   // change a single case.
   if (types.includes('grab')) {
     css += '\n/* 3c. Open hand over what can be dragged */\n'
-    css += rule(['[draggable="true"]', ...VUETIFY_GRAB], 'grab')
+    css += rule(['[draggable="true"]', ...VUETIFY_GRAB, ...(theme.vuetify0 ? VUETIFY0_GRAB : [])], 'grab')
   }
 
   if (types.includes('grabbing')) {
     css += '\n/* 3d. Closed hand while it is held */\n'
-    css += rule(['[draggable="true"]:active', ...VUETIFY_GRABBING], 'grabbing')
+    css += rule(['[draggable="true"]:active', ...VUETIFY_GRABBING, ...(theme.vuetify0 ? VUETIFY0_GRABBING : [])], 'grabbing')
   }
 
   // The utility classes of Vuetify (`.cursor-pointer`) and UnoCSS/Tailwind:

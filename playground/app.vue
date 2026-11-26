@@ -617,7 +617,7 @@
         <ModuleHeader
           id="plugins"
           emoji="🧩"
-          key-label="venixJade.vuetify · venixJade.icon · jadeUnoPreset()"
+          key-label="venixJade.vuetify · venixJade.vuetify0 · venixJade.icon · jadeUnoPreset()"
         />
 
         <div class="demo-grid demo-grid--plugins">
@@ -734,6 +734,34 @@
             <p class="plugin__note">
               {{ $t('plugins.unoHint') }}
             </p>
+          </article>
+
+          <!-- Vuetify0: headless components painted with its variables, and its theme state -->
+          <article
+            class="demo plugin"
+            data-jade-surface="bold"
+          >
+            <header class="plugin__header">
+              <span
+                class="plugin__logo plugin__logo--letter"
+                aria-hidden="true"
+              >V0</span>
+              <div class="plugin__heading">
+                <h3 class="plugin__title">
+                  Vuetify0
+                </h3>
+                <p class="plugin__tagline">
+                  {{ $t('plugins.v0.tagline') }}
+                </p>
+              </div>
+              <code class="plugin__option">vuetify0: true</code>
+            </header>
+
+            <div class="plugin__stage">
+              <client-only>
+                <Vuetify0Demo />
+              </client-only>
+            </div>
           </article>
 
           <!-- Iconify: <JadeIcon> renders an emoji, an Iconify icon or an inline SVG -->

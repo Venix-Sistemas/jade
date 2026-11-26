@@ -5,6 +5,7 @@ import { deriveSeeds } from '../utils/derive-seeds'
 import { chromaOf, colorWithHue, hexToOklab, normalizeHex } from '../utils/oklab'
 import { generateScale } from '../utils/scale'
 import type { RoleScale } from '../utils/scale'
+import { vuetify0Vars } from './vuetify0'
 import { THEME_ATTRIBUTE } from '../constants'
 import { NEUTRAL_TOKENS, ROLE_TOKENS, TOKEN_ROLES as ROLES, roleTokenName, surfacesOf, tokensEnabled } from '../token-names'
 
@@ -250,13 +251,15 @@ export function boldSelector(mode: string): string {
  * none. Besides the tokens it paints the element itself (`background-color`,
  * `color`), so `<aside data-jade-surface="bold">` is a colored panel as it is.
  */
-export function generateBoldCss(mode: string, colors: ThemeColors, level: ContrastLevel = 'AA', highContrast = false): string {
+export function generateBoldCss(mode: string, colors: ThemeColors, level: ContrastLevel = 'AA', highContrast = false, vuetify0 = false): string {
   const bold = generateBoldSurface(colors, level)
   if (!bold) return ''
   const vars = bold.tokens.map(([name, value]) => `  --jade-${name}: ${value};`).join('\n')
   let css = `\n/* Bold surfaces - ${mode} */\n${boldSelector(mode)} {\n`
     + `  color-scheme: ${bold.dark ? 'dark' : 'light'};\n`
     + `${vars}\n`
+    // Declared again here: resolved where it is declared, they must read the panel's tokens
+    + (vuetify0 ? `${vuetify0Vars(colors)}\n` : '')
     // What the custom scrollbar reads inside the panel (see `css/scrollbar.ts`)
     + `  --jade-scrollbar-thumb: var(--jade-border-strong);\n`
     + `  --jade-scrollbar-thumb-hover: var(--jade-fill-primary);\n`

@@ -123,6 +123,7 @@ export default defineI18nConfig(() => ({
           cardText: 'Surface, buttons, chips and fields take their colors, and the text on them, from the theme you pick.',
           field: 'Text field',
         },
+        v0: { tagline: 'Headless components with the theme colors, and a theme state that stays in step.' },
         uno: {
           tagline: 'Classes for the theme colors and tokens.',
           card: 'Card',
@@ -274,6 +275,7 @@ export default defineI18nConfig(() => ({
           cardText: 'Superfície, botões, chips e campos recebem as cores, e o texto sobre elas, do tema escolhido.',
           field: 'Campo de texto',
         },
+        v0: { tagline: 'Componentes sem estilo com as cores do tema, e o estado do tema sempre igual.' },
         uno: {
           tagline: 'Classes para as cores e os tokens do tema.',
           card: 'Cartão',
@@ -425,6 +427,7 @@ export default defineI18nConfig(() => ({
           cardText: 'Superficie, botones, chips y campos toman sus colores, y el texto sobre ellos, del tema elegido.',
           field: 'Campo de texto',
         },
+        v0: { tagline: 'Componentes sin estilo con los colores del tema, y el estado del tema siempre igual.' },
         uno: {
           tagline: 'Clases para los colores y los tokens del tema.',
           card: 'Tarjeta',

@@ -11,6 +11,8 @@ export interface ThemeConfig {
   colors: ColorsConfig
   /** Also write the names used up to 1.5 (`legacyNames`). Build time only. Default: `true`. */
   legacyNames?: boolean
+  /** Fill Vuetify0's `--v0-*` variables (`vuetify0`). Build time only. */
+  vuetify0?: boolean
 }
 
 /**
