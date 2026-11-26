@@ -18,7 +18,7 @@ const rows = [
       Superfícies <code>bold</code>
     </h2>
     <p class="bold-demo__hint">
-      A página segue branca; o menu, os cabeçalhos e alguns cards usam
+      A página segue neutra; o menu, os cabeçalhos e alguns cards usam
       <code>data-jade-surface="bold"</code> e, no tema claro, ganham a cor da marca.
     </p>
 
@@ -139,7 +139,20 @@ const rows = [
   flex-direction: column;
   gap: 1rem;
   padding: 1rem;
+  border-right: 1px solid var(--jade-border);
 }
+
+/* A dark variant has no bold scope by default: the menu takes the soft tone of
+   the brand color, halved with the card gray so it doesn't weigh like a bold
+   panel, and doesn't melt into the page. */
+:global(:root:not([data-theme$='light']) .shell__side) {
+  border-color: color-mix(in srgb, var(--jade-border-primary) 50%, var(--jade-border));
+  background: color-mix(in srgb, var(--jade-bg-primary) 50%, var(--jade-bg-subtle));
+}
+
+:global(:root:not([data-theme$='light']) .shell__link) { color: var(--jade-text); }
+:global(:root:not([data-theme$='light']) .shell__link:hover) { background: color-mix(in srgb, var(--jade-bg-primary-hover) 50%, var(--jade-bg-muted)); }
+:global(:root:not([data-theme$='light']) .shell__link--on) { background: color-mix(in srgb, var(--jade-bg-primary-active) 50%, var(--jade-bg-hover)); }
 
 .shell__brand { font-size: 1.15rem; }
 .shell__nav { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
@@ -220,6 +233,7 @@ const rows = [
 
 @media (max-width: 48rem) {
   .shell { grid-template-columns: 1fr; }
+  .shell__side { border-right: 0; border-bottom: 1px solid var(--jade-border); }
   .shell__main { padding: 0 1rem 1rem; }
   .stats { grid-template-columns: 1fr; }
   .row { grid-template-columns: 1fr 1fr; }
