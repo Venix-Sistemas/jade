@@ -6,7 +6,8 @@ import { chromaOf, colorWithHue, hexToOklab, normalizeHex } from '../utils/oklab
 import { generateScale } from '../utils/scale'
 import type { RoleScale } from '../utils/scale'
 import { vuetify0Vars } from './vuetify0'
-import { THEME_ATTRIBUTE } from '../constants'
+import { themeSelector } from './selector'
+import type { LabSelector } from './selector'
 import { NEUTRAL_TOKENS, ROLE_TOKENS, TOKEN_ROLES as ROLES, roleTokenName, surfacesOf, tokensEnabled } from '../token-names'
 
 /**
@@ -245,8 +246,9 @@ function brandRoleTokens(
 }
 
 /** The selector of the scope, for a theme variant (`:root[data-jade-theme='natal-light'] [data-jade-surface='bold']`). */
-export function boldSelector(mode: string): string {
-  return `:root[${THEME_ATTRIBUTE}='${mode}'] [data-jade-surface='bold']`
+export function boldSelector(mode: string, lab?: LabSelector): string {
+  // The built scope steps aside for a variant the visitor customized, which may not be bold at all
+  return `${themeSelector(mode, lab, true)} [data-jade-surface='bold']`
 }
 
 /**
@@ -254,11 +256,11 @@ export function boldSelector(mode: string): string {
  * none. Besides the tokens it paints the element itself (`background-color`,
  * `color`), so `<aside data-jade-surface="bold">` is a colored panel as it is.
  */
-export function generateBoldCss(mode: string, colors: ThemeColors, level: ContrastLevel = 'AA', highContrast = false, vuetify0 = false): string {
+export function generateBoldCss(mode: string, colors: ThemeColors, level: ContrastLevel = 'AA', highContrast = false, vuetify0 = false, lab?: LabSelector): string {
   const bold = generateBoldSurface(colors, level)
   if (!bold) return ''
   const vars = bold.tokens.map(([name, value]) => `  --jade-${name}: ${value};`).join('\n')
-  let css = `\n/* Bold surfaces - ${mode} */\n${boldSelector(mode)} {\n`
+  let css = `\n/* Bold surfaces - ${mode} */\n${boldSelector(mode, lab)} {\n`
     + `  color-scheme: ${bold.dark ? 'dark' : 'light'};\n`
     + `${vars}\n`
     // Declared again here: resolved where it is declared, they must read the panel's tokens
@@ -279,7 +281,7 @@ export function generateBoldCss(mode: string, colors: ThemeColors, level: Contra
       .filter(([name, value]) => base.get(name) !== value)
       .map(([name, value]) => `    --jade-${name}: ${value};`)
       .join('\n')
-    if (changed) css += `@media (prefers-contrast: more) {\n  ${boldSelector(mode)} {\n${changed}\n  }\n}\n`
+    if (changed) css += `@media (prefers-contrast: more) {\n  ${boldSelector(mode, lab)} {\n${changed}\n  }\n}\n`
   }
   return css
 }

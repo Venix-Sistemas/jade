@@ -22,6 +22,7 @@ import { registerFontPreloads } from './setup/register-fonts'
 import { registerOverlayScrollbars } from './setup/register-scrollbar'
 import { registerThemeVuetify } from './setup/register-vuetify'
 import { registerThemeVuetify0 } from './setup/register-vuetify0'
+import { registerThemeLab } from './setup/register-lab'
 import { registerThemeIcon } from './setup/register-icon'
 import { iconDependencies, inlineModuleOptions, resolveIconOptions } from './setup/icon-dependency'
 
@@ -150,6 +151,7 @@ const jadeModule: NuxtModule<ModuleOptions> = defineNuxtModule<ModuleOptions>({
       contrast: 'AA',
       themeColorMeta: false,
       highContrast: false,
+      lab: false,
     })
     const themeColorMeta = resolveThemeColorName(colorOptions.themeColorMeta)
     if (colorOptions.themeColorMeta && !themeColorMeta) {
@@ -226,6 +228,9 @@ const jadeModule: NuxtModule<ModuleOptions> = defineNuxtModule<ModuleOptions>({
     const vuetify0 = options.vuetify0 === true && colorOptions.enabled
     if (vuetify0) await registerThemeVuetify0(nuxt, resolver, legacyNames)
 
+    // The visitor's own colors (`color.lab`)
+    const lab = colorOptions.enabled && colorOptions.lab ? registerThemeLab(nuxt, resolver, assetTheme) : undefined
+
     // 9. Configure runtimeConfig
     const tokens = colorOptions.enabled ? collectTokens(theme.colors.themes, colorOptions.contrast || 'AA') : {}
     const runtimeConfig: VenixRuntimeConfig = {
@@ -241,6 +246,7 @@ const jadeModule: NuxtModule<ModuleOptions> = defineNuxtModule<ModuleOptions>({
       seasonal: colorOptions.seasonal,
       legacyNames,
       ...(themeColorMeta && { themeColorMeta }),
+      ...(lab && { lab }),
       tokens,
       icon: {
         aliases: iconOptions.aliases,

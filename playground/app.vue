@@ -38,7 +38,10 @@
         </a>
       </div>
       <client-only>
-        <JadeThemeSwitcher class="module-nav__switcher" />
+        <JadeThemeSwitcher
+          class="module-nav__switcher"
+          export-config
+        />
       </client-only>
     </nav>
 
@@ -1226,8 +1229,10 @@ const colorList = computed(() => {
 }
 /* Inside a bold panel the supporting text is the panel's own `text-muted`:
    `light-dark(secondary…)` above is made for the page, not for a brand color.
-   Only on the light variants: the dark ones have no bold scope by default. */
-:root[data-jade-theme$='light'] [data-jade-surface] {
+   Where there can be one: the light variants and what the visitor customized
+   (the switcher's pencil). The other dark ones have none. */
+:root[data-jade-theme$='light'] [data-jade-surface],
+:root[data-jade-lab] [data-jade-surface] {
   --pg-text-muted: var(--jade-text-muted, var(--jade-secondary));
 }
 

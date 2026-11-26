@@ -151,6 +151,28 @@
           class="venix-theme-switcher__view"
         >
           <div class="venix-theme-switcher__header">
+            <button
+              v-if="labAvailable"
+              type="button"
+              role="menuitem"
+              class="venix-theme-switcher__icon-button venix-theme-switcher__lab-button"
+              :aria-label="labLabel"
+              :title="labLabel"
+              aria-haspopup="dialog"
+              @click="openEditor"
+            >
+              <span
+                v-if="icons.customize?.format === 'emote'"
+                class="venix-icon venix-icon--emoji"
+                aria-hidden="true"
+              >{{ icons.customize.value }}</span>
+              <JadeIcon
+                v-else-if="icons.customize"
+                :icon="icons.customize.value"
+                :mode="icons.customize.format"
+                aria-hidden="true"
+              />
+            </button>
             <div
               class="venix-theme-switcher__heading"
               aria-hidden="true"
@@ -337,11 +359,34 @@
         </div>
       </div>
     </Transition>
+
+    <!-- At the end of <body>: a drawer has to cover the screen whatever the
+         switcher sits in. The wrapper carries the switcher's colors there. -->
+    <Teleport
+      v-if="labOpen"
+      to="body"
+    >
+      <div
+        ref="labRef"
+        class="venix-theme-switcher venix-theme-switcher--drawer"
+        :class="{ 'venix-theme-switcher--dark': darkMode }"
+      >
+        <Transition
+          name="venix-theme-switcher-lab"
+          appear
+        >
+          <ThemeLabPanel
+            :export-config="exportConfig"
+            @close="closeEditor"
+          />
+        </Transition>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, nextTick, useId } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick, useId, defineAsyncComponent } from 'vue'
 import { useRuntimeConfig } from '#app'
 import { useJade } from '../composables/useVenixTheme'
 import { getDefaultSelection, getSeasonDates } from '../../shared/utils/theme-resolve'
@@ -354,6 +399,9 @@ import type { ThemeModePreference } from '../../shared/types'
 // `icon: false`: <JadeIcon> isn't registered then, and theme icons all
 // resolve to emoji, which render as plain text above without needing it.
 import JadeIcon from './VenixIcon.vue'
+
+// `color.lab`: the color editor, downloaded the first time it is opened
+const ThemeLabPanel = defineAsyncComponent(() => import('./ThemeLabPanel.vue'))
 
 // The component's own strings (default label and screen-reader announcement)
 // — translated into the same languages theme-name translations already
@@ -454,6 +502,18 @@ const BACK_TRANSLATIONS: Record<string, string> = {
   'ja-JP': '戻る',
   'ko-KR': '뒤로',
   'zh-CN': '返回',
+}
+
+const CUSTOMIZE_TRANSLATIONS: Record<string, string> = {
+  'pt-BR': 'Personalizar cores',
+  'en-US': 'Customize colors',
+  'es-ES': 'Personalizar colores',
+  'fr-FR': 'Personnaliser les couleurs',
+  'de-DE': 'Farben anpassen',
+  'it-IT': 'Personalizza i colori',
+  'ja-JP': '色をカスタマイズ',
+  'ko-KR': '색상 사용자 지정',
+  'zh-CN': '自定义颜色',
 }
 
 // The settings' titles are kept short: they never wrap (see
@@ -617,6 +677,8 @@ const props = defineProps<{
    * standard ones.
    */
   buttonColors?: { light?: ButtonColors, dark?: ButtonColors }
+  /** With `color.lab`: the editor also offers "Copy configuration", the `color.themes` snippet, for who builds the site. */
+  exportConfig?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -707,7 +769,14 @@ const iconFormat = (useRuntimeConfig().public.venixTheme?.iconFormat ?? 'svg') a
 const icons = {
   settings: resolveThemeIcon(SWITCHER_ICONS.settings, iconFormat),
   back: resolveThemeIcon(SWITCHER_ICONS.back, iconFormat),
+  customize: resolveThemeIcon(SWITCHER_ICONS.customize, iconFormat),
 }
+
+// The pencil is there only with `color.lab` on
+const labAvailable = !!useRuntimeConfig().public.venixTheme?.lab
+const labLabel = computed(() => locale.translate(CUSTOMIZE_TRANSLATIONS, 'Customize colors'))
+const labOpen = ref(false)
+const labRef = ref<HTMLElement | null>(null)
 
 const promptTitle = computed(() => locale.translate(PROMPT_TITLE_TRANSLATIONS, 'Remember your choices?'))
 const promptDescription = computed(() => locale.translate(PROMPT_DESCRIPTION_TRANSLATIONS, 'Uses cookies'))
@@ -887,6 +956,19 @@ const updatePlacement = () => {
   }
 }
 
+// The color editor takes the menu's place: it stays open while the visitor
+// looks around the page, until closed.
+const openEditor = () => {
+  close()
+  labOpen.value = true
+}
+
+const closeEditor = () => {
+  labOpen.value = false
+  // The pencil is in the closed menu: back to the button that opens it
+  triggerRef.value?.focus()
+}
+
 const handleResize = () => {
   if (open.value) updatePlacement()
 }
@@ -941,8 +1023,9 @@ const showView = async (next: 'main' | 'settings') => {
   view.value = next
 
   await nextTick()
-  const items = getMenuItems()
-  ;(next === 'settings' ? items[1] : items[0])?.focus()
+  if (next === 'settings') getMenuItems()[1]?.focus()
+  // Back to the button that led there, next to the title
+  else rootRef.value?.querySelector<HTMLButtonElement>('.venix-theme-switcher__heading + .venix-theme-switcher__icon-button')?.focus()
 }
 
 const close = (options: { restoreFocus?: boolean } = {}) => {
@@ -1018,9 +1101,8 @@ const isInside = (rect: DOMRect, event: MouseEvent): boolean =>
 // open menu, that would read as a click outside and lose the option picked
 // in quick succession, so these find it by position instead.
 const isTransitionHitOnMenu = (event: MouseEvent): boolean =>
-  open.value
-  && event.target === document.documentElement
-  && !!menuRef.value && isInside(menuRef.value.getBoundingClientRect(), event)
+  event.target === document.documentElement
+  && [open.value ? menuRef.value : null, labRef.value?.firstElementChild].some(el => !!el && isInside(el.getBoundingClientRect(), event))
 
 // Keeps focus where it is: moving to <body> would close the menu (see
 // handleFocusOut).
@@ -1040,13 +1122,20 @@ const handlePointerDown = (event: PointerEvent) => {
 
 const handleClick = (event: MouseEvent) => {
   if (!isTransitionHitOnMenu(event)) return
-  const control = getMenuItems().find(el => isInside(el.getBoundingClientRect(), event))
+  // The drawer lies over the page: its controls come first
+  const drawer = labRef.value?.firstElementChild
+  const inLab = !!drawer && isInside(drawer.getBoundingClientRect(), event)
+  const controls: HTMLElement[] = inLab ? Array.from(labRef.value!.querySelectorAll<HTMLElement>('[data-lab-control]')) : getMenuItems()
+  const control = controls.find(el => isInside(el.getBoundingClientRect(), event))
   control?.focus()
   control?.click()
 }
 
 const handleKeydown = (event: KeyboardEvent) => {
-  if (event.key === 'Escape') close({ restoreFocus: true })
+  if (event.key !== 'Escape') return
+  // The menu first, then the color editor
+  if (open.value) close({ restoreFocus: true })
+  else if (labOpen.value) closeEditor()
 }
 
 onMounted(() => {
@@ -1101,6 +1190,8 @@ onUnmounted(() => {
    - One more: in the menu, each theme's name and icon take that theme's
      `primary`, toned until it reads at AA (`switcher-color.ts`).
      Backgrounds, outlines, the selection and everything else stay neutral.
+   - The color editor (`ThemeLabPanel.vue`) follows the same rule; only its
+     color fields show the colors being edited.
 
    `test/unit/switcher-neutral.test.ts` fails when any of this is broken.
    =========================================================================== */
@@ -1228,6 +1319,20 @@ onUnmounted(() => {
   transform-origin: top right;
 }
 
+/* The color editor (`color.lab`), teleported to <body>: only its colors come
+   from here, so the wrapper takes no box */
+.venix-theme-switcher--drawer {
+  display: contents;
+}
+
+.venix-theme-switcher-lab-enter-active {
+  transition: transform 0.22s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.venix-theme-switcher-lab-enter-from {
+  transform: translateX(100%);
+}
+
 /* Opening upward, when there's more room above the button. */
 .venix-theme-switcher__menu--above {
   top: auto;
@@ -1291,7 +1396,8 @@ onUnmounted(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .venix-theme-switcher-menu-enter-active,
-  .venix-theme-switcher-menu-leave-active {
+  .venix-theme-switcher-menu-leave-active,
+  .venix-theme-switcher-lab-enter-active {
     transition: none;
   }
 

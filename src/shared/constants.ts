@@ -27,6 +27,13 @@ export const FONT_COOKIE = 'venix-font'
 // The `LEGACY_*` names are the ones up to 1.5: still written while
 // `legacyNames` is on, and removed in 2.0.
 /** The applied theme variant, on `<html>`: what the generated CSS selects. */
+/** On `<html>`: the variants the visitor customized (`color.lab`). */
+export const LAB_ATTRIBUTE = 'data-jade-lab'
+/** The cookie with those choices, and the `localStorage` key of the CSS they produced. */
+export const LAB_COOKIE = 'jade-theme-custom'
+/** The `<style>` that CSS goes in. */
+export const LAB_STYLE_ID = 'jade-theme-lab'
+
 export const THEME_ATTRIBUTE = 'data-jade-theme'
 export const LEGACY_THEME_ATTRIBUTE = 'data-theme'
 /** Prefix of the variant's class on `<html>` (`jade-theme-natal`). The old class is the bare variant id. */
@@ -105,6 +112,7 @@ export const THEME_MODES = ['light', 'dark'] as const
 export const SWITCHER_ICONS = {
   settings: { emote: '⚙️', css: 'mdi:cog-outline', svg: 'line-md:cog' },
   back: { emote: '⬅️', css: 'mdi:arrow-left', svg: 'line-md:arrow-left' },
+  customize: { emote: '✏️', css: 'mdi:pencil-outline', svg: 'line-md:pencil' },
   save: { emote: '💾', css: 'mdi:content-save-outline' },
   scrollbar: { emote: '↕️', css: 'mdi:mouse-scroll-wheel' },
   cursor: { emote: '🖱️', css: 'mdi:cursor-default-outline' },

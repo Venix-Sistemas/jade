@@ -28,6 +28,14 @@ export interface VenixRuntimeConfig {
    * built-in themes do, so only with `color: false` is it empty).
    */
   tokens?: Record<string, Record<string, string>>
+  /** `color.lab`: what the browser needs to build a visitor's colors; absent when off. */
+  lab?: {
+    contrast: 'AA' | 'AAA'
+    highContrast: boolean
+    vuetify0: boolean
+    /** Changes with the built CSS, so a cached custom CSS of another build isn't reused. */
+    version: string
+  }
   icon: {
     aliases: Record<string, string>
   }

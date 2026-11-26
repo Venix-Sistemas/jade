@@ -185,6 +185,8 @@ export interface ColorsConfig {
   contrast?: ContrastLevel | false
   /** Also write the AAA token values for `prefers-contrast: more` (`color.highContrast`). Build time only. */
   highContrast?: boolean
+  /** The visitor may customize the colors (`color.lab`). Build time only. */
+  lab?: boolean
   /**
    * The variants (ids in `themes`) whose tokens are the module's own default
    * for its built-in themes, not something the project asked for with

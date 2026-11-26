@@ -5,13 +5,16 @@ import { tokensEnabled } from '../token-names'
 import { generateBoldCss } from './bold'
 import { generateHighContrastVars, generateTokenVars } from './tokens'
 import { vuetify0Vars } from './vuetify0'
-import { THEME_ATTRIBUTE } from '../constants'
+import { themeSelector } from './selector'
+import type { LabSelector } from './selector'
 
 export interface ThemeVarsOptions {
   /** Also the `--color-*` names of 1.5 and earlier, as aliases. Default: `true`. */
   legacyNames?: boolean
   /** Also Vuetify0's `--v0-*`. */
   vuetify0?: boolean
+  /** With `color.lab`: `'guard'` for the built CSS, `'preview'` for the visitor's own. */
+  lab?: LabSelector
 }
 
 export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: ContrastLevel, highContrast = false, options: ThemeVarsOptions = {}): string {
@@ -37,11 +40,11 @@ export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: 
   // Opt-in (`color.highContrast`): the AAA values, for visitors who ask their system for more contrast.
   const highContrastVars = highContrast && tokensEnabled(colors) ? generateHighContrastVars(colors, contrast) : ''
   const highContrastBlock = highContrastVars
-    ? `\n@media (prefers-contrast: more) {\n  :root[${THEME_ATTRIBUTE}='${mode}'] {\n${highContrastVars}\n  }\n}\n`
+    ? `\n@media (prefers-contrast: more) {\n  ${themeSelector(mode, options.lab)} {\n${highContrastVars}\n  }\n}\n`
     : ''
 
   // `surfaces: 'bold'`: the scope for areas in the brand color, after the variant's own block.
-  const boldBlock = generateBoldCss(mode, colors, contrast, highContrast, options.vuetify0)
+  const boldBlock = generateBoldCss(mode, colors, contrast, highContrast, options.vuetify0, options.lab)
 
   const isDark = colors.dark === true
   const colorScheme = isDark ? 'dark' : 'light'
@@ -50,7 +53,7 @@ export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: 
   return `\n/* ============================================ */\n`
     + `/* Colors - ${mode.charAt(0).toUpperCase() + mode.slice(1)} Theme                     */\n`
     + `/* ============================================ */\n\n`
-    + `:root[${THEME_ATTRIBUTE}='${mode}'] {\n`
+    + `${themeSelector(mode, options.lab)} {\n`
     + `  color-scheme: ${colorScheme};\n`
     + `  --jade-scheme: ${colorScheme === 'dark' ? '#000000' : '#FFFFFF'};\n`
     + `  --jade-inverse: ${inverseColor};\n`

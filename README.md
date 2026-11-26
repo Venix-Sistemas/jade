@@ -184,6 +184,7 @@ Every theme has a light and a dark palette, exposed as CSS variables (`--jade-pr
 | `contrast`       | `'AA' \| 'AAA' \| false`    | `'AA'`   | Experimental. Contrast the [semantic tokens](#semantic-tokens-experimental) aim for, and what the build warns about; `false` skips the warning |
 | `highContrast`   | `boolean`                   | `false`  | Experimental. Also write the AAA token values (text 7:1) inside `@media (prefers-contrast: more)`, so visitors who ask their system for more contrast get them with no setting on the site — see [Contrast](#semantic-tokens-experimental) |
 | `themeColorMeta` | `boolean \| string`      | `false`  | Keep `<meta name="theme-color">` in step with the theme, so the browser bar on phones and installed apps follows it: `true` uses the variant's `background`, a color name (`'primary'`, `'background2'`…) uses that one. Written before the first paint and updated on each switch; remove a `theme-color` of your own, or there will be two |
+| `lab`            | `boolean`                | `false`  | Experimental. A pencil in the switcher, where the visitor changes the style and colors of the theme — see [Theme lab](#theme-lab-experimental) |
 
 ### Themes
 
@@ -430,7 +431,7 @@ A warning usually means the seed itself can't get there, not that the scale is w
 
 **High contrast.** `color.highContrast: true` (experimental, off by default) also writes the AAA version of every token that changes, per variant, inside `@media (prefers-contrast: more)`: visitors who ask their system for more contrast get text at 7:1 with no setting on the site. With the built-in themes it adds about 7 kB of CSS (before compression) and under a second to the build. Seeds don't change (`fill-*` stays the exact seed), and a pair that can't reach 7:1 with black or white (`on-*` on a mid-tone seed) keeps the best the scale can do, with no build warning. The CSS variables follow the preference; `useJade().tokens` keeps reporting the regular values. There is nothing to add when `color.contrast` is already `'AAA'`.
 
-The tokens are generated at build time with [Adobe Leonardo](https://github.com/adobe/leonardo) and never reach the client bundle; the client only receives the resulting hex values. The roles are `primary`, `secondary`, `accent` and the status colors `error`, `info`, `success` and `warning`: each gets the tokens below from the seed of the same name. A theme that sets only `primary` gets the rest derived from it: `secondary` is the primary's hue turned 30° and `accent` the opposite hue, calmer, both at the primary's lightness; `error`, `info`, `success` and `warning` use the usual red, blue, green and amber, deeper on a light page and lighter on a dark one. A seed the theme sets always wins over the derived one, and a gray `primary` (no hue to turn) derives only the status colors. Without a `primary` nothing is derived.
+The tokens are generated at build time with [Adobe Leonardo](https://github.com/adobe/leonardo); the client only receives the resulting hex values, and the engine reaches the browser only with the [theme lab](#theme-lab-experimental), loaded on demand. The roles are `primary`, `secondary`, `accent` and the status colors `error`, `info`, `success` and `warning`: each gets the tokens below from the seed of the same name. A theme that sets only `primary` gets the rest derived from it: `secondary` is the primary's hue turned 30° and `accent` the opposite hue, calmer, both at the primary's lightness; `error`, `info`, `success` and `warning` use the usual red, blue, green and amber, deeper on a light page and lighter on a dark one. A seed the theme sets always wins over the derived one, and a gray `primary` (no hue to turn) derives only the status colors. Without a `primary` nothing is derived.
 
 #### Built-in themes and `experimental`
 
@@ -660,6 +661,7 @@ Or the class `cursor-default` on those rows (`:row-props="row => ({ class: row.i
 | `showLabel` | `boolean` | `false`                 | Show the theme and mode names next to the icon      |
 | `hideConsent` | `boolean` | `false`               | Leave "Save changes" and the save reminder out, when your own cookie banner already asks |
 | `buttonColors` | `{ light?, dark? }` | black, white and grays | Colors of the button that opens the menu — see [Button colors](#button-colors) |
+| `exportConfig` | `boolean` | `false` | With [`color.lab`](#theme-lab-experimental): the editor also offers "Copy configuration" |
 
 <a id="button-colors"></a>**Button colors.** By default the button is white with a dark icon in light mode, and the other way around in dark mode. `buttonColors` changes it, per mode; each takes `background`, `icon` (the icon and the label), `border` and `hover` (the fill under the pointer or keyboard focus, `background` when left out), as any CSS color:
 
@@ -711,6 +713,29 @@ Since "Save changes" is easy to miss, a change that won't be remembered (a theme
 - **Fits on phones:** the menu always stays on screen: it opens upward when there's more room above the button, shifts sideways near an edge, and scrolls inside itself when it's taller than the space left (refitted when the screen rotates). On touch screens its targets are bigger, hover highlights are off, and the custom cursor's switch is hidden, since there's no cursor to show.
 
 It ships with minimal CSS of its own. To restyle it, target `.venix-theme-switcher`, `.venix-theme-switcher__trigger`, `.venix-theme-switcher__menu`, `.venix-theme-switcher__subheading`, `.venix-theme-switcher__item` (`--mode` for the mode buttons, `--toggle` for the settings), `.venix-theme-switcher__icon-button` (the gear and back buttons), `.venix-theme-switcher__prompt` (the save reminder) and `.venix-theme-switcher__switch` (see [`VenixThemeSwitcher.vue`](./src/runtime/components/VenixThemeSwitcher.vue)).
+
+<br>
+
+## Theme lab (experimental)
+
+With `color.lab: true`, [`<JadeThemeSwitcher>`](#theme-switcher) gets a pencil next to its title. It opens a drawer on the right side of the screen (on a phone, leaving a strip of the page in sight) where the visitor changes the theme in effect, per mode. It stays open while they look around the page, until closed (× or Esc):
+
+```ts
+venixJade: { color: { lab: true } }
+```
+
+```vue
+<JadeThemeSwitcher />
+<!-- For who builds the site: also "Copy configuration" -->
+<JadeThemeSwitcher export-config />
+```
+
+- **Light and dark:** each is edited on its own; picking one in the panel switches the site to it.
+- **What changes:** bold panels or not, gray, soft or vivid neutrals, standard or soft card outlines (the [semantic tokens](#semantic-tokens-experimental), turned on for a customized variant), and every color of the theme: brand, status and backgrounds. The drawer also switches the theme.
+- **Legible by construction:** the backgrounds stay light on a light variant and dark on a dark one. A color that would make some text or outline fall below `color.contrast`, or leave a brand or status color under 3:1 on the background, is swapped for the closest tone of the same hue that doesn't, and the panel says which; a style choice that would do it is refused. The switcher and the panel keep their neutral grays, so there is always a way back (**Reset**).
+- **Saved like the theme:** in the `jade-theme-custom` cookie, under the same consent rule (`color.requireConsent`); without consent the choices last for the visit. The CSS is also kept in `localStorage`, and an inline script puts it back before the page is painted.
+- **Weight:** the color engine (about 42 kB gzipped) goes to the browser only when it is needed: on a change, or to rebuild the CSS after a new deploy.
+- **Not covered yet:** the drawn cursors, the Vuetify themes, `theme-color` and `useJade().tokens` keep the project's colors.
 
 <br>
 
@@ -1099,7 +1124,7 @@ Colors, typography, scrollbar, cursor, translation and the switcher are Jade's o
 
 | Package | Used for | How it's included | License |
 | ------- | -------- | ----------------- | ------- |
-| [`@adobe/leonardo-contrast-colors`](https://github.com/adobe/leonardo) | Generates the 12-step color scales behind the [semantic tokens](#semantic-tokens-experimental), at build time only: it never reaches the browser bundle | Installed with Jade | Apache 2.0 |
+| [`@adobe/leonardo-contrast-colors`](https://github.com/adobe/leonardo) | Generates the 12-step color scales behind the [semantic tokens](#semantic-tokens-experimental), at build time, and in the browser only with the [theme lab](#theme-lab-experimental) | Installed with Jade | Apache 2.0 |
 | [`@nuxt/icon`](https://github.com/nuxt/icon) | Renders Iconify icons for `<Icon>` and `<JadeIcon>` ([Icons](#icons)) | Installed with Jade; skipped with `icon: false` | MIT |
 | [`@iconify/utils`](https://github.com/iconify/iconify) | Picks the icons to bundle offline ([Offline icon collections](#offline-icon-collections)) | Installed with Jade | MIT |
 | [`@iconify-json/line-md`](https://github.com/cyberalien/line-md) | Animated Material Line Icons, by Vjacheslav Trushkin | Installed with Jade, bundled by default | MIT |

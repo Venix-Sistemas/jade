@@ -83,6 +83,9 @@ export default defineNuxtConfig({
     // Custom colors
     color: {
       // defaultColor: 'dark',
+      // The pencil in the theme switcher: the visitor changes the style and the colors
+      lab: true,
+
       // seasonal: false, // removes Carnival, Easter, Halloween and Christmas
       themes: {
         // `venix` is the Venix Sistemas brand theme: overriding its colors

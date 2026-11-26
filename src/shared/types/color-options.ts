@@ -78,6 +78,15 @@ export interface ColorOptions {
    * second time) and a little CSS. Default: `false`.
    */
   highContrast: boolean
+  /**
+   * Experimental. Adds a pencil to `<JadeThemeSwitcher>` that opens a panel
+   * where the visitor changes the style of the theme in effect (bold panels, neutral tint, card
+   * outlines) and its colors. Choices that
+   * would make text hard to read are refused. Saved in a cookie under the same
+   * consent rule as the theme (`requireConsent`). The color engine goes to the
+   * browser, loaded only when needed. Default: `false`.
+   */
+  lab: boolean
 }
 
 /** A color of a theme variant that can drive `theme-color`: `'background'`, `'primary'`… */
