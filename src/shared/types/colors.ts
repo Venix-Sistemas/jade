@@ -78,9 +78,15 @@ export interface ThemeMeta {
    * its hue instead, and its surfaces gain more of it the farther from the
    * page. `false` makes them plain grays, like a theme built on
    * `background2`/`background3` greys. Contrast is the same either way.
-   * Default: `true`.
+   *
+   * `'vivid'` goes the other way: the page (`bg`) stays exactly as set, but
+   * every other neutral takes the hue of `primary` at a clearly visible
+   * strength, even over a `background` that has a color of its own: cards and panels
+   * (`bg-subtle`, `bg-muted`) come out tinted, borders colored, text a deep
+   * tone of the hue. For a light theme on a white page that still reads as
+   * colorful. Contrast is the same as the default. Default: `true`.
    */
-  neutralTint?: boolean
+  neutralTint?: boolean | 'vivid'
 }
 
 /**

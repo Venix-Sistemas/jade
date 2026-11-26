@@ -192,6 +192,61 @@ describe('neutralTint', () => {
   })
 })
 
+describe('neutralTint: \'vivid\'', () => {
+  const GREEN_LIGHT: ThemeColors = { dark: false, tokens: true, primary: '#0B7A24', secondary: '#1565C0', background: '#FFFFFF', neutralTint: 'vivid' }
+  const GREEN_DARK: ThemeColors = { dark: true, tokens: true, primary: '#4CAF50', secondary: '#64B5F6', background: '#121212', neutralTint: 'vivid' }
+  const SURFACES = ['bg-subtle', 'bg-muted', 'bg-hover', 'bg-active', 'border']
+  const spread = (hex: string) => {
+    const channels = [1, 3, 5].map(i => Number.parseInt(hex.slice(i, i + 2), 16))
+    return Math.max(...channels) - Math.min(...channels)
+  }
+
+  it('deve manter a página exatamente como o fundo e colorir as superfícies', () => {
+    const tokens = toMap(GREEN_LIGHT)
+    expect(tokens.bg).toBe('#FFFFFF')
+    for (const name of SURFACES) expect(spread(tokens[name]!), name).toBeGreaterThanOrEqual(8)
+  })
+
+  it('deve dar mais cor às superfícies do que o tom padrão', () => {
+    const plain = toMap({ ...GREEN_LIGHT, neutralTint: true })
+    const vivid = toMap(GREEN_LIGHT)
+    for (const name of SURFACES) expect(spread(vivid[name]!), name).toBeGreaterThan(spread(plain[name]!))
+  })
+
+  it('deve manter o matiz do primary nas superfícies', () => {
+    const { 'bg-muted': muted } = toMap(GREEN_LIGHT)
+    const [r, g, b] = [1, 3, 5].map(i => Number.parseInt(muted!.slice(i, i + 2), 16))
+    expect(g!).toBeGreaterThan(r!)
+    expect(g!).toBeGreaterThan(b!)
+  })
+
+  it.each([['claro', GREEN_LIGHT], ['escuro', GREEN_DARK]] as const)('deve passar os mesmos pares de contraste (%s)', (_label, colors) => {
+    for (const level of ['AA', 'AAA'] as const) {
+      const issues = checkTokenContrast(generateTokens(colors, level), level)
+      expect(issues.filter(issue => !issue.text.startsWith('on-'))).toEqual([])
+    }
+  })
+
+  it('não deve mexer nos papéis, só no neutro', () => {
+    const plain = toMap({ ...GREEN_LIGHT, neutralTint: true })
+    const vivid = toMap(GREEN_LIGHT)
+    expect(vivid['fill-primary']).toBe(plain['fill-primary'])
+    expect(vivid['fill-secondary']).toBe(plain['fill-secondary'])
+  })
+
+  it('deve gerar o neutro em cinza com `neutralTint: false`, que não é vivid', () => {
+    const gray = toMap({ ...GREEN_LIGHT, neutralTint: false })
+    for (const name of SURFACES) expect(spread(gray[name]!), name).toBe(0)
+  })
+
+  it('não deve misturar o resultado com e sem vivid no cache', () => {
+    const vivid = toMap(GREEN_LIGHT)
+    const plain = toMap({ ...GREEN_LIGHT, neutralTint: true })
+    expect(vivid['bg-subtle']).not.toBe(plain['bg-subtle'])
+    expect(toMap(GREEN_LIGHT)['bg-subtle']).toBe(vivid['bg-subtle'])
+  })
+})
+
 describe('tokens com overrides de passo', () => {
   const GRAY = { neutralTint: false }
 
@@ -329,7 +384,7 @@ describe('papéis de status e accent', () => {
 
 describe('temas embutidos', () => {
   // text e text-muted resolviam para a mesma cor no venix (override neutral-12)
-  type BuiltIn = { tokens?: boolean | Record<string, string>, neutralTint?: false } & Record<'dark' | 'light', ThemeColors>
+  type BuiltIn = { tokens?: boolean | Record<string, string>, neutralTint?: false | 'vivid' } & Record<'dark' | 'light', ThemeColors>
   const themes = builtIn.colors.themes as unknown as Record<string, Partial<BuiltIn>>
 
   for (const [name, entry] of Object.entries(themes)) {

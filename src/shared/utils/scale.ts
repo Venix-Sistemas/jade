@@ -171,13 +171,41 @@ const SURFACE_LIGHTNESS_RANGE = 0.03
  */
 function enrichSurface(step: string, background: string, ratio: number, ownChroma: number): string {
   const growth = Math.min(SURFACE_MAX_GROWTH, 1 + SURFACE_CHROMA_GROWTH * (ratio - 1))
-  const chroma = Math.min(SURFACE_MAX_CHROMA, ownChroma * growth)
+  return tintStep(step, background, ratio, background, Math.min(SURFACE_MAX_CHROMA, ownChroma * growth))
+}
+
+/** `vivid` neutral scale: the most chroma a step may have, however colorful the seed is. */
+const VIVID_MAX_CHROMA = 0.06
+/** ...a step at the ratio of a card (1.05–1.3) gets this share of it, growing to all of it by 1.5... */
+const VIVID_BASE_SHARE = 0.4
+const VIVID_SHARE_GROWTH = 1.2
+/** ...and text (from this ratio up) keeps only this share, so it reads as dark ink, not as a colored block. */
+const VIVID_TEXT_FROM = 3
+const VIVID_TEXT_SHARE = 0.6
+
+/**
+ * The chroma step `ratio` has in a `vivid` neutral scale: a share of what the
+ * seed has (capped), growing with the distance from the page so a card is
+ * clearly colored, a border more, and text settles at a deep tone of the hue.
+ */
+function vividChroma(seedChroma: number, ratio: number): number {
+  const cap = Math.min(seedChroma, VIVID_MAX_CHROMA)
+  const share = Math.min(1, VIVID_BASE_SHARE + VIVID_SHARE_GROWTH * (ratio - 1))
+  return cap * share * (ratio >= VIVID_TEXT_FROM ? VIVID_TEXT_SHARE : 1)
+}
+
+/**
+ * `step` recolored to the hue of `hueSource` at `chroma` (lowered when the
+ * gamut can't hold it), its lightness moved a hair so the contrast ratio
+ * against `background` lands back on `ratio`.
+ */
+function tintStep(step: string, background: string, ratio: number, hueSource: string, chroma: number): string {
   const L = hexToOklab(step)[0]
 
   let best = step
   let bestOff = Number.POSITIVE_INFINITY
   for (let i = -30; i <= 30; i++) {
-    const candidate = colorWithHue(L + (i / 30) * SURFACE_LIGHTNESS_RANGE, background, chroma)
+    const candidate = colorWithHue(L + (i / 30) * SURFACE_LIGHTNESS_RANGE, hueSource, chroma)
     if (!candidate) continue
     const off = Math.abs(contrastRatio(candidate, background) - ratio)
     if (off < bestOff) {
@@ -209,6 +237,7 @@ export function generateNeutralScale(
   mode: ThemeMode,
   level: ContrastLevel = 'AA',
   mutedOver: number = DEFAULT_MUTED_OVER,
+  vivid: boolean = false,
 ): string[] {
   const exact = normalizeHex(background)
   const ownChroma = chromaOf(exact)
@@ -219,8 +248,14 @@ export function generateNeutralScale(
   // here and there (`#79797A`). With a gray background and no tint, every step
   // is snapped to the gray of the same luminance: the contrast doesn't move.
   const keepGray = !tintSeed && isGray(exact)
+  // `vivid`: every step but the page takes the seed's hue (not the background's,
+  // so a cream page still gets green cards under a green primary) at a chroma
+  // that grows with its distance from the page, at the same contrast ratio.
+  const vividHue = vivid ? tintSeed : null
+  const vividSeedChroma = vividHue ? chromaOf(vividHue) : 0
   const generate = (ratios: number[]) => {
     const steps = generateSteps(key, key, mode, ratios)
+    if (vividHue) return steps.map((step, i) => i === 0 ? step : tintStep(step, exact, ratios[i]!, vividHue, vividChroma(vividSeedChroma, ratios[i]!)))
     return keepGray ? steps.map(grayWithLuminanceOf) : steps
   }
 
@@ -228,7 +263,7 @@ export function generateNeutralScale(
   ratios[10] = TARGETS[level].text
   const steps = generate(ratios)
   steps[0] = exact
-  if (themed) {
+  if (themed && !vividHue) {
     for (let i = 1; i <= 7; i++) steps[i] = enrichSurface(steps[i]!, exact, ratios[i]!, ownChroma)
   }
 
@@ -323,11 +358,11 @@ export function generateScales(
   seeds: Record<string, string>,
   mode: ThemeMode,
   level: ContrastLevel = 'AA',
-  options: { tint?: boolean, mutedOver?: number } = {},
+  options: { tint?: boolean, mutedOver?: number, vivid?: boolean } = {},
 ): GeneratedScales {
   const entries = Object.entries(seeds)
   const tintSeed = options.tint === false ? null : (entries[0]?.[1] ?? background)
-  const neutral = generateNeutralScale(background, tintSeed, mode, level, options.mutedOver)
+  const neutral = generateNeutralScale(background, tintSeed, mode, level, options.mutedOver, options.vivid === true)
 
   const roles: Record<string, RoleScale> = {}
   for (const [role, seed] of entries) roles[role] = generateScale(seed, neutral, mode, level)

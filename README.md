@@ -265,6 +265,21 @@ Neutral tokens, built from the theme's `background` (`--jade-bg` *is* the backgr
 | `text-muted` | Helper text, dates, captions |
 | `text-disabled` | Disabled controls (WCAG exempts them) |
 
+**A colorful light theme.** `neutralTint: 'vivid'` keeps the page (`bg`) exactly as the `background` and gives every other neutral the hue of `primary` at a clearly visible strength: cards and panels (`bg-subtle`, `bg-muted`) come out tinted, borders colored and text a deep tone of the hue, so a white page full of cards reads as colorful instead of white on white. The contrast pairs and the steps are the same as the default; only the chroma changes. For a stronger card, lift it to a later step: `tokens: { 'bg-subtle': 'neutral-4' }` (muted text is placed to reach the level over it). Combine it with the role tokens (`bg-success`, `bg-warning`, `fill-primary`…) for status cards and headers in their own colors.
+
+```ts
+color: {
+  themes: {
+    meu: {
+      tokens: { 'bg-subtle': 'neutral-4' },
+      neutralTint: 'vivid',
+      light: { primary: '#0B7A24', background: '#FFFFFF' },
+      dark: { primary: '#4CAF50', background: '#121212' },
+    },
+  },
+}
+```
+
 Tokens for each role (`primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`), shown for `primary`:
 
 | Token | Use |

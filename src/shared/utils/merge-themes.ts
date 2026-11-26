@@ -40,16 +40,16 @@ function pickPalette(entry: Partial<ThemeEntry> | ThemeVariant): ThemePalette {
 }
 
 /**
- * `{ tokens: true }` for a theme that opted in (plus `neutralTint: false` when it
- * turned the tint off), `{ tokens: false }` for one that opted out on purpose
- * (the `experimental` option leaves it alone), nothing otherwise, so other
- * variants stay as they were.
+ * `{ tokens: true }` for a theme that opted in (plus `neutralTint` when it turned
+ * the tint off or made it `'vivid'`), `{ tokens: false }` for one that opted out
+ * on purpose (the `experimental` option leaves it alone), nothing otherwise, so
+ * other variants stay as they were.
  */
-function tokensFlag(entry: Partial<ThemeEntry>): { tokens?: boolean | Record<string, string>, neutralTint?: false } {
+function tokensFlag(entry: Partial<ThemeEntry>): { tokens?: boolean | Record<string, string>, neutralTint?: false | 'vivid' } {
   if (entry.tokens === false) return { tokens: false }
   if (!tokensEnabled(entry)) return {}
   const tokens = typeof entry.tokens === 'object' ? { ...entry.tokens } : true as const
-  return entry.neutralTint === false ? { tokens, neutralTint: false } : { tokens }
+  return entry.neutralTint === false || entry.neutralTint === 'vivid' ? { tokens, neutralTint: entry.neutralTint } : { tokens }
 }
 
 const variantId = (themeName: string, mode: ThemeMode, variant: ThemeVariant): string =>

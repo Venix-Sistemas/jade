@@ -29,7 +29,7 @@ const tokenCache = new Map<string, Array<[string, string]>>()
  * written. Memoized: the CSS and the build check ask for the same variant.
  */
 export function generateTokens(colors: ThemeColors, level: ContrastLevel = 'AA'): Array<[string, string]> {
-  const key = JSON.stringify([colors.dark === true, colors.background, ROLES.map(role => colors[role]), level, colors.neutralTint !== false, tokenOverrides(colors)])
+  const key = JSON.stringify([colors.dark === true, colors.background, ROLES.map(role => colors[role]), level, colors.neutralTint ?? true, tokenOverrides(colors)])
   let tokens = tokenCache.get(key)
   if (!tokens) {
     tokens = buildTokens(colors, level)
@@ -59,6 +59,7 @@ function buildTokens(colors: ThemeColors, level: ContrastLevel): Array<[string, 
   const overrides = tokenOverrides(colors)
   const { neutral, roles } = generateScales(background, seeds, mode, level, {
     tint: colors.neutralTint !== false,
+    vivid: colors.neutralTint === 'vivid',
     mutedOver: farthestNeutralSurface(overrides),
   })
   const tokens: Array<[string, string]> = NEUTRAL_TOKENS.map(([name, step]) => [name, neutral[step - 1]!])

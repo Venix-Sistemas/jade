@@ -288,6 +288,12 @@ describe('neutralTint (experimental)', () => {
     expect(themes['t-dark']).toMatchObject({ tokens: true, neutralTint: false })
   })
 
+  it('deve levar `neutralTint: \'vivid\'` do tema para as duas variantes, junto de `tokens`', () => {
+    const { themes } = normalizeColorThemes({ t: { tokens: true, neutralTint: 'vivid', light, dark } })
+    expect(themes['t-light']).toMatchObject({ tokens: true, neutralTint: 'vivid' })
+    expect(themes['t-dark']).toMatchObject({ tokens: true, neutralTint: 'vivid' })
+  })
+
   it('não deve acrescentar `neutralTint` quando o tema deixa o padrão', () => {
     const { themes } = normalizeColorThemes({ t: { tokens: true, light, dark }, u: { tokens: true, neutralTint: true, light } })
     expect(themes['t-light']).not.toHaveProperty('neutralTint')
