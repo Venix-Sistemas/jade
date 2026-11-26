@@ -1,3 +1,39 @@
+// Every combination of the surface options on the Ocean colors, to compare
+// them: `neutralTint` (gray, soft tint, vivid), with the bold panels or
+// without, and the standard card outlines or the quiet ones.
+function oceanVariations() {
+  const tints = [
+    { id: 'Gray', neutralTint: false, names: ['gray', 'cinza', 'gris'] },
+    { id: 'Soft', neutralTint: true, names: ['soft', 'sutil', 'sutil'] },
+    { id: 'Vivid', neutralTint: 'vivid', names: ['vivid', 'vivid', 'vivid'] },
+  ] as const
+  const kinds = [
+    { id: 'normal', bold: false, name: 'Normal' },
+    { id: 'bold', bold: true, name: 'Bold' },
+  ] as const
+  const outlines = [
+    { id: '', borders: 'default', names: ['bordered', 'com borda', 'con borde'] },
+    { id: 'Quiet', borders: 'soft', names: ['soft border', 'borda suave', 'borde suave'] },
+  ] as const
+
+  return Object.fromEntries(kinds.flatMap(kind => tints.flatMap(tint => outlines.map((outline) => {
+    // Plain grays need a gray page: over a colored one they keep its hue
+    const gray = tint.neutralTint === false
+    const name = (i: 0 | 1 | 2) => `${kind.name} ${tint.names[i]} (${outline.names[i]})`
+    return [`ocean${kind.name}${tint.id}${outline.id}`, {
+      tokens: true,
+      neutralTint: tint.neutralTint,
+      borders: outline.borders,
+      // Without `surfaces`, a variant that sets `neutralTint` isn't bold
+      ...(kind.bold && { surfaces: 'bold' as const }),
+      translations: { 'en-US': name(0), 'pt-BR': name(1), 'es-ES': name(2) },
+      icon: { emote: '🌊', css: 'mdi:waves', svg: 'line-md:water-filled' },
+      light: { primary: '#0B6E8A', secondary: '#0A6462', background: gray ? '#FAFAFA' : '#F4FAFC' },
+      dark: { primary: '#4FC3D9', secondary: '#7FD8C9', background: gray ? '#121212' : '#08141A' },
+    }]
+  }))))
+}
+
 export default defineNuxtConfig({
   modules: ['@venix-sistemas/jade', '@unocss/nuxt', '@nuxtjs/i18n', 'vuetify-nuxt-module'],
   devtools: { enabled: true },
@@ -130,46 +166,8 @@ export default defineNuxtConfig({
             background3: '#152A34',
           },
         },
-        // Variations of `oceano`: colorful surfaces without the bold panels, with
-        // the standard outlines and with quiet ones (`borders: 'soft'`), and bold
-        oceanoVividBorda: {
-          tokens: true,
-          surfaces: 'vivid',
-          translations: {
-            'en-US': 'Ocean Vivid (bordered)',
-            'pt-BR': 'Oceano Vivid (com borda)',
-            'es-ES': 'Océano Vivid (con borde)',
-          },
-          icon: { emote: '🐠' },
-          light: { primary: '#0B6E8A', secondary: '#0A6462', background: '#F4FAFC' },
-          dark: { primary: '#4FC3D9', secondary: '#7FD8C9', background: '#08141A' },
-        },
-        oceanoVivid: {
-          tokens: true,
-          surfaces: 'vivid',
-          borders: 'soft',
-          translations: {
-            'en-US': 'Ocean Vivid (soft border)',
-            'pt-BR': 'Oceano Vivid (borda suave)',
-            'es-ES': 'Océano Vivid (borde suave)',
-          },
-          icon: { emote: '🐬' },
-          light: { primary: '#0B6E8A', secondary: '#0A6462', background: '#F4FAFC' },
-          dark: { primary: '#4FC3D9', secondary: '#7FD8C9', background: '#08141A' },
-        },
-        oceanoBold: {
-          tokens: true,
-          surfaces: 'bold',
-          borders: 'soft',
-          translations: {
-            'en-US': 'Ocean Bold (soft border)',
-            'pt-BR': 'Oceano Bold (borda suave)',
-            'es-ES': 'Océano Bold (borde suave)',
-          },
-          icon: { emote: '🐋' },
-          light: { primary: '#0B6E8A', secondary: '#0A6462', background: '#F4FAFC' },
-          dark: { primary: '#4FC3D9', secondary: '#7FD8C9', background: '#08141A' },
-        },
+        // Every combination of `neutralTint`, bold and `borders` (above)
+        ...oceanVariations(),
       },
       // Preferred icon variant for themes that define `icon` as an object
       // (`{ emote, css, svg }`) instead of a plain emoji — 'svg' uses
