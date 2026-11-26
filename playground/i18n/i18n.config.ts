@@ -17,6 +17,7 @@ export default defineI18nConfig(() => ({
         scrollbar: { title: 'Scrollbar', description: 'A custom scrollbar that follows the active theme\'s colors.' },
         cursor: { title: 'Cursor', description: 'Custom cursor images for default, clickable and text areas.' },
         plugins: { title: 'Plugins', description: 'Integrations with other libraries: Vuetify gets the color themes, the UnoCSS preset gives classes, Iconify powers the icons and the locale is shared with the i18n module.' },
+        examples: { title: 'Examples', description: 'Whole screens built with the module, to see its features working together.' },
       },
       color: {
         mode: 'Mode',
@@ -166,6 +167,7 @@ export default defineI18nConfig(() => ({
         scrollbar: { title: 'Scrollbar', description: 'Uma barra de rolagem personalizada que segue as cores do tema ativo.' },
         cursor: { title: 'Cursor', description: 'Imagens de cursor próprias para áreas comuns, clicáveis e de texto.' },
         plugins: { title: 'Plugins', description: 'Integrações com outras bibliotecas: o Vuetify recebe os temas de cor, o preset do UnoCSS oferece classes, o Iconify cuida dos ícones e o idioma é compartilhado com o módulo de i18n.' },
+        examples: { title: 'Exemplos', description: 'Telas completas feitas com o módulo, para ver os recursos funcionando juntos.' },
       },
       color: {
         mode: 'Modo',
@@ -315,6 +317,7 @@ export default defineI18nConfig(() => ({
         scrollbar: { title: 'Scrollbar', description: 'Una barra de desplazamiento personalizada que sigue los colores del tema activo.' },
         cursor: { title: 'Cursor', description: 'Imágenes de cursor propias para áreas normales, clicables y de texto.' },
         plugins: { title: 'Plugins', description: 'Integraciones con otras bibliotecas: Vuetify recibe los temas de color, el preset de UnoCSS ofrece clases, Iconify se ocupa de los iconos y el idioma se comparte con el módulo de i18n.' },
+        examples: { title: 'Ejemplos', description: 'Pantallas completas hechas con el módulo, para ver sus funciones trabajando juntas.' },
       },
       color: {
         mode: 'Modo',

@@ -43,8 +43,6 @@
     </nav>
 
     <main class="content">
-      <BoldDemo id="bold-demo" />
-
       <!-- ===== Colors ===== -->
       <section
         id="color"
@@ -810,6 +808,23 @@
           </article>
         </div>
       </section>
+
+      <!-- ===== Examples ===== -->
+      <section
+        id="examples"
+        class="module"
+      >
+        <ModuleHeader
+          id="examples"
+          emoji="🧪"
+          key-label="playground/components"
+        />
+
+        <!-- Whole screens built with the module, one component each: new ones go here -->
+        <div class="examples">
+          <BoldDemo />
+        </div>
+      </section>
     </main>
   </div>
 </template>
@@ -838,6 +853,7 @@ const modules = [
   { id: 'typography', emoji: '🔤' },
   { id: 'translation', emoji: '🌐' },
   { id: 'plugins', emoji: '🧩' },
+  { id: 'examples', emoji: '🧪' },
 ]
 
 // The theme colors Vuetify gets, shown as chips.
@@ -1309,6 +1325,11 @@ code {
 
 .module {
   margin-bottom: 2.5rem;
+}
+
+.examples {
+  display: grid;
+  gap: 2rem;
 }
 
 .module__header {

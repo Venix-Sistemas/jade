@@ -13,10 +13,13 @@ const rows = [
 </script>
 
 <template>
-  <section class="bold-demo">
-    <h2 class="bold-demo__title">
+  <article
+    id="bold-demo"
+    class="bold-demo"
+  >
+    <h3 class="bold-demo__title">
       Superfícies <code>bold</code>
-    </h2>
+    </h3>
     <p class="bold-demo__hint">
       A página segue neutra; o menu, os cabeçalhos e alguns cards usam
       <code>data-jade-surface="bold"</code> e, no tema claro, ganham a cor da marca.
@@ -110,14 +113,12 @@ const rows = [
         </article>
       </div>
     </div>
-  </section>
+  </article>
 </template>
 
 <style scoped>
 .bold-demo {
-  margin: 0 auto 3rem;
-  max-width: 64rem;
-  padding: 0 1rem;
+  min-width: 0;
   color: var(--jade-text);
 }
 
