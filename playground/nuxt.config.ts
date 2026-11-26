@@ -94,7 +94,12 @@ export default defineNuxtConfig({
         // built-in ones. Leave out `seasonal`/`dateRange` for a theme the
         // user picks by hand; add them to make it take over by date.
         oceano: {
-          translations: { 'en-US': 'Ocean', 'pt-BR': 'Oceano', 'es-ES': 'Océano' },
+          tokens: true,
+          translations: {
+            'en-US': 'Ocean (default, bordered)',
+            'pt-BR': 'Oceano (padrão, com borda)',
+            'es-ES': 'Océano (estándar, con borde)',
+          },
           icon: {
             emote: '🌊',
             css: 'mdi:waves',
@@ -125,6 +130,46 @@ export default defineNuxtConfig({
             background3: '#152A34',
           },
         },
+        // Variations of `oceano`: colorful surfaces without the bold panels, with
+        // the standard outlines and with quiet ones (`borders: 'soft'`), and bold
+        oceanoVividBorda: {
+          tokens: true,
+          surfaces: 'vivid',
+          translations: {
+            'en-US': 'Ocean Vivid (bordered)',
+            'pt-BR': 'Oceano Vivid (com borda)',
+            'es-ES': 'Océano Vivid (con borde)',
+          },
+          icon: { emote: '🐠' },
+          light: { primary: '#0B6E8A', secondary: '#0A6462', background: '#F4FAFC' },
+          dark: { primary: '#4FC3D9', secondary: '#7FD8C9', background: '#08141A' },
+        },
+        oceanoVivid: {
+          tokens: true,
+          surfaces: 'vivid',
+          borders: 'soft',
+          translations: {
+            'en-US': 'Ocean Vivid (soft border)',
+            'pt-BR': 'Oceano Vivid (borda suave)',
+            'es-ES': 'Océano Vivid (borde suave)',
+          },
+          icon: { emote: '🐬' },
+          light: { primary: '#0B6E8A', secondary: '#0A6462', background: '#F4FAFC' },
+          dark: { primary: '#4FC3D9', secondary: '#7FD8C9', background: '#08141A' },
+        },
+        oceanoBold: {
+          tokens: true,
+          surfaces: 'bold',
+          borders: 'soft',
+          translations: {
+            'en-US': 'Ocean Bold (soft border)',
+            'pt-BR': 'Oceano Bold (borda suave)',
+            'es-ES': 'Océano Bold (borde suave)',
+          },
+          icon: { emote: '🐋' },
+          light: { primary: '#0B6E8A', secondary: '#0A6462', background: '#F4FAFC' },
+          dark: { primary: '#4FC3D9', secondary: '#7FD8C9', background: '#08141A' },
+        },
       },
       // Preferred icon variant for themes that define `icon` as an object
       // (`{ emote, css, svg }`) instead of a plain emoji — 'svg' uses
@@ -134,8 +179,8 @@ export default defineNuxtConfig({
     },
 
     // Experimental (off by default, build time only): the semantic color
-    // tokens on the project's own themes too (`oceano` here), and on
-    // Vuetify's colors. The built-in themes ship the tokens already.
+    // tokens on every theme, and on Vuetify's colors. The built-in themes and
+    // the `oceano` ones above set `tokens` already.
     experimental: false,
 
     // Vuetify: enable with `vuetify: true` in projects using vuetify-nuxt-module

@@ -139,7 +139,7 @@ export default defineI18nConfig(() => ({
           jade: 'Jade locale',
           note: 'Pick a language under Translation: both follow it.',
         },
-        unoHint: 'The preset\'s token classes. They only have a value on themes with tokens, which every built-in theme has; pick Ocean to see them do nothing.',
+        unoHint: 'The preset\'s token classes. They only have a value on themes with tokens, which every theme on this page has.',
       },
       typography: {
         sample: 'The quick brown fox jumps over the lazy dog',
@@ -291,7 +291,7 @@ export default defineI18nConfig(() => ({
           jade: 'Locale do Jade',
           note: 'Escolha um idioma em Tradução: os dois o acompanham.',
         },
-        unoHint: 'As classes de token do preset. Só têm valor em temas com tokens, o que vale para todos os temas embutidos; escolha Oceano para vê-las sem efeito.',
+        unoHint: 'As classes de token do preset. Só têm valor em temas com tokens, o que vale para todos os temas desta página.',
       },
       typography: {
         sample: 'Jovem craque belga prestigia a festa do Natal',
@@ -443,7 +443,7 @@ export default defineI18nConfig(() => ({
           jade: 'Locale de Jade',
           note: 'Elige un idioma en Traducción: ambos lo siguen.',
         },
-        unoHint: 'Las clases de token del preset. Solo tienen valor en temas con tokens, como todos los temas integrados; elige Océano para verlas sin efecto.',
+        unoHint: 'Las clases de token del preset. Solo tienen valor en temas con tokens, como todos los temas de esta página.',
       },
       typography: {
         sample: 'El veloz murciélago hindú comía feliz cardillo y kiwi',
