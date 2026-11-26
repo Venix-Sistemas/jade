@@ -22,7 +22,7 @@ const rows = [
     </h3>
     <p class="bold-demo__hint">
       A página segue neutra; o menu, os cabeçalhos e alguns cards usam
-      <code>data-jade-surface="bold"</code> e, no tema claro, ganham a cor da marca.
+      <code>data-jade-surface="bold"</code> e ganham a cor da marca: forte no claro, mais discreta no escuro.
     </p>
 
     <div class="shell">
@@ -143,10 +143,10 @@ const rows = [
   border-right: 1px solid var(--jade-border);
 }
 
-/* A dark variant has no bold scope by default: the menu takes the soft tone of
-   the brand color, halved with the card gray so it doesn't weigh like a bold
-   panel, and doesn't melt into the page. */
-:global(:root:not([data-theme$='light']) .shell__side) {
+/* A dark variant has no bold scope by default. So that the example keeps the
+   same share of color in both modes, every area marked for the scope takes there
+   the soft tone of the brand color, halved with the card gray. */
+:global(:root:not([data-theme$='light']) .bold-demo [data-jade-surface]) {
   border-color: color-mix(in srgb, var(--jade-border-primary) 50%, var(--jade-border));
   background: color-mix(in srgb, var(--jade-bg-primary) 50%, var(--jade-bg-subtle));
 }
