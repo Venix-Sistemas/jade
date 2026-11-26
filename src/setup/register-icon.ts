@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 import { realpathSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
-import { installModule, addImports, addComponent } from '@nuxt/kit'
+import { addImports, addComponent } from '@nuxt/kit'
 import type { Resolver } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
 import type { ModuleOptions as NuxtIconOptions } from '@nuxt/icon'
@@ -67,9 +67,8 @@ function loadCollectionSubset(name: string, iconNames: Set<string>, projectRequi
   return getIcons(json, [...iconNames]) as IconCollectionEntry | null
 }
 
-export async function registerThemeIcon(nuxt: Nuxt, resolver: Resolver, options: IconOptions, colors: ColorsConfig, legacyNames = true) {
-  if (!options.enabled) return
-
+/** What `@nuxt/icon` is configured with: the aliases and the collections to bundle. */
+export function iconModuleOptions(nuxt: Nuxt, options: IconOptions, colors: ColorsConfig) {
   let projectRequire: NodeRequire | null = null
   try {
     projectRequire = createRequire(join(nuxt.options.rootDir, 'package.json'))
@@ -92,12 +91,17 @@ export async function registerThemeIcon(nuxt: Nuxt, resolver: Resolver, options:
     collections.push(loadCollectionSubset(name, iconNames, projectRequire) ?? name)
   }
 
-  await installModule('@nuxt/icon', {
+  return {
     aliases: options.aliases,
     serverBundle: {
       collections,
     },
-  })
+  }
+}
+
+/** `<JadeIcon>` and `useJadeIcon`. `@nuxt/icon` itself is a module dependency (`icon-dependency.ts`). */
+export function registerThemeIcon(resolver: Resolver, options: IconOptions, legacyNames = true) {
+  if (!options.enabled) return
 
   // The `Venix` names are the ones up to 1.5, removed in 2.0
   for (const name of legacyNames ? ['useJadeIcon', 'useVenixIcon'] : ['useJadeIcon']) {

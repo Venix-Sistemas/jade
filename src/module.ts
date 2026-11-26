@@ -1,4 +1,6 @@
+import { fileURLToPath } from 'node:url'
 import { defineNuxtModule, createResolver, addImports, useLogger } from '@nuxt/kit'
+import type { NuxtModule } from '@nuxt/schema'
 import { loadTheme } from './shared/utils/load'
 import type { TypographyConfig, ScrollbarConfig, CursorConfig, ColorOptions, TranslationConfig, VuetifyOptions, IconOptions, ExperimentalConfig, VenixRuntimeConfig } from './shared/types'
 import { COLOR_PROPERTIES, DEFAULT_LOCALE, DEFAULT_LOCALE_COOKIE_NAME, DEFAULT_THEME } from './shared/constants'
@@ -21,6 +23,7 @@ import { registerOverlayScrollbars } from './setup/register-scrollbar'
 import { registerThemeVuetify } from './setup/register-vuetify'
 import { registerThemeVuetify0 } from './setup/register-vuetify0'
 import { registerThemeIcon } from './setup/register-icon'
+import { iconDependencies, inlineModuleOptions, resolveIconOptions } from './setup/icon-dependency'
 
 export type { ThemeName, ThemeOrVariantName, TokenName } from './shared/types'
 
@@ -83,25 +86,34 @@ declare module 'nuxt/schema' {
   }
 }
 
-export default defineNuxtModule<ModuleOptions>({
+const DEFAULT_OPTIONS: ModuleOptions = {
+  translation: true,
+  color: true,
+  scrollbar: true,
+  cursor: true,
+  typography: true,
+  vuetify: false,
+  vuetify0: false,
+  legacyNames: true,
+  icon: true,
+  experimental: false,
+}
+
+const jadeModule: NuxtModule<ModuleOptions> = defineNuxtModule<ModuleOptions>({
   meta: {
     name: '@venix-sistemas/jade',
     configKey: 'venixJade',
-    // The module is built and tested on Nuxt 4 (`@nuxt/kit` ^4). Older
-    // versions get a clear message, not the first error that comes up.
-    compatibility: { nuxt: '>=4.0.0' },
+    // The module is built and tested on Nuxt 4 (`@nuxt/kit` ^4); module
+    // dependencies need 4.1. Older versions get a clear message, not the
+    // first error that comes up.
+    compatibility: { nuxt: '>=4.1.0' },
   },
-  defaults: {
-    translation: true,
-    color: true,
-    scrollbar: true,
-    cursor: true,
-    typography: true,
-    vuetify: false,
-    vuetify0: false,
-    legacyNames: true,
-    icon: true,
-    experimental: false,
+  defaults: DEFAULT_OPTIONS,
+
+  // `@nuxt/icon`, unless `icon` is off. Must stay synchronous (Nuxt 4.1)
+  moduleDependencies(nuxt) {
+    const inline = inlineModuleOptions(nuxt, jadeModule, fileURLToPath(import.meta.url))
+    return iconDependencies(nuxt, inline, DEFAULT_OPTIONS)
   },
 
   async setup(moduleOptions, nuxt) {
@@ -206,13 +218,9 @@ export default defineNuxtModule<ModuleOptions>({
     })
     registerThemeVuetify(nuxt, resolver, theme, colorOptions.defaultColor, vuetifyOptions.enabled)
 
-    // 8. Register @nuxt/icon + <JadeIcon> / useJadeIcon
-    const iconOptions = resolveFeatureOption<IconOptions>(options.icon, {
-      enabled: true,
-      collections: ['line-md'],
-      aliases: {},
-    })
-    await registerThemeIcon(nuxt, resolver, iconOptions, theme.colors, legacyNames)
+    // 8. Register <JadeIcon> / useJadeIcon (`@nuxt/icon` is a module dependency)
+    const iconOptions = resolveIconOptions(options.icon)
+    registerThemeIcon(resolver, iconOptions, legacyNames)
 
     // After the icons: Vuetify0 follows the theme state above
     const vuetify0 = options.vuetify0 === true && colorOptions.enabled
@@ -254,3 +262,5 @@ export default defineNuxtModule<ModuleOptions>({
     Object.assign(nuxt.options.runtimeConfig.public, { venixTheme: runtimeConfig })
   },
 })
+
+export default jadeModule

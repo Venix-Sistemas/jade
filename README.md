@@ -48,6 +48,8 @@ pnpm add @venix-sistemas/jade
 npm install @venix-sistemas/jade
 ```
 
+Requires Nuxt 4.1 or newer.
+
 <br>
 
 ## Quick Setup
