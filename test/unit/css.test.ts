@@ -8,7 +8,9 @@ import { customizeTheme } from '../../src/setup/customize-theme'
 import type { CursorConfig } from '../../src/shared/types'
 
 describe('processTheme', () => {
+  // Sem `surfaces`: a camada que o escopo `bold` põe sobre a scrollbar é testada em `bold.test.ts`
   const theme = loadTheme()
+  for (const colors of Object.values(theme.colors.themes)) delete colors.surfaces
   const overlayTheme = { ...theme, customScrollbar: { ...theme.customScrollbar, overlay: true } }
 
   it('deve gerar CSS com cores', () => {

@@ -2,10 +2,11 @@ import { describe, it, expect } from 'vitest'
 import { buildVuetifyThemes } from '../../src/setup/register-vuetify'
 import { generateBoldCss, generateBoldSurface } from '../../src/shared/css/bold'
 import { generateThemeVars } from '../../src/shared/css/colors'
+import { generateCustomScrollbarCSS } from '../../src/shared/css/scrollbar'
 import { checkTokenContrast, findTokenContrastIssues, generateTokens } from '../../src/shared/css/tokens'
 import { contrastRatio, relativeLuminance } from '../../src/shared/utils/contrast'
 import { normalizeColorThemes } from '../../src/shared/utils/merge-themes'
-import type { ColorsConfig, ThemeColors } from '../../src/shared/types'
+import type { ColorsConfig, ThemeColors, ThemeConfig } from '../../src/shared/types'
 
 const GREEN: ThemeColors = { dark: false, tokens: true, surfaces: 'bold', primary: '#2D900C', secondary: '#1565C0', background: '#FFFFFF' }
 const GREEN_DARK: ThemeColors = { dark: true, tokens: true, surfaces: 'bold', primary: '#2D900C', secondary: '#64B5F6', background: '#121212' }
@@ -151,6 +152,38 @@ describe('generateBoldCss', () => {
     expect(block).toContain('--jade-bg: ')
     expect(block).not.toContain('--jade-text: ')
     expect(generateBoldCss('x', GREEN, 'AAA', true)).not.toContain('prefers-contrast')
+  })
+})
+
+describe('barra de rolagem no painel', () => {
+  const theme = (surfaces: ThemeColors['surfaces'], colors: Record<string, string> = {}) => ({
+    colors: { themes: { verde: { ...GREEN, surfaces } } },
+    customScrollbar: { enabled: true, colors },
+  }) as unknown as ThemeConfig
+
+  it('deve definir no escopo as cores que a barra lê', () => {
+    const css = generateBoldCss('verde', GREEN)
+    for (const name of ['thumb', 'thumb-hover', 'track', 'border']) expect(css).toContain(`--jade-scrollbar-${name}: var(--jade-`)
+  })
+
+  it('deve ler as variáveis do painel com a cor do tema como reserva, quando há um tema bold', () => {
+    const css = generateCustomScrollbarCSS(theme('bold'))
+    expect(css).toContain('var(--jade-scrollbar-thumb, var(--color-primary))')
+    expect(css).toContain('var(--jade-scrollbar-thumb-hover, var(--color-secondary))')
+    expect(css).toContain('var(--jade-scrollbar-track, var(--color-background2, var(--jade-bg-subtle)))')
+    expect(css).toContain('[data-jade-surface=\'bold\']')
+  })
+
+  it('não deve mudar o CSS da barra sem tema bold', () => {
+    const css = generateCustomScrollbarCSS(theme('vivid'))
+    expect(css).not.toContain('--jade-scrollbar-')
+    expect(css).not.toContain('data-jade-surface')
+  })
+
+  it('deve manter uma cor literal escolhida pelo projeto também dentro do painel', () => {
+    const css = generateCustomScrollbarCSS(theme('bold', { thumb: '#123456' }))
+    expect(css).toContain('background: #123456;')
+    expect(css).not.toContain('--jade-scrollbar-thumb,')
   })
 })
 

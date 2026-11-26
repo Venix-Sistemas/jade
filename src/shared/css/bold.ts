@@ -237,6 +237,11 @@ export function generateBoldCss(mode: string, colors: ThemeColors, level: Contra
   let css = `\n/* Bold surfaces - ${mode} */\n${boldSelector(mode)} {\n`
     + `  color-scheme: ${bold.dark ? 'dark' : 'light'};\n`
     + `${vars}\n`
+    // What the custom scrollbar reads inside the panel (see `css/scrollbar.ts`)
+    + `  --jade-scrollbar-thumb: var(--jade-border-strong);\n`
+    + `  --jade-scrollbar-thumb-hover: var(--jade-fill-primary);\n`
+    + `  --jade-scrollbar-track: var(--jade-bg-subtle);\n`
+    + `  --jade-scrollbar-border: var(--jade-bg-subtle);\n`
     + `  background-color: var(--jade-bg);\n`
     + `  color: var(--jade-text);\n`
     + `}\n`

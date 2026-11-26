@@ -17,6 +17,9 @@ const SURFACE_TOKENS: Record<string, string> = {
   background3: 'bg-muted',
 }
 
+/** The `--jade-scrollbar-*` variable of each color option, set by the bold scope. */
+const SCOPE_NAMES = { thumb: 'thumb', thumbHover: 'thumb-hover', track: 'track', border: 'border' } as const
+
 export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
   const scrollbar = theme.customScrollbar
   if (!scrollbar || !scrollbar.enabled) return ''
@@ -24,6 +27,11 @@ export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
   const width = scrollbar.width || 'auto'
   const borderRadius = scrollbar.borderRadius || '8px'
   const borderWidth = scrollbar.borderWidth || '3px'
+
+  // With a `surfaces: 'bold'` theme, the theme colors give way inside a bold
+  // panel to the `--jade-scrollbar-*` variables its scope sets. A literal color
+  // the project chose stays as it is everywhere.
+  const bold = Object.values(theme.colors?.themes ?? {}).some(colors => colors.surfaces === 'bold')
 
   const colorVar = (key: keyof NonNullable<ThemeConfig['customScrollbar']>['colors'], fallback: string): string => {
     const value = scrollbar.colors?.[key] || fallback
@@ -36,7 +44,8 @@ export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
     // look thicker, and the track would turn transparent): fall back to the
     // token that took the surface's place.
     const token = SURFACE_TOKENS[value]
-    return token ? `var(--color-${value}, var(--jade-${token}))` : `var(--color-${value})`
+    const themed = token ? `var(--color-${value}, var(--jade-${token}))` : `var(--color-${value})`
+    return bold ? `var(--jade-scrollbar-${SCOPE_NAMES[key]}, ${themed})` : themed
   }
 
   const thumb = colorVar('thumb', 'primary')
@@ -77,7 +86,13 @@ export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
   ${ON} {
     scrollbar-width: ${width === 'auto' ? 'auto' : 'thin'};
     scrollbar-color: ${thumb} ${track};
-  }
+  }${bold
+    ? `
+  /* "scrollbar-color" is inherited already resolved, so a bold panel sets it again */
+  ${ON} [data-jade-surface='bold'] {
+    scrollbar-color: ${thumb} ${track};
+  }`
+    : ''}
 }\n`
 
   if (scrollbar.overlay === true) css += generateOverlayScrollbarCSS({ width, borderRadius, thumb, thumbHover, track })
