@@ -6,9 +6,10 @@
 export default {
   // The `nuxt-module-builder:runtime-externals` plugin externalizes any import
   // matching a mkdist entry (now also `src/shared/`), which makes unbuild's
-  // dependency validator flag those local `dist/shared/*.js` paths as "implicit
-  // dependencies" (a false positive: they are internal, not npm packages).
-  failOnWarn: false,
+  // dependency validator take those local `dist/shared/*.js` paths for
+  // "implicit dependencies". They are the package's own files, so they are
+  // declared external here and the build stays quiet.
+  externals: [/^\.\.\/dist\/shared\//],
   entries: [
     {
       input: 'src/shared/',
