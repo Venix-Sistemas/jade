@@ -2,6 +2,7 @@
   <div
     ref="rootRef"
     class="venix-theme-switcher"
+    :class="{ 'venix-theme-switcher--dark': darkMode }"
     @focusout="handleFocusOut"
   >
     <span
@@ -609,6 +610,11 @@ const emit = defineEmits<{
 
 const { theme, themes, mode, modes, locale, persistence, scrollbar, cursor, font } = useVenixTheme()
 
+// The light or dark mode in effect is all the switcher takes from the theme
+// (see the rule in <style>). Applied once mounted, when the trigger fades in:
+// the server can't know the visitor's system mode.
+const darkMode = computed(() => visible.value && mode.value.value === 'dark')
+
 const resolvedLabel = computed(() => props.label ?? locale.translate(LABEL_TRANSLATIONS, 'Website color'))
 const modeHeading = computed(() => locale.translate(MODE_HEADING_TRANSLATIONS, 'Mode'))
 const themeHeading = computed(() => locale.translate(THEME_HEADING_TRANSLATIONS, 'Theme'))
@@ -1027,9 +1033,53 @@ onUnmounted(() => {
 </script>
 
 <style>
+/* ===========================================================================
+   REGRA DO PROJETO: ESTE SELETOR NÃO TEM COR. NÃO MUDE.
+   PROJECT RULE: THE SWITCHER HAS NO COLOR. DO NOT CHANGE THIS.
+
+   It is how a visitor gets out of a theme they can't read, so it has to stay
+   legible whatever colors the project picked.
+
+   - Black, white and grays only. Never a theme color: no `--color-*`, no
+     `--jade-*` (tokens, bold scope), no `--v-theme-*`, no `inherit` from the
+     page around it. Not even on token themes.
+   - The only thing it follows is the light or dark mode in effect (the
+     `--dark` class), never the `color-scheme` of whatever it sits in.
+   - Text at 4.5:1 or more (WCAG AA) on every background it can sit on, in both
+     modes; the outline and the switches at 3:1 or more. Soft grays, not pure
+     black on white: that reads as the system's high contrast mode.
+   - No faded text: `opacity` is only 0 or 1.
+   - A new style takes its colors from the `--venix-switcher-*` variables below.
+
+   `test/unit/switcher-neutral.test.ts` fails when any of this is broken.
+   =========================================================================== */
 .venix-theme-switcher {
   position: relative;
   display: inline-block;
+  color-scheme: light;
+  --venix-switcher-bg: #ffffff;
+  --venix-switcher-text: #222222;
+  --venix-switcher-text-soft: #5c5c5c;
+  --venix-switcher-hover: #f2f2f2;
+  --venix-switcher-active: #e8e8e8;
+  --venix-switcher-border: #8a8a8a;
+  --venix-switcher-separator: #e4e4e4;
+  --venix-switcher-switch-off: #8a8a8a;
+  --venix-switcher-knob-off: #ffffff;
+  --venix-switcher-shadow: rgba(0, 0, 0, 0.12);
+}
+
+.venix-theme-switcher--dark {
+  color-scheme: dark;
+  --venix-switcher-bg: #1f1f1f;
+  --venix-switcher-text: #ededed;
+  --venix-switcher-text-soft: #b0b0b0;
+  --venix-switcher-hover: #2b2b2b;
+  --venix-switcher-active: #363636;
+  --venix-switcher-border: #757575;
+  --venix-switcher-separator: #363636;
+  --venix-switcher-switch-off: #757575;
+  --venix-switcher-shadow: rgba(0, 0, 0, 0.25);
 }
 
 /* Not left to the site: with `content-box`, the menu's padding and border
@@ -1059,10 +1109,11 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem;
-  border: none;
+  /* Its own background and outline: it may sit on any color of the page. */
+  border: 1px solid var(--venix-switcher-border);
   border-radius: 999px;
-  background: transparent;
-  color: inherit;
+  background: var(--venix-switcher-bg);
+  color: var(--venix-switcher-text);
   cursor: pointer;
   font-size: 1.25rem;
   line-height: 1;
@@ -1075,14 +1126,16 @@ onUnmounted(() => {
 }
 
 .venix-theme-switcher__trigger:focus-visible {
-  background: var(--jade-bg-hover, var(--color-background3, rgba(128, 128, 128, 0.15)));
+  background: var(--venix-switcher-hover);
+  outline: 2px solid var(--venix-switcher-text);
+  outline-offset: 2px;
 }
 
 /* Hover only where there is one: on a touch screen, `:hover` sticks to the
    last thing tapped and would look selected. Same for the menu below. */
 @media (hover: hover) {
   .venix-theme-switcher__trigger:hover {
-    background: var(--jade-bg-hover, var(--color-background3, rgba(128, 128, 128, 0.15)));
+    background: var(--venix-switcher-hover);
   }
 }
 
@@ -1112,28 +1165,6 @@ onUnmounted(() => {
   /* Set here so the layout doesn't depend on the page around the switcher
      (e.g. a centered header vs. a left-aligned toolbar). */
   text-align: left;
-  /* Fixed neutral colors on themes made of the plain palette (not from the
-     active theme): the menu needs to stay legible no matter which color theme
-     is currently applied/being picked. Dark palette here; the @supports block
-     below switches to the light one when the page is in light mode.
-     On a theme with `tokens: true` each one comes from the semantic token
-     named in front of it instead (the fixed color is the fallback): the
-     tokens are built to be legible together, so the menu can follow the theme. */
-  --venix-switcher-bg: var(--jade-bg-subtle, #1f2128);
-  --venix-switcher-border: var(--jade-border, #3a3d46);
-  /* Headings in the strong color and options a step softer, so the sections
-     stand out; an option lights up on hover and when selected. */
-  --venix-switcher-text: var(--jade-text-muted, rgba(245, 245, 247, 0.7));
-  --venix-switcher-text-strong: var(--jade-text, #ffffff);
-  --venix-switcher-heading: var(--jade-text, #ffffff);
-  --venix-switcher-subheading: var(--jade-text, #f5f5f7);
-  --venix-switcher-hover: var(--jade-bg-hover, rgba(255, 255, 255, 0.1));
-  --venix-switcher-active: var(--jade-bg-active, rgba(255, 255, 255, 0.16));
-  --venix-switcher-description: var(--jade-text-muted, rgba(245, 245, 247, 0.45));
-  --venix-switcher-switch-off: var(--jade-border-strong, #3a3d46);
-  --venix-switcher-knob-off: var(--jade-bg, #9a9ca5);
-  --venix-switcher-switch-on: var(--jade-text, #f5f5f7);
-  --venix-switcher-shadow: rgba(0, 0, 0, 0.25);
   --venix-switcher-icon-button: 1.75rem;
   background: var(--venix-switcher-bg);
   border: 1px solid var(--venix-switcher-border);
@@ -1160,28 +1191,6 @@ onUnmounted(() => {
    padding keeps focus inside and doesn't close the menu; never shown. */
 .venix-theme-switcher__menu:focus {
   outline: none;
-}
-
-/* `light-dark()` follows the `color-scheme` each theme sets on :root, so the
-   menu matches the mode (light/dark) without depending on the theme's colors.
-   Guarded because custom properties don't fall back on unsupported values:
-   older browsers keep the dark palette above. */
-@supports (color: light-dark(#fff, #000)) {
-  .venix-theme-switcher__menu {
-    --venix-switcher-bg: var(--jade-bg-subtle, light-dark(#ffffff, #1f2128));
-    --venix-switcher-border: var(--jade-border, light-dark(#e2e4ea, #3a3d46));
-    --venix-switcher-text: var(--jade-text-muted, light-dark(rgba(31, 33, 40, 0.7), rgba(245, 245, 247, 0.7)));
-    --venix-switcher-text-strong: var(--jade-text, light-dark(#000000, #ffffff));
-    --venix-switcher-heading: var(--jade-text, light-dark(#000000, #ffffff));
-    --venix-switcher-subheading: var(--jade-text, light-dark(#1f2128, #f5f5f7));
-    --venix-switcher-hover: var(--jade-bg-hover, light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.1)));
-    --venix-switcher-active: var(--jade-bg-active, light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.16)));
-    --venix-switcher-description: var(--jade-text-muted, light-dark(rgba(31, 33, 40, 0.5), rgba(245, 245, 247, 0.45)));
-    --venix-switcher-switch-off: var(--jade-border-strong, light-dark(#d5d7de, #3a3d46));
-    --venix-switcher-knob-off: var(--jade-bg, light-dark(#ffffff, #9a9ca5));
-    --venix-switcher-switch-on: var(--jade-text, light-dark(#1f2128, #f5f5f7));
-    --venix-switcher-shadow: light-dark(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.25));
-  }
 }
 
 /* Opening: grows from ~30% of its size, anchored at the button's corner (top
@@ -1271,13 +1280,13 @@ onUnmounted(() => {
 
 .venix-theme-switcher__icon-button:focus-visible {
   background: var(--venix-switcher-hover);
-  color: var(--venix-switcher-text-strong);
+  outline: 2px solid var(--venix-switcher-text);
+  outline-offset: -2px;
 }
 
 @media (hover: hover) {
   .venix-theme-switcher__icon-button:hover {
     background: var(--venix-switcher-hover);
-    color: var(--venix-switcher-text-strong);
   }
 }
 
@@ -1287,7 +1296,7 @@ onUnmounted(() => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--venix-switcher-heading);
+  color: var(--venix-switcher-text);
   text-align: center;
 }
 
@@ -1297,7 +1306,7 @@ onUnmounted(() => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--venix-switcher-subheading);
+  color: var(--venix-switcher-text);
   text-align: center;
 }
 
@@ -1310,7 +1319,7 @@ onUnmounted(() => {
 .venix-theme-switcher__separator {
   height: 1px;
   margin: 0.375rem 0.25rem;
-  background: var(--venix-switcher-border);
+  background: var(--venix-switcher-separator);
 }
 
 .venix-theme-switcher__item {
@@ -1322,7 +1331,7 @@ onUnmounted(() => {
   border: none;
   border-radius: 0.5rem;
   background: transparent;
-  color: var(--venix-switcher-text);
+  color: var(--venix-switcher-text-soft);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -1344,13 +1353,15 @@ onUnmounted(() => {
 
 .venix-theme-switcher__item:focus-visible {
   background: var(--venix-switcher-hover);
-  color: var(--venix-switcher-text-strong);
+  color: var(--venix-switcher-text);
+  outline: 2px solid var(--venix-switcher-text);
+  outline-offset: -2px;
 }
 
 @media (hover: hover) {
   .venix-theme-switcher__item:hover {
     background: var(--venix-switcher-hover);
-    color: var(--venix-switcher-text-strong);
+    color: var(--venix-switcher-text);
   }
 }
 
@@ -1366,9 +1377,11 @@ onUnmounted(() => {
   }
 }
 
+/* Outlined too: the gray alone is too faint to tell what is selected. */
 .venix-theme-switcher__item--active {
   background: var(--venix-switcher-active);
-  color: var(--venix-switcher-text-strong);
+  box-shadow: inset 0 0 0 1px var(--venix-switcher-border);
+  color: var(--venix-switcher-text);
   font-weight: 600;
 }
 
@@ -1376,13 +1389,12 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-/* A seasonal theme's dates, on the right: barely there, but still legible
-   up close. Same weight whether or not the theme is selected. */
+/* A seasonal theme's dates, on the right: small and a step softer. Same
+   weight whether or not the theme is selected. */
 .venix-theme-switcher__item-season {
   margin-left: auto;
   padding-left: 0.5rem;
-  color: var(--venix-switcher-description);
-  opacity: 0.6;
+  color: var(--venix-switcher-text-soft);
   font-size: 0.6875rem;
   font-weight: 400;
   font-variant-numeric: tabular-nums;
@@ -1390,7 +1402,7 @@ onUnmounted(() => {
 }
 
 .venix-theme-switcher__item--on {
-  color: var(--venix-switcher-text-strong);
+  color: var(--venix-switcher-text);
 }
 
 .venix-theme-switcher__item-text {
@@ -1413,7 +1425,7 @@ onUnmounted(() => {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  color: var(--venix-switcher-description);
+  color: var(--venix-switcher-text-soft);
   font-size: 0.6875rem;
   line-height: 1.3;
 }
@@ -1441,7 +1453,7 @@ onUnmounted(() => {
 }
 
 .venix-theme-switcher__item--on .venix-theme-switcher__switch {
-  background: var(--venix-switcher-switch-on);
+  background: var(--venix-switcher-text);
 }
 
 .venix-theme-switcher__item--on .venix-theme-switcher__switch::after {
@@ -1479,7 +1491,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.25rem 0.25rem 0.125rem 0.625rem;
-  color: var(--venix-switcher-text-strong);
+  color: var(--venix-switcher-text);
   font-size: 0.75rem;
   line-height: 1.25;
 }
@@ -1511,12 +1523,12 @@ onUnmounted(() => {
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 /* "Save" in the switches' "on" colors, so it reads as the action. */
 .venix-theme-switcher__prompt-button--save {
-  background: var(--venix-switcher-switch-on);
+  background: var(--venix-switcher-text);
   color: var(--venix-switcher-bg);
 }
 
@@ -1530,23 +1542,25 @@ onUnmounted(() => {
 }
 
 .venix-theme-switcher__prompt-button--save:focus-visible {
-  outline: 2px solid var(--venix-switcher-switch-on);
+  outline: 2px solid var(--venix-switcher-text);
   outline-offset: 2px;
 }
 
 .venix-theme-switcher__prompt-button--dismiss:focus-visible {
   background: var(--venix-switcher-hover);
-  color: var(--venix-switcher-text-strong);
+  color: var(--venix-switcher-text);
+  outline: 2px solid var(--venix-switcher-text);
+  outline-offset: -2px;
 }
 
 @media (hover: hover) {
   .venix-theme-switcher__prompt-button--save:hover {
-    opacity: 0.85;
+    text-decoration: underline;
   }
 
   .venix-theme-switcher__prompt-button--dismiss:hover {
     background: var(--venix-switcher-hover);
-    color: var(--venix-switcher-text-strong);
+    color: var(--venix-switcher-text);
   }
 }
 
@@ -1561,23 +1575,21 @@ onUnmounted(() => {
   }
 }
 
-/* Credit to the module: tiny and faint, only noticeable when looked for. */
+/* Credit to the module: tiny and a step softer, only noticeable when looked for. */
 .venix-theme-switcher__credit {
   display: block;
   margin-top: 0.25rem;
   padding: 0.125rem 0.25rem;
-  color: var(--venix-switcher-description);
+  color: var(--venix-switcher-text-soft);
   font-size: 0.625rem;
   line-height: 1.2;
   text-align: center;
   text-decoration: none;
-  opacity: 0.6;
-  transition: opacity 0.15s ease;
 }
 
 .venix-theme-switcher__credit:hover,
 .venix-theme-switcher__credit:focus-visible {
-  opacity: 1;
+  color: var(--venix-switcher-text);
   text-decoration: underline;
 }
 
