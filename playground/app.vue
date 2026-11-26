@@ -1206,15 +1206,11 @@ const colorList = computed(() => {
   --pg-surface-muted: var(--jade-bg-muted, var(--jade-background3));
   --pg-border: var(--jade-border, var(--jade-background3));
   --pg-field-border: var(--jade-border-strong, var(--jade-background3));
-  /* Text keeps the original Venix page's colors: primary for the main text and
-     titles, secondary for the supporting text and labels. On a token theme the
-     primary text is the seed itself (\`fill-primary\`), which passes AA on \`bg\`,
-     \`bg-subtle\` and \`bg-muted\` with these seeds. The secondary seed only does so
-     in dark mode (orange on a light background can't), so in light mode it is
-     \`text-secondary\`, the step built for that. \`light-dark()\` follows the
-     \`color-scheme\` each theme sets. */
-  --pg-text: var(--jade-fill-primary, var(--jade-primary));
-  --pg-text-muted: light-dark(var(--jade-text-secondary, var(--jade-secondary)), var(--jade-fill-secondary, var(--jade-secondary)));
+  /* The Venix page's colors in text: primary for the main text and titles,
+     secondary for the supporting text and labels, each in the step built to be
+     read (`text-<role>`), in both modes and inside the colored areas too. */
+  --pg-text: var(--jade-text-primary, var(--jade-primary));
+  --pg-text-muted: var(--jade-text-secondary, var(--jade-secondary));
   --pg-title: var(--pg-text);
   --pg-label: var(--pg-text-muted);
   /* Fading text with `opacity` would take it below AA on a token theme. The
@@ -1227,15 +1223,6 @@ const colorList = computed(() => {
   --pg-accent: var(--jade-fill-primary, var(--jade-primary));
   --pg-on-accent: var(--jade-on-primary, var(--jade-background));
 }
-/* Inside a bold panel the supporting text is the panel's own `text-muted`:
-   `light-dark(secondary…)` above is made for the page, not for a brand color.
-   Where there can be one: the light variants and what the visitor customized
-   (the switcher's pencil). The other dark ones have none. */
-:root[data-jade-theme$='light'] [data-jade-surface],
-:root[data-jade-lab] [data-jade-surface] {
-  --pg-text-muted: var(--jade-text-muted, var(--jade-secondary));
-}
-
 /* The browser's own placeholder gray fades into a brand color. */
 [data-jade-surface] ::placeholder {
   color: var(--jade-text-muted);
@@ -1328,13 +1315,11 @@ code {
   gap: 0.35rem;
   flex-shrink: 0;
   padding: 0.4rem 0.8rem;
-  border: 1px solid color-mix(in srgb, var(--pg-accent) 18%, transparent);
+  border: 1px solid var(--jade-border-primary, var(--pg-border));
   border-radius: 999px;
-  /* A light wash of the theme's primary color, so links read as buttons */
-  background: color-mix(in srgb, var(--pg-accent) 8%, transparent);
-  /* On a token theme, `text-primary`: the seed itself falls just short of AA on
-     its own wash in light mode. */
-  color: var(--jade-text-primary, var(--pg-link));
+  /* The soft tone of the theme's primary color, so links read as buttons */
+  background: var(--jade-bg-primary, var(--pg-surface-muted));
+  color: var(--pg-link);
   font-size: 0.875rem;
   text-decoration: none;
   white-space: nowrap;
@@ -1343,10 +1328,10 @@ code {
 
 .module-nav__link:hover,
 .module-nav__link:focus-visible {
-  background: color-mix(in srgb, var(--pg-accent) 16%, transparent);
-  border-color: color-mix(in srgb, var(--pg-accent) 35%, transparent);
-  /* The stronger step on the stronger wash (token themes only). */
-  color: var(--jade-text-primary-strong, var(--jade-text-primary, var(--pg-link)));
+  background: var(--jade-bg-primary-hover, var(--pg-surface-muted));
+  border-color: var(--jade-border-primary-strong, var(--pg-accent));
+  /* The stronger step on the stronger tone */
+  color: var(--jade-text-primary-strong, var(--pg-link));
 }
 
 .module-nav__switcher {
@@ -1526,23 +1511,23 @@ code {
 }
 
 .chip--success {
-  color: var(--jade-success, var(--jade-primary));
-  border-color: var(--jade-success, var(--pg-border));
+  color: var(--jade-text-success, var(--jade-success));
+  border-color: var(--jade-border-success, var(--pg-border));
 }
 
 .chip--success:hover {
-  background: var(--jade-success, var(--jade-primary));
-  color: var(--jade-background);
+  background: var(--jade-fill-success, var(--jade-success));
+  color: var(--jade-on-success, var(--jade-background));
 }
 
 .chip--error {
-  color: var(--jade-error, var(--jade-primary));
-  border-color: var(--jade-error, var(--pg-border));
+  color: var(--jade-text-error, var(--jade-error));
+  border-color: var(--jade-border-error, var(--pg-border));
 }
 
 .chip--error:hover {
-  background: var(--jade-error, var(--jade-primary));
-  color: var(--jade-background);
+  background: var(--jade-fill-error, var(--jade-error));
+  color: var(--jade-on-error, var(--jade-background));
 }
 
 .tag {
