@@ -17,7 +17,7 @@ export type ThemeMode = 'light' | 'dark'
 /** The user's mode choice: a fixed mode, or `'system'` to follow the OS. */
 export type ThemeModePreference = ThemeMode | 'system'
 
-/** The color slots of a theme variant — each becomes a `--color-<name>` CSS variable. */
+/** The color slots of a theme variant — each becomes a `--jade-<name>` CSS variable. */
 export interface ThemePalette {
   primary?: string
   secondary?: string
@@ -37,7 +37,7 @@ export type TokenOverrides = Record<string, string>
 /** One light/dark variant of a theme (`ThemeDefinition.light` / `.dark`). */
 export interface ThemeVariant extends ThemePalette {
   /**
-   * The value applied to `<html data-theme>` (and class) and used as the
+   * The value applied to `<html data-jade-theme>` (and class) and used as the
    * Vuetify theme name. Default: `<theme>-<mode>` (e.g. `carnaval-light`).
    */
   id?: string
@@ -66,7 +66,7 @@ export interface ThemeMeta {
    * Experimental (v1.4.0). Also generates the semantic color tokens
    * (`--jade-text-primary`, `--jade-fill-primary`, `--jade-bg-subtle`…)
    * from the variant's `primary`, `secondary` and `background`, next to the
-   * usual `--color-*` variables, which stay unchanged. Default: `false`.
+   * usual `--jade-<name>` color variables, which stay unchanged. Default: `false`.
    *
    * An object also turns them on and re-points individual tokens at another
    * step (1–12) of the generated scales, so a surface can be stronger or

@@ -96,7 +96,7 @@ export const useThemeLocale = (
   }
 
   // `useState` (not `ref()`) so multiple calls to `useThemeLocale` (via
-  // `useVenixTheme()` — e.g. the page and `<VenixThemeSwitcher>`, or after a
+  // `useJade()` — e.g. the page and `<JadeThemeSwitcher>`, or after a
   // client-side navigation) share the same reactive instance instead of each
   // getting its own disconnected copy — same reason and pattern as
   // `theme.preference` in `useVenixTheme.ts`. Without this, `setLocale()`

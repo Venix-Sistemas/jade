@@ -61,9 +61,11 @@ export function generateRootVars(theme: ThemeConfig): string {
   vars += '/* ============================================ */\n\n'
   vars += ':root {\n'
 
+  const legacyNames = theme.legacyNames !== false
   const fontFamily = buildFontFamily(theme)
   if (fontFamily) {
-    vars += `  --font-family-base: ${fontFamily};\n`
+    vars += `  --jade-font-family: ${fontFamily};\n`
+    if (legacyNames) vars += '  --font-family-base: var(--jade-font-family);\n'
 
     // Vuetify's own component styles (buttons, list items, app bar, ...)
     // read `--v-font-body`/`--v-font-heading` directly — they don't inherit
@@ -71,14 +73,15 @@ export function generateRootVars(theme: ThemeConfig): string {
     // are unset. Without this, every Vuetify component silently ignores the
     // theme's custom font (and any font marked `preload: true` for it goes
     // unused, since Vuetify never renders a glyph with it), regardless of
-    // `--font-family-base` being set correctly. Harmless to emit even when
+    // `--jade-font-family` being set correctly. Harmless to emit even when
     // the consumer doesn't use Vuetify: an unused CSS custom property.
     vars += `  --v-font-body: ${fontFamily};\n`
     vars += `  --v-font-heading: ${fontFamily};\n`
   }
 
   if (theme.typography?.fontSize) {
-    vars += `  --font-size-base: ${theme.typography.fontSize};\n`
+    vars += `  --jade-font-size: ${theme.typography.fontSize};\n`
+    if (legacyNames) vars += '  --font-size-base: var(--jade-font-size);\n'
   }
 
   vars += '}\n'
@@ -89,7 +92,7 @@ export function generateRootVars(theme: ThemeConfig): string {
   if (theme.typography?.customFonts?.length) {
     const fallback = theme.typography.defaultFonts || 'initial'
     vars += `:root[${FONT_ATTRIBUTE}='off'] {\n`
-    vars += `  --font-family-base: ${fallback};\n`
+    vars += `  --jade-font-family: ${fallback};\n`
     vars += `  --v-font-body: ${fallback};\n`
     vars += `  --v-font-heading: ${fallback};\n`
     vars += '}\n'

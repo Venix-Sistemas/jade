@@ -49,7 +49,7 @@ export const useThemeColors = (
     }
   }))
 
-  // Every concrete variant id — the values `data-theme`/class can hold.
+  // Every concrete variant id — the values `data-jade-theme` and the theme class can hold.
   const themeValues = computed(() => Object.keys(theme.colors.themes))
 
   return {

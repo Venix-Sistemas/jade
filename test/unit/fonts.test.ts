@@ -10,7 +10,7 @@ describe('getFontPreloadLinks', () => {
 
   it('deve pré-carregar a fonte Iceberg do módulo', () => {
     expect(getFontPreloadLinks(base)).toEqual([
-      { rel: 'preload', as: 'font', href: '/fonts/Iceberg/Iceberg-Regular.woff2', type: 'font/woff2', crossorigin: 'anonymous' },
+      { rel: 'preload', as: 'font', href: '/_jade/fonts/Iceberg/Iceberg-Regular.woff2', type: 'font/woff2', crossorigin: 'anonymous' },
     ])
   })
 

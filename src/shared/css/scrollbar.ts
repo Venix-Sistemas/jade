@@ -1,5 +1,5 @@
 import type { ThemeConfig } from '../types'
-import { OVERLAY_SCROLLBAR_THEME, SCROLLBAR_ATTRIBUTE } from '../constants'
+import { COLOR_PROPERTIES, OVERLAY_SCROLLBAR_THEME, SCROLLBAR_ATTRIBUTE } from '../constants'
 import { surfacesOf, tokensEnabled } from '../token-names'
 
 // Every rule only applies while `<html>` doesn't have the attribute set to
@@ -45,7 +45,9 @@ export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
     // look thicker, and the track would turn transparent): fall back to the
     // token that took the surface's place.
     const token = SURFACE_TOKENS[value]
-    const themed = token ? `var(--color-${value}, var(--jade-${token}))` : `var(--color-${value})`
+    // A theme color is the module's own variable; any other name is the project's `--color-<name>`
+    const variable = [...COLOR_PROPERTIES, 'scheme', 'inverse'].includes(value) ? `--jade-${value}` : `--color-${value}`
+    const themed = token ? `var(${variable}, var(--jade-${token}))` : `var(${variable})`
     return bold ? `var(--jade-scrollbar-${SCOPE_NAMES[key]}, ${themed})` : themed
   }
 
@@ -70,7 +72,7 @@ export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
   border: ${borderWidth} solid ${border};
   /* The custom pointer: Chromium draws a styled scrollbar as part of the
      page and shows its cursor there. The arrow without the cursor module. */
-  cursor: var(--cursor-pointer, default);
+  cursor: var(--jade-cursor-pointer, default);
 }\n`
   css += `\n${on('::-webkit-scrollbar-thumb:hover')} {
   background: ${thumbHover};

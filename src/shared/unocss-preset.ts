@@ -6,7 +6,7 @@ import { TOKEN_NAMES } from './token-names'
 // `unocss`/`@unocss/core` because they're optional peers (the package isn't
 // always installed in the consumer, and isn't a dependency of this module);
 // TS's structural typing is already compatible with their real `Preset<Theme>`.
-export interface VenixUnoPreset {
+export interface JadeUnoPreset {
   name: string
   enforce: 'post'
   theme: {
@@ -15,7 +15,7 @@ export interface VenixUnoPreset {
   rules: Array<[string, Record<string, string>]>
 }
 
-export interface VenixUnoPresetOptions {
+export interface JadeUnoPresetOptions {
   /**
    * Also exposes the semantic color tokens (experimental, v1.4.0) as classes
    * named after the CSS variable, with the `jade-` prefix: `--jade-bg-subtle`
@@ -46,7 +46,7 @@ const TOKEN_PROPERTY: Record<string, string> = {
 /**
  * UnoCSS preset that exposes the theme's colors as `theme.colors` (`primary`,
  * `secondary`, `background2`, ...), all pointing at the CSS vars this module
- * generates (`--color-primary`, ...) — enables utilities like `text-primary`,
+ * generates (`--jade-primary`, ...) — enables utilities like `text-primary`,
  * `bg-background2/80` or `border-accent`.
  *
  * With `tokens` (the default), the semantic tokens too, one class per token
@@ -56,7 +56,7 @@ const TOKEN_PROPERTY: Record<string, string> = {
  * the text color, `border-*` the border color). See `VenixUnoPresetOptions`.
  *
  * Also points `cursor-default`, `cursor-pointer` and `cursor-text` at the
- * module's cursor variables (`--cursor-pointer`, ...), falling back to the
+ * module's cursor variables (`--jade-cursor-pointer`, ...), falling back to the
  * system cursor when the module's cursor is off. `enforce: 'post'` puts these
  * after `presetWind`/`presetUno`, whose own `cursor-pointer` they replace,
  * wherever the preset sits in `presets`.
@@ -65,10 +65,10 @@ const TOKEN_PROPERTY: Record<string, string> = {
  *
  * ```ts
  * import { defineConfig } from 'unocss'
- * import { venixUnoPreset } from '@venix-sistemas/jade/unocss'
+ * import { jadeUnoPreset } from '@venix-sistemas/jade/unocss'
  *
  * export default defineConfig({
- *   presets: [venixUnoPreset()],
+ *   presets: [jadeUnoPreset()],
  * })
  * ```
  *
@@ -80,16 +80,16 @@ const TOKEN_PROPERTY: Record<string, string> = {
  * itself, these colors become part of what's actually read from the file and
  * survive that merge.
  */
-export function venixUnoPreset(options: VenixUnoPresetOptions = {}): VenixUnoPreset {
+export function jadeUnoPreset(options: JadeUnoPresetOptions = {}): JadeUnoPreset {
   const colors: Record<string, string> = {
-    inverse: 'var(--color-inverse)',
+    inverse: 'var(--jade-inverse)',
   }
 
   for (const property of COLOR_PROPERTIES) {
-    colors[property] = `var(--color-${property})`
+    colors[property] = `var(--jade-${property})`
   }
 
-  const rules: VenixUnoPreset['rules'] = CURSOR_TYPES.map(type => [`cursor-${type}`, { cursor: `var(--cursor-${type}, ${type})` }])
+  const rules: JadeUnoPreset['rules'] = CURSOR_TYPES.map(type => [`cursor-${type}`, { cursor: `var(--jade-cursor-${type}, ${type})` }])
 
   if (options.tokens !== false) {
     for (const name of TOKEN_NAMES) {
@@ -99,9 +99,16 @@ export function venixUnoPreset(options: VenixUnoPresetOptions = {}): VenixUnoPre
   }
 
   return {
-    name: 'venix-theme',
+    name: 'jade',
     enforce: 'post',
     theme: { colors },
     rules,
   }
 }
+
+/** @deprecated Renamed to `jadeUnoPreset`; removed in 2.0. */
+export const venixUnoPreset = jadeUnoPreset
+/** @deprecated Renamed to `JadeUnoPreset`; removed in 2.0. */
+export type VenixUnoPreset = JadeUnoPreset
+/** @deprecated Renamed to `JadeUnoPresetOptions`; removed in 2.0. */
+export type VenixUnoPresetOptions = JadeUnoPresetOptions

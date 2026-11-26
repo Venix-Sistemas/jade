@@ -40,7 +40,7 @@ export default defineI18nConfig(() => ({
           saving: 'Saving',
         },
         help: {
-          theme: 'The same choice as the switcher in the navigation bar: both stay in sync. Below, the original model\'s palette: one variable per color, such as `--color-primary`.',
+          theme: 'The same choice as the switcher in the navigation bar: both stay in sync. Below, the original model\'s palette: one variable per color, such as `--jade-primary`.',
           tokens: 'A theme with `tokens: true` also gets variables named for where the color goes. On those themes this whole page uses them; on the others it keeps the original variables.',
           saving: 'Without consent, switching themes still works — it just isn\'t remembered on the next visit.',
         },
@@ -191,7 +191,7 @@ export default defineI18nConfig(() => ({
           saving: 'Salvar',
         },
         help: {
-          theme: 'A mesma escolha do seletor na barra de navegação: os dois ficam sincronizados. Abaixo, a paleta do modelo original: uma variável por cor, como `--color-primary`.',
+          theme: 'A mesma escolha do seletor na barra de navegação: os dois ficam sincronizados. Abaixo, a paleta do modelo original: uma variável por cor, como `--jade-primary`.',
           tokens: 'Um tema com `tokens: true` também ganha variáveis nomeadas pelo lugar onde a cor vai. Nesses temas esta página inteira as usa; nos outros ela mantém as variáveis originais.',
           saving: 'Sem consentimento a troca de tema ainda funciona, só não é lembrada na próxima visita.',
         },
@@ -342,7 +342,7 @@ export default defineI18nConfig(() => ({
           saving: 'Guardar',
         },
         help: {
-          theme: 'La misma elección que el selector de la barra de navegación: ambos se mantienen sincronizados. Abajo, la paleta del modelo original: una variable por color, como `--color-primary`.',
+          theme: 'La misma elección que el selector de la barra de navegación: ambos se mantienen sincronizados. Abajo, la paleta del modelo original: una variable por color, como `--jade-primary`.',
           tokens: 'Un tema con `tokens: true` también recibe variables nombradas por el lugar donde va el color. En esos temas toda esta página las usa; en los demás mantiene las variables originales.',
           saving: 'Sin consentimiento, el cambio de tema sigue funcionando — solo no se recuerda en la próxima visita.',
         },

@@ -5,6 +5,7 @@ import { deriveSeeds } from '../utils/derive-seeds'
 import { chromaOf, colorWithHue, hexToOklab, normalizeHex } from '../utils/oklab'
 import { generateScale } from '../utils/scale'
 import type { RoleScale } from '../utils/scale'
+import { THEME_ATTRIBUTE } from '../constants'
 import { NEUTRAL_TOKENS, ROLE_TOKENS, TOKEN_ROLES as ROLES, roleTokenName, surfacesOf, tokensEnabled } from '../token-names'
 
 /**
@@ -239,9 +240,9 @@ function brandRoleTokens(
   ]
 }
 
-/** The selector of the scope, for a theme variant (`:root[data-theme='natal-light'] [data-jade-surface='bold']`). */
+/** The selector of the scope, for a theme variant (`:root[data-jade-theme='natal-light'] [data-jade-surface='bold']`). */
 export function boldSelector(mode: string): string {
-  return `:root[data-theme='${mode}'] [data-jade-surface='bold']`
+  return `:root[${THEME_ATTRIBUTE}='${mode}'] [data-jade-surface='bold']`
 }
 
 /**

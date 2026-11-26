@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useVenixIcon } from '../composables/useVenixIcon'
+import { useJadeIcon } from '../composables/useVenixIcon'
 
 defineOptions({ inheritAttrs: false })
 
@@ -39,7 +39,7 @@ const { icon, mode } = defineProps<{
   mode?: 'css' | 'svg'
 }>()
 
-const resolved = useVenixIcon(computed(() => icon))
+const resolved = useJadeIcon(computed(() => icon))
 </script>
 
 <style>

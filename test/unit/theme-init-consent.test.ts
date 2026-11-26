@@ -67,15 +67,15 @@ describe('initTheme × scrollbar/cursor desligados pelo visitante', () => {
 
   it('desliga antes da primeira pintura o que o cookie marca como off', () => {
     const attributes = runWithCookies('venix-scrollbar=off; venix-cursor=off; venix-font=off')
-    expect(attributes['data-venix-scrollbar']).toBe('off')
-    expect(attributes['data-venix-cursor']).toBe('off')
-    expect(attributes['data-venix-font']).toBe('off')
+    expect(attributes['data-jade-scrollbar']).toBe('off')
+    expect(attributes['data-jade-cursor']).toBe('off')
+    expect(attributes['data-jade-font']).toBe('off')
   })
 
   it('mantém ligados sem cookie ou com on', () => {
     const attributes = runWithCookies('venix-scrollbar=on')
-    expect(attributes).not.toHaveProperty('data-venix-scrollbar')
-    expect(attributes).not.toHaveProperty('data-venix-cursor')
-    expect(attributes).not.toHaveProperty('data-venix-font')
+    expect(attributes).not.toHaveProperty('data-jade-scrollbar')
+    expect(attributes).not.toHaveProperty('data-jade-cursor')
+    expect(attributes).not.toHaveProperty('data-jade-font')
   })
 })

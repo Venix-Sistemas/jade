@@ -146,14 +146,14 @@ const rows = [
 /* A dark variant has no bold scope by default. So that the example keeps the
    same share of color in both modes, every area marked for the scope takes there
    the soft tone of the brand color, halved with the card gray. */
-:global(:root:not([data-theme$='light']) .bold-demo [data-jade-surface]) {
+:global(:root:not([data-jade-theme$='light']) .bold-demo [data-jade-surface]) {
   border-color: color-mix(in srgb, var(--jade-border-primary) 50%, var(--jade-border));
   background: color-mix(in srgb, var(--jade-bg-primary) 50%, var(--jade-bg-subtle));
 }
 
-:global(:root:not([data-theme$='light']) .shell__link) { color: var(--jade-text); }
-:global(:root:not([data-theme$='light']) .shell__link:hover) { background: color-mix(in srgb, var(--jade-bg-primary-hover) 50%, var(--jade-bg-muted)); }
-:global(:root:not([data-theme$='light']) .shell__link--on) { background: color-mix(in srgb, var(--jade-bg-primary-active) 50%, var(--jade-bg-hover)); }
+:global(:root:not([data-jade-theme$='light']) .shell__link) { color: var(--jade-text); }
+:global(:root:not([data-jade-theme$='light']) .shell__link:hover) { background: color-mix(in srgb, var(--jade-bg-primary-hover) 50%, var(--jade-bg-muted)); }
+:global(:root:not([data-jade-theme$='light']) .shell__link--on) { background: color-mix(in srgb, var(--jade-bg-primary-active) 50%, var(--jade-bg-hover)); }
 
 .shell__brand { font-size: 1.15rem; }
 .shell__nav { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }

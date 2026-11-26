@@ -49,7 +49,7 @@ function runInitTheme(cookie: string, prefersDark: boolean): string | null {
 
   // O script serializado, como o navegador recebe no <head>
   new Function(renderInitThemeScript(theme, createInitThemeOptions(true)))()
-  return attrs['data-theme'] ?? null
+  return attrs['data-jade-theme'] ?? null
 }
 
 afterEach(() => {

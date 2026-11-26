@@ -20,7 +20,9 @@ export default defineNuxtConfig({
     detectBrowserLanguage: false,
   },
 
-  venixTheme: {
+  venixJade: {
+    // Only the new `jade` names: nothing that could clash with another package
+    legacyNames: false,
 
     // Translation / locale
     translation: {
@@ -84,7 +86,7 @@ export default defineNuxtConfig({
         // brand, add a theme like `oceano` below and set `defaultColor` to it.
         // A project-only theme (not in the bundled theme.json), added just by
         // naming it here: it gets its own CSS variables, shows up in
-        // <VenixThemeSwitcher> and follows the light/dark mode like the
+        // <JadeThemeSwitcher> and follows the light/dark mode like the
         // built-in ones. Leave out `seasonal`/`dateRange` for a theme the
         // user picks by hand; add them to make it take over by date.
         oceano: {
@@ -136,7 +138,7 @@ export default defineNuxtConfig({
     // (must come before it in `modules`). See the "Vuetify integration" section in the README.
     vuetify: true,
 
-    // Icons: <VenixIcon icon="..." /> accepts an emoji, an Iconify name (e.g.
+    // Icons: <JadeIcon icon="..." /> accepts an emoji, an Iconify name (e.g.
     // 'line-md:home', animated) or inline SVG. `aliases` creates shortcuts for any of the three formats.
     icon: {
       aliases: {

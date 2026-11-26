@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="./docs/images/readme/theme-switcher.webp" alt="VenixThemeSwitcher going through the dark themes (Venix, Carnival, Easter, Christmas, Halloween, Ocean), then Ocean in light and automatic mode, and its settings turning the custom scrollbar, cursor and font off and back on" width="800">
+  <img src="./docs/images/readme/theme-switcher.webp" alt="JadeThemeSwitcher going through the dark themes (Venix, Carnival, Easter, Christmas, Halloween, Ocean), then Ocean in light and automatic mode, and its settings turning the custom scrollbar, cursor and font off and back on" width="800">
 </p>
 
 ## Features
@@ -61,10 +61,10 @@ export default defineNuxtConfig({
 })
 ```
 
-No configuration is needed: every module except Vuetify is on by default with built-in values. Later, set only what you want to change under `venixTheme` — for example, your own brand theme as the one new visitors start on:
+No configuration is needed: every module except Vuetify is on by default with built-in values. Later, set only what you want to change under `venixJade` — for example, your own brand theme as the one new visitors start on:
 
 ```typescript
-venixTheme: {
+venixJade: {
   color: {
     themes: {
       acme: {
@@ -85,28 +85,61 @@ See [Modules](#modules) for what each one does.
 
 ### 2. Add the theme switcher
 
-`<VenixThemeSwitcher>` is an auto-imported dropdown with a **Mode** section (Automatic, Dark, Light) and a **Theme** section (Automatic, Venix and the seasonal themes), followed, below a divider, by the themes your project adds itself. It has no dependency on Vuetify or any other UI kit:
+`<JadeThemeSwitcher>` is an auto-imported dropdown with a **Mode** section (Automatic, Dark, Light) and a **Theme** section (Automatic, Venix and the seasonal themes), followed, below a divider, by the themes your project adds itself. It has no dependency on Vuetify or any other UI kit:
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="./docs/images/readme/switcher-light.png">
-    <img src="./docs/images/readme/switcher-dark.png" alt="VenixThemeSwitcher open next to the page: the settings gear, then the Mode, Theme (with each seasonal theme's dates) and Custom theme sections" width="800">
+    <img src="./docs/images/readme/switcher-dark.png" alt="JadeThemeSwitcher open next to the page: the settings gear, then the Mode, Theme (with each seasonal theme's dates) and Custom theme sections" width="800">
   </picture>
 </p>
 
 ```vue
 <template>
-  <VenixThemeSwitcher label="Website color" />
+  <JadeThemeSwitcher label="Website color" />
 </template>
 ```
 
-That's it: visitors can now pick a theme and a mode, and turn the custom scrollbar, cursor and font off. See [Theme switcher](#theme-switcher) for its props, settings and styling, or [`useVenixTheme()`](#usevenixtheme) to build your own controls.
+That's it: visitors can now pick a theme and a mode, and turn the custom scrollbar, cursor and font off. See [Theme switcher](#theme-switcher) for its props, settings and styling, or [`useJade()`](#usevenixtheme) to build your own controls.
+
+<br>
+
+## Names and compatibility
+
+Everything Jade puts on a page is under its own `jade` name, so it doesn't collide with other packages: Vuetify0 owns `data-theme`, Tailwind 4 uses `--color-*`, and a `dark` class means something else to UnoCSS and Tailwind. The names up to 1.5 **still work**: they are written and registered next to the new ones while `legacyNames` is on (the default), and they are removed in 2.0.0.
+
+| Up to 1.5 | Now |
+| --- | --- |
+| `venixTheme` (config key) | `venixJade` |
+| `<html data-theme="natal">` | `<html data-jade-theme="natal">` |
+| the class `natal` on `<html>` | `jade-theme-natal` |
+| `--color-primary`, `--color-background`… | `--jade-primary`, `--jade-background`… |
+| `--cursor-pointer`… | `--jade-cursor-pointer`… |
+| `--font-family-base`, `--font-size-base` | `--jade-font-family`, `--jade-font-size` |
+| `data-venix-scrollbar`, `-cursor`, `-font`, `-scroll` | `data-jade-scrollbar`, `-cursor`, `-font`, `-scroll` |
+| `/fonts/…`, `/images/ui/cursor/…` | `/_jade/fonts/…`, `/_jade/images/ui/cursor/…` |
+| `useVenixTheme()`, `useVenixIcon()` | `useJade()`, `useJadeIcon()` |
+| `<VenixThemeSwitcher>`, `<VenixIcon>` | `<JadeThemeSwitcher>`, `<JadeIcon>` |
+| `venixUnoPreset()` | `jadeUnoPreset()` |
+
+**On a new project, turn the old ones off:**
+
+```ts
+venixJade: {
+  legacyNames: false,
+}
+```
+
+The cookies (`venix-theme-preference`, `venix-theme-mode`…) and the consent key keep their names, so no visitor loses a saved theme. `venixUnoPreset` is a separate import, available until 2.0 whatever the option says.
+
+> [!NOTE]
+> With `legacyNames` on, the old variables are aliases of the new ones (`--color-primary: var(--jade-primary)`): override the `--jade-*` name and both change. CSS of yours that *sets* an old name no longer reaches the module.
 
 <br>
 
 ## Modules
 
-Jade is a set of independent modules, each configured under its own key in `venixTheme`. Every key accepts `false` (disable), `true` (enable with defaults) or an object (enable and customize):
+Jade is a set of independent modules, each configured under its own key in `venixJade`. Every key accepts `false` (disable), `true` (enable with defaults) or an object (enable and customize):
 
 | Module                      | Key           | Default | What it does                                                          |
 | --------------------------- | ------------- | ------- | --------------------------------------------------------------------- |
@@ -115,21 +148,22 @@ Jade is a set of independent modules, each configured under its own key in `veni
 | [Scrollbar](#scrollbar)     | `scrollbar`   | `true`  | A custom scrollbar that follows the active theme                      |
 | [Cursor](#cursor)           | `cursor`      | `true`  | Custom cursor images                                                  |
 | [Translation](#translation) | `translation` | `true`  | Detects the user's locale and translates theme names and your own strings |
-| [Icons](#icons)             | `icon`        | `true`  | `<VenixIcon>`: emoji, Iconify (bundled offline) or inline SVG through one component |
+| [Icons](#icons)             | `icon`        | `true`  | `<JadeIcon>`: emoji, Iconify (bundled offline) or inline SVG through one component |
 | [Vuetify](#vuetify)         | `vuetify`     | `false` | Registers the color themes with Vuetify and keeps it in sync          |
 | [Experimental](#built-in-themes-and-experimental) | `experimental` | `false` | Experimental features to try on a project: today, the semantic color tokens on your own themes too, and on Vuetify |
+| [Old names](#names-and-compatibility) | `legacyNames` | `true` | Also writes the names used up to 1.5; turn it off on a new project |
 
 <br>
 
 ## Colors
 
 <p align="center">
-  <img alt="venixTheme: color" src="https://img.shields.io/badge/venixTheme-color-00A86B?style=for-the-badge">
+  <img alt="venixJade: color" src="https://img.shields.io/badge/venixJade-color-00A86B?style=for-the-badge">
   <img alt="default: on" src="https://img.shields.io/badge/default-on-2EA44F?style=for-the-badge">
   <img alt="third-party: none" src="https://img.shields.io/badge/third--party-none-6E7781?style=for-the-badge">
 </p>
 
-Every theme has a light and a dark palette, exposed as CSS variables (`--color-primary`, `--color-background2`…):
+Every theme has a light and a dark palette, exposed as CSS variables (`--jade-primary`, `--jade-background2`…):
 
 <p align="center">
   <img src="./docs/images/readme/palettes.png" alt="Color palettes: Venix dark and light, Halloween dark, Christmas light" width="800">
@@ -137,7 +171,7 @@ Every theme has a light and a dark palette, exposed as CSS variables (`--color-p
 
 | Option           | Type                        | Default  | Description                                                   |
 | ---------------- | --------------------------- | -------- | ------------------------------------------------------------- |
-| `apply`          | `boolean`                   | `true`   | Apply the resolved theme to `<html>` (`data-theme` and class) |
+| `apply`          | `boolean`                   | `true`   | Apply the resolved theme to `<html>` (`data-jade-theme` and class) |
 | `defaultColor`   | `string`                    | `'dark'` | Initial choice with no saved preference: a theme (mode follows the OS), a variant id like `'dark'` (that theme in that mode) or `'system'`. A value that matches no available theme warns at build time and falls back to `'system'` |
 | `themes`         | `object`                    | `{}`     | Override or add themes — see [Themes](#themes)                |
 | `iconFormat`     | `'emote' \| 'css' \| 'svg'` | `'svg'`  | Preferred theme icon variant — see [Theme icons](#theme-icons) |
@@ -153,7 +187,7 @@ Every theme has a light and a dark palette, exposed as CSS variables (`--color-p
 Each theme has a `light` and a `dark` variant, plus a name (`translations`) and an `icon` shared by both. The module ships with **Venix** (`venix`) and the [seasonal themes](#seasonal-themes), all in both modes. `color.themes` extends that set:
 
 - An **existing** name overrides only the properties you set; the rest of the theme (the other variant, other colors, translations, icon) stays as shipped. Venix's colors are the exception: they're the Venix Sistemas brand, so overriding them warns at build time unless `allowVenixOverride` is `true`. Add your own theme instead.
-- A **new** name adds a theme that works like a built-in one: its own CSS variables, an entry in `useVenixTheme().themes` (so it appears in `<VenixThemeSwitcher>`), and UnoCSS/Vuetify support when enabled. A theme with only one variant uses it in both modes.
+- A **new** name adds a theme that works like a built-in one: its own CSS variables, an entry in `useJade().themes` (so it appears in `<JadeThemeSwitcher>`), and UnoCSS/Vuetify support when enabled. A theme with only one variant uses it in both modes.
 
 ```typescript
 color: {
@@ -174,9 +208,9 @@ color: {
 }
 ```
 
-Available colors: `primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`, `background`, `background2`, `background3`. Each becomes a `--color-<name>` CSS variable, plus `--color-inverse` (white on dark variants, black on light ones). For colors that meet WCAG contrast by construction, the built-in themes also ship [semantic tokens](#semantic-tokens-experimental) (experimental), and your own themes can opt in.
+Available colors: `primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`, `background`, `background2`, `background3`. Each becomes a `--jade-<name>` CSS variable, plus `--jade-inverse` (white on dark variants, black on light ones). For colors that meet WCAG contrast by construction, the built-in themes also ship [semantic tokens](#semantic-tokens-experimental) (experimental), and your own themes can opt in.
 
-Each variant is applied as `<html data-theme="<id>">`, and the id is also its Vuetify theme name. It defaults to `<theme>-<mode>` (`summerSale-light`); set `id` on a variant to choose it. The built-in themes keep the ids they had before light/dark became separate: `dark` and `light` for Venix, `carnaval`, `natal` and `halloween` for the dark seasonal variants (their light ones are `carnaval-light` and so on). Easter, added later, uses the default `pascoa-light` and `pascoa-dark`.
+Each variant is applied as `<html data-jade-theme="<id>">`, and the id is also its Vuetify theme name. It defaults to `<theme>-<mode>` (`summerSale-light`); set `id` on a variant to choose it. The built-in themes keep the ids they had before light/dark became separate: `dark` and `light` for Venix, `carnaval`, `natal` and `halloween` for the dark seasonal variants (their light ones are `carnaval-light` and so on). Easter, added later, uses the default `pascoa-light` and `pascoa-dark`.
 
 ### Seasonal themes
 
@@ -211,7 +245,7 @@ The built-in Carnival theme uses `easter-65` to `easter-46`: 20 days, from the p
 
 ### Semantic tokens (experimental)
 
-> **Experimental.** Additive, and the names or steps may still change before it's declared stable. Everything above (`--color-primary`, `--color-background2`…) keeps working exactly as before, next to the tokens: the built-in themes ship both, and your own themes opt in per theme (or all at once with [`experimental`](#built-in-themes-and-experimental)).
+> **Experimental.** Additive, and the names or steps may still change before it's declared stable. Everything above (`--jade-primary`, `--jade-background2`…) keeps working exactly as before, next to the tokens: the built-in themes ship both, and your own themes opt in per theme (or all at once with [`experimental`](#built-in-themes-and-experimental)).
 
 A theme with `tokens: true` (the built-in themes have it already) also gets **semantic tokens**: CSS variables named for where the color goes (`--jade-text-primary`, `--jade-fill-primary`, `--jade-bg-subtle`…), generated from the variant's `primary`, `secondary` and `background`. Each token points at a step of a 12-step scale whose pairs are placed so they meet WCAG 2.1 contrast, so you don't have to guess which shade is readable on which background.
 
@@ -246,9 +280,9 @@ color: {
 }
 ```
 
-The old variables stay: a token theme still emits `--color-primary` and `--color-secondary` (the seeds), so CSS written for the original model works on it too. A token theme should set `background`; without one the tokens are built on `#FFFFFF` (light) or `#121212` (dark).
+The old variables stay: a token theme still emits `--jade-primary` and `--jade-secondary` (the seeds), so CSS written for the original model works on it too. A token theme should set `background`; without one the tokens are built on `#FFFFFF` (light) or `#121212` (dark).
 
-**Names.** `--color-<property>[-<role>][-<variant>][-<state>]`: the property says what the color is for (`bg`, `text`, `fill`, `on`, `border`), the role is `primary`, `secondary`, `accent`, `error`, `info`, `success` or `warning`, the variant is `subtle`, `muted`, `strong` or `focus`, and the state is `hover` or `active`. None of them repeats a name from the original model, so both live side by side.
+**Names.** `--jade-<property>[-<role>][-<variant>][-<state>]`: the property says what the color is for (`bg`, `text`, `fill`, `on`, `border`), the role is `primary`, `secondary`, `accent`, `error`, `info`, `success` or `warning`, the variant is `subtle`, `muted`, `strong` or `focus`, and the state is `hover` or `active`. None of them repeats a name from the original model, so both live side by side.
 
 Neutral tokens, built from the theme's `background` (`--jade-bg` *is* the background, exactly). On a dark variant they lean very slightly toward the hue of `primary` by default, so the surfaces feel of one piece with the theme (a light variant is [bold](#surfaces) by default, with the stronger tint described below). A `background` that already has a color of its own (a peach `#FFF8F0`, say) is not pulled toward `primary`: its own hue is kept, and the surfaces and borders get more of it the farther they sit from the page, the way a hand-made palette does, so a card doesn't look grayer than the page behind it. A gray `background` (`#FAFAFA`, `#0C0C0C`) works as described above. Set `neutralTint: false` next to `tokens: true` for plain grays instead (contrast is the same either way):
 
@@ -371,19 +405,19 @@ A warning usually means the seed itself can't get there, not that the scale is w
 
 **Where the tokens show up.**
 
-- **CSS:** in the variant's `[data-theme]` block, after the usual variables.
-- **`useVenixTheme().tokens`:** `all` (every variant's tokens by `data-theme` id), `current` (the applied theme's, `undefined` when it has none) and `cssVar('text-primary')` → `'var(--jade-text-primary)'`. See [`useVenixTheme()`](#usevenixtheme).
+- **CSS:** in the variant's `[data-jade-theme]` block, after the usual variables.
+- **`useJade().tokens`:** `all` (every variant's tokens by `data-jade-theme` id), `current` (the applied theme's, `undefined` when it has none) and `cssVar('text-primary')` → `'var(--jade-text-primary)'`. See [`useJade()`](#usevenixtheme).
 - **UnoCSS:** one class per token, with the `jade-` prefix: `jade-bg-subtle`, `jade-text-muted`, `jade-fill-primary`. See [UnoCSS preset](#unocss-preset).
 - **Vuetify:** `on-primary`, `on-secondary`, `surface`, `on-surface` and `on-background`. See [Vuetify](#vuetify).
-- **Not in `<VenixThemeSwitcher>`:** it never takes theme colors, with or without tokens (see [Theme switcher](#theme-switcher)).
+- **Not in `<JadeThemeSwitcher>`:** it never takes theme colors, with or without tokens (see [Theme switcher](#theme-switcher)).
 
-**High contrast.** `color.highContrast: true` (experimental, off by default) also writes the AAA version of every token that changes, per variant, inside `@media (prefers-contrast: more)`: visitors who ask their system for more contrast get text at 7:1 with no setting on the site. With the built-in themes it adds about 7 kB of CSS (before compression) and under a second to the build. Seeds don't change (`fill-*` stays the exact seed), and a pair that can't reach 7:1 with black or white (`on-*` on a mid-tone seed) keeps the best the scale can do, with no build warning. The CSS variables follow the preference; `useVenixTheme().tokens` keeps reporting the regular values. There is nothing to add when `color.contrast` is already `'AAA'`.
+**High contrast.** `color.highContrast: true` (experimental, off by default) also writes the AAA version of every token that changes, per variant, inside `@media (prefers-contrast: more)`: visitors who ask their system for more contrast get text at 7:1 with no setting on the site. With the built-in themes it adds about 7 kB of CSS (before compression) and under a second to the build. Seeds don't change (`fill-*` stays the exact seed), and a pair that can't reach 7:1 with black or white (`on-*` on a mid-tone seed) keeps the best the scale can do, with no build warning. The CSS variables follow the preference; `useJade().tokens` keeps reporting the regular values. There is nothing to add when `color.contrast` is already `'AAA'`.
 
 The tokens are generated at build time with [Adobe Leonardo](https://github.com/adobe/leonardo) and never reach the client bundle; the client only receives the resulting hex values. The roles are `primary`, `secondary`, `accent` and the status colors `error`, `info`, `success` and `warning`: each gets the tokens below from the seed of the same name. A theme that sets only `primary` gets the rest derived from it: `secondary` is the primary's hue turned 30° and `accent` the opposite hue, calmer, both at the primary's lightness; `error`, `info`, `success` and `warning` use the usual red, blue, green and amber, deeper on a light page and lighter on a dark one. A seed the theme sets always wins over the derived one, and a gray `primary` (no hue to turn) derives only the status colors. Without a `primary` nothing is derived.
 
 #### Built-in themes and `experimental`
 
-Venix and the four seasonal themes ship with `tokens: true`, **next to** the old model: `--color-primary`, `--color-background2`… keep the values they had (the light Venix red is the one change: `#d80000`, so the text on it is white). Their light variants are bold, as any light variant is by default: the page keeps its `background`, cards, borders and text take the hue of the theme's `primary`, and elements with `data-jade-surface="bold"` are painted in it. The dark ones look as before (Venix with plain gray surfaces, `neutralTint: false`; a seasonal theme with the hue of its own `background`). Set `surfaces: 'soft'` on a theme to give its light variant the subtle tint too, or `surfaces: 'bold'` to make the dark one bold.
+Venix and the four seasonal themes ship with `tokens: true`, **next to** the old model: `--jade-primary`, `--jade-background2`… keep the values they had (the light Venix red is the one change: `#d80000`, so the text on it is white). Their light variants are bold, as any light variant is by default: the page keeps its `background`, cards, borders and text take the hue of the theme's `primary`, and elements with `data-jade-surface="bold"` are painted in it. The dark ones look as before (Venix with plain gray surfaces, `neutralTint: false`; a seasonal theme with the hue of its own `background`). Set `surfaces: 'soft'` on a theme to give its light variant the subtle tint too, or `surfaces: 'bold'` to make the dark one bold.
 
 Two things are left as they were for projects that already exist:
 
@@ -393,14 +427,14 @@ Two things are left as they were for projects that already exist:
 Your own themes opt in per theme with `tokens`. To get the tokens on all of them at once, turn on the `experimental` option. It's **off by default**:
 
 ```typescript
-venixTheme: {
+venixJade: {
   experimental: true, // or { enabled: true }
 }
 ```
 
-Every theme that doesn't set `tokens` itself then gets them, built from its own `primary`, `secondary` and `background`, so `jade-bg-subtle`, `var(--jade-text-primary)` and `useVenixTheme().tokens` work on whichever theme is applied. A theme with `tokens: false` stays out, and one with its own `tokens` keeps them as written. The contrast check covers them, and asking for the tokens everywhere includes Vuetify's colors (see [Vuetify](#vuetify)), the built-in themes' too.
+Every theme that doesn't set `tokens` itself then gets them, built from its own `primary`, `secondary` and `background`, so `jade-bg-subtle`, `var(--jade-text-primary)` and `useJade().tokens` work on whichever theme is applied. A theme with `tokens: false` stays out, and one with its own `tokens` keeps them as written. The contrast check covers them, and asking for the tokens everywhere includes Vuetify's colors (see [Vuetify](#vuetify)), the built-in themes' too.
 
-It is a build-time choice, equivalent to writing `tokens: true` on every theme: there is no switch for the visitor. Both models live side by side until 2.0.0, when the old `--color-*` variables and `background2`/`3` go and the tokens become the only model.
+It is a build-time choice, equivalent to writing `tokens: true` on every theme: there is no switch for the visitor. Both models live side by side until 2.0.0, when the old `--jade-*` variables and `background2`/`3` go and the tokens become the only model.
 
 ### Theme transition
 
@@ -408,26 +442,26 @@ Every theme switch — manual, through the switcher, or an automatic system/seas
 
 ### Flat format (deprecated)
 
-Before themes had two variants, each one was a single flat set of colors with a `dark` flag (`summerSale: { dark: false, primary: '#FF8A00' }`), and built-in themes were overridden by variant name (`dark: { primary: '#FF6B6B' }`). Both still work: a flat theme becomes a theme with only that variant (same `data-theme` id as before), and an override by variant name lands on that variant. Each one logs a `[jade]` warning at build time pointing at the new format; the flat format will be removed in 2.0.
+Before themes had two variants, each one was a single flat set of colors with a `dark` flag (`summerSale: { dark: false, primary: '#FF8A00' }`), and built-in themes were overridden by variant name (`dark: { primary: '#FF6B6B' }`). Both still work: a flat theme becomes a theme with only that variant (same `data-jade-theme` id as before), and an override by variant name lands on that variant. Each one logs a `[jade]` warning at build time pointing at the new format; the flat format will be removed in 2.0.
 
 <br>
 
 ## Typography
 
 <p align="center">
-  <img alt="venixTheme: typography" src="https://img.shields.io/badge/venixTheme-typography-00A86B?style=for-the-badge">
+  <img alt="venixJade: typography" src="https://img.shields.io/badge/venixJade-typography-00A86B?style=for-the-badge">
   <img alt="default: on" src="https://img.shields.io/badge/default-on-2EA44F?style=for-the-badge">
   <a href="https://fonts.google.com/specimen/Iceberg"><img alt="font: Iceberg" src="https://img.shields.io/badge/font-Iceberg-1F6FEB?style=for-the-badge"></a>
 </p>
 
-Sets the base font for the whole app: `--font-family-base` and `--font-size-base` on `:root`, plus an `@font-face` rule for each custom font.
+Sets the base font for the whole app: `--jade-font-family` and `--jade-font-size` on `:root`, plus an `@font-face` rule for each custom font.
 
 <p align="center">
   <img src="./docs/images/readme/typography.png" alt="The Iceberg font at several sizes" width="800">
 </p>
 
 ```typescript
-venixTheme: {
+venixJade: {
   typography: {
     defaultFonts: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", // default
     fontSize: '16px', // default
@@ -440,16 +474,16 @@ venixTheme: {
 
 `preload: true` adds a `<link rel="preload">` for the font's first source to the page `<head>`, so it downloads with the page instead of after the CSS, avoiding a flash of the fallback font. The module's own Iceberg font is preloaded.
 
-Custom fonts come first in `--font-family-base`, with `defaultFonts` as the fallback. The same font list also goes to Vuetify's `--v-font-body`/`--v-font-heading`, since Vuetify components don't inherit `font-family` from the page.
+Custom fonts come first in `--jade-font-family`, with `defaultFonts` as the fallback. The same font list also goes to Vuetify's `--v-font-body`/`--v-font-heading`, since Vuetify components don't inherit `font-family` from the page.
 
-Visitors can turn the custom fonts off in the [switcher's settings](#theme-switcher), or you can with `font.set(false)`: the module sets `data-venix-font="off"` on `<html>`, and those three variables keep only the `defaultFonts` (or become unset without them, so your `var(--font-family-base, …)` fallback applies).
+Visitors can turn the custom fonts off in the [switcher's settings](#theme-switcher), or you can with `font.set(false)`: the module sets `data-jade-font="off"` on `<html>`, and those three variables keep only the `defaultFonts` (or become unset without them, so your `var(--jade-font-family, …)` fallback applies).
 
 <br>
 
 ## Scrollbar
 
 <p align="center">
-  <img alt="venixTheme: scrollbar" src="https://img.shields.io/badge/venixTheme-scrollbar-00A86B?style=for-the-badge">
+  <img alt="venixJade: scrollbar" src="https://img.shields.io/badge/venixJade-scrollbar-00A86B?style=for-the-badge">
   <img alt="default: on" src="https://img.shields.io/badge/default-on-2EA44F?style=for-the-badge">
   <img alt="third-party: OverlayScrollbars (optional)" src="https://img.shields.io/badge/third--party-OverlayScrollbars_(optional)-6E7781?style=for-the-badge">
 </p>
@@ -461,7 +495,7 @@ A custom scrollbar whose colors follow the active theme. The values below are th
 </p>
 
 ```typescript
-venixTheme: {
+venixJade: {
   scrollbar: {
     // Draws the scrollbars with OverlayScrollbars, so the custom cursor shows over them (see below)
     overlay: false,
@@ -476,7 +510,7 @@ venixTheme: {
 
 The scrollbars are the browser's own, styled with CSS. The CSS-styled scrollbar uses `::-webkit-scrollbar` in Chromium-based browsers and Safari, and `scrollbar-color` in Firefox, which only takes the colors (no border, radius or hover color). Chromium-based browsers (Chrome, Edge, Brave, Opera) draw a scrollbar styled this way as part of the page, so the [custom cursor](#cursor) shows over it too, the pointer over the thumb.
 
-Visitors can turn it off in the [switcher's settings](#theme-switcher), or you can with `scrollbar.set(false)` from `useVenixTheme()`: the module then sets `data-venix-scrollbar="off"` on `<html>` and the browser's own scrollbar comes back.
+Visitors can turn it off in the [switcher's settings](#theme-switcher), or you can with `scrollbar.set(false)` from `useJade()`: the module then sets `data-jade-scrollbar="off"` on `<html>` and the browser's own scrollbar comes back.
 
 ### Overlay scrollbar (optional)
 
@@ -489,7 +523,7 @@ pnpm add overlayscrollbars
 ```
 
 ```typescript
-venixTheme: {
+venixJade: {
   scrollbar: { overlay: true },
 }
 ```
@@ -498,10 +532,10 @@ It covers:
 
 - the page itself (`window.scrollTo` and the like keep working);
 - Vuetify's scroll containers: navigation drawers, scrollable dialogs, `v-select` menus and tables, including the page and containers behind an open dialog staying locked;
-- any element of yours that scrolls, marked with `data-venix-scroll`:
+- any element of yours that scrolls, marked with `data-jade-scroll`:
 
 ```html
-<div data-venix-scroll style="height: 300px; overflow: auto">…</div>
+<div data-jade-scroll style="height: 300px; overflow: auto">…</div>
 ```
 
 Everything else keeps the browser's scrollbar, styled with CSS. Scrolling itself stays the browser's own, so smooth scrolling (`scroll-behavior: smooth`, `scrollTo({ behavior: 'smooth' })`), GSAP's ScrollTrigger, ScrollToPlugin and ScrollSmoother, and Lenis keep working. With `overlay: false` OverlayScrollbars isn't added to the bundle at all.
@@ -511,12 +545,12 @@ Everything else keeps the browser's scrollbar, styled with CSS. Scrolling itself
 ## Cursor
 
 <p align="center">
-  <img alt="venixTheme: cursor" src="https://img.shields.io/badge/venixTheme-cursor-00A86B?style=for-the-badge">
+  <img alt="venixJade: cursor" src="https://img.shields.io/badge/venixJade-cursor-00A86B?style=for-the-badge">
   <img alt="default: on" src="https://img.shields.io/badge/default-on-2EA44F?style=for-the-badge">
   <img alt="third-party: none" src="https://img.shields.io/badge/third--party-none-6E7781?style=for-the-badge">
 </p>
 
-Replaces the default, pointer and text cursors, and the open and closed hands for dragging (`grab` and `grabbing`). On by default; set `cursor: false` to keep the system's cursors. Visitors can also turn it off for themselves in the [switcher's settings](#theme-switcher) (or you with `cursor.set(false)`), which sets `data-venix-cursor="off"` on `<html>`:
+Replaces the default, pointer and text cursors, and the open and closed hands for dragging (`grab` and `grabbing`). On by default; set `cursor: false` to keep the system's cursors. Visitors can also turn it off for themselves in the [switcher's settings](#theme-switcher) (or you with `cursor.set(false)`), which sets `data-jade-cursor="off"` on `<html>`:
 
 <p align="center">
   <img src="./docs/images/readme/cursor.png" alt="The default, pointer and text cursors" width="800">
@@ -539,7 +573,7 @@ Replaces the default, pointer and text cursors, and the open and closed hands fo
 | `{ pointer: { path, hotspot } }` | its own images; the cursors left out show as if the theme had no entry |
 
 ```typescript
-venixTheme: {
+venixJade: {
   cursor: {
     // `false` shows the default cursors in every theme without an entry in `themeCursors`
     themed: true,
@@ -567,11 +601,11 @@ venixTheme: {
 The custom cursor is set on `<html>` and reaches the rest of the page by inheritance. Any element with a `cursor` of its own shows that one instead, so a fixed `cursor: pointer` in your CSS shows the **system's** hand. Use the module's variables:
 
 ```css
-.my-clickable { cursor: var(--cursor-pointer); }
-.my-readonly  { cursor: var(--cursor-default); }
-.my-editor    { cursor: var(--cursor-text); }
-.my-card      { cursor: var(--cursor-grab); }
-.my-card:active { cursor: var(--cursor-grabbing); }
+.my-clickable { cursor: var(--jade-cursor-pointer); }
+.my-readonly  { cursor: var(--jade-cursor-default); }
+.my-editor    { cursor: var(--jade-cursor-text); }
+.my-card      { cursor: var(--jade-cursor-grab); }
+.my-card:active { cursor: var(--jade-cursor-grabbing); }
 ```
 
 They follow the color theme and switch to the system's cursors when the visitor turns the custom cursor off. The utility classes `cursor-default`, `cursor-pointer`, `cursor-text`, `cursor-grab` and `cursor-grabbing` (Vuetify's, and UnoCSS's with the [UnoCSS preset](#unocss-preset)) use them too.
@@ -579,7 +613,7 @@ They follow the color theme and switch to the system's cursors when the visitor 
 The module already gives the variables to what browsers and Vuetify 4 style with a fixed cursor: links, buttons, form fields, and Vuetify's clickable components (table rows with `@click:row`, sortable headers, `v-card` with `hover`, chip close buttons, `v-select`, switches, sliders, menu activators and so on). Its CSS is outside any `@layer`, so it wins over Vuetify's, which is layered, without `!important`. Your own rules (outside a layer, too) still win over it when they are more specific. For a table with `@click:row` where only some rows do something:
 
 ```css
-.orders .v-data-table__tr--clickable.no-action { cursor: var(--cursor-default); }
+.orders .v-data-table__tr--clickable.no-action { cursor: var(--jade-cursor-default); }
 ```
 
 Or the class `cursor-default` on those rows (`:row-props="row => ({ class: row.item.locked && 'cursor-default' })"`). Links, buttons, `[role="button"]`, text fields and disabled elements keep `!important`, so the pointer shows over everything inside a link or button and the arrow over a disabled one; for these, change the cursor with `!important` too (`!cursor-default` in UnoCSS).
@@ -597,11 +631,11 @@ Or the class `cursor-default` on those rows (`:row-props="row => ({ class: row.i
 ## Theme switcher
 
 <p align="center">
-  <img alt="component: &lt;VenixThemeSwitcher&gt;" src="https://img.shields.io/badge/component-%3CVenixThemeSwitcher%3E-00A86B?style=for-the-badge">
+  <img alt="component: &lt;JadeThemeSwitcher&gt;" src="https://img.shields.io/badge/component-%3CJadeThemeSwitcher%3E-00A86B?style=for-the-badge">
   <img alt="UI kit: none needed" src="https://img.shields.io/badge/UI_kit-none_needed-2EA44F?style=for-the-badge">
 </p>
 
-`<VenixThemeSwitcher>` (see [Quick Setup](#2-add-the-theme-switcher)) takes these props:
+`<JadeThemeSwitcher>` (see [Quick Setup](#2-add-the-theme-switcher)) takes these props:
 
 | Prop        | Type      | Default                 | Description                                         |
 | ----------- | --------- | ----------------------- | --------------------------------------------------- |
@@ -618,7 +652,7 @@ And emits one event:
 With your own cookie banner, use it to bring the banner up at the moment it matters:
 
 ```vue
-<VenixThemeSwitcher hide-consent @consent-needed="openCookieBanner()" />
+<JadeThemeSwitcher hide-consent @consent-needed="openCookieBanner()" />
 ```
 
 The gear next to the title opens the **settings**, a few switches for the visitor:
@@ -626,7 +660,7 @@ The gear next to the title opens the **settings**, a few switches for the visito
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="./docs/images/readme/switcher-settings-light.png">
-    <img src="./docs/images/readme/switcher-settings-dark.png" alt="VenixThemeSwitcher settings: Save changes, Custom scrollbar, Custom cursor and Custom font switches" width="800">
+    <img src="./docs/images/readme/switcher-settings-dark.png" alt="JadeThemeSwitcher settings: Save changes, Custom scrollbar, Custom cursor and Custom font switches" width="800">
   </picture>
 </p>
 
@@ -648,14 +682,14 @@ It ships with minimal CSS of its own. To restyle it, target `.venix-theme-switch
 
 <br>
 
-## `useVenixTheme()`
+## `useJade()`
 
 <p align="center">
-  <img alt="composable: useVenixTheme()" src="https://img.shields.io/badge/composable-useVenixTheme()-00A86B?style=for-the-badge">
+  <img alt="composable: useJade()" src="https://img.shields.io/badge/composable-useJade()-00A86B?style=for-the-badge">
   <img alt="auto-imported: yes" src="https://img.shields.io/badge/auto--imported-yes-2EA44F?style=for-the-badge">
 </p>
 
-The auto-imported `useVenixTheme()` composable gives access to the theme. It isn't called `useTheme` to avoid colliding with UI libraries (like Vuetify) that auto-import a composable with that name.
+The auto-imported `useJade()` composable gives access to the theme. It isn't called `useTheme` to avoid colliding with UI libraries (like Vuetify) that auto-import a composable with that name.
 
 The **theme** (Venix, Carnival, Christmas…) and the **mode** (light or dark) are chosen independently; the applied colors are the theme's variant for that mode. Either can be `'system'`: an automatic theme follows the calendar ([seasonal themes](#seasonal-themes)), an automatic mode follows the OS.
 
@@ -667,7 +701,7 @@ The **theme** (Venix, Carnival, Christmas…) and the **mode** (light or dark) a
 </template>
 
 <script setup lang="ts">
-const { theme, mode } = useVenixTheme()
+const { theme, mode } = useJade()
 </script>
 ```
 
@@ -675,7 +709,7 @@ It returns:
 
 - `theme` — the theme choice:
   - `preference`: the chosen theme (`'system'`, `'venix'`, `'carnaval'`…)
-  - `value`: the variant actually applied, as in `data-theme` (e.g. `'natal-light'`, or `'dark'` for Venix in dark mode)
+  - `value`: the variant actually applied, as in `data-jade-theme` (e.g. `'natal-light'`, or `'dark'` for Venix in dark mode)
   - `data`: the chosen theme's `{ value, name, icon }`
   - `set(name)`: picks a theme, keeping the mode
   - `toggle(name?)`: kept for compatibility — without a name switches the mode; `'dark'`/`'light'` select Venix in that mode; `'system'` makes both theme and mode automatic
@@ -684,21 +718,21 @@ It returns:
 - `themes` — every selectable theme as `{ value, name, icon, custom }`, ready to render a picker (see [Theme icons](#theme-icons)); `custom` is `true` for themes your project added in `color.themes`.
 - `mode` — the mode choice: `preference` (`'system'`, `'light'`, `'dark'`), `value` (the mode applied, `'light'` or `'dark'`), `data`, `set(mode)` and `toggle()`.
 - `modes` — the three mode options with names and icons, ready to render.
-- `tokens` — the [semantic tokens](#semantic-tokens-experimental) (experimental) of the themes with `tokens: true` (the built-in ones included): `all` (every variant's tokens by `data-theme` id), `current` (a computed with the applied theme's tokens, `undefined` when it has none) and `cssVar('text-primary')`, which returns `'var(--jade-text-primary)'`.
+- `tokens` — the [semantic tokens](#semantic-tokens-experimental) (experimental) of the themes with `tokens: true` (the built-in ones included): `all` (every variant's tokens by `data-jade-theme` id), `current` (a computed with the applied theme's tokens, `undefined` when it has none) and `cssVar('text-primary')`, which returns `'var(--jade-text-primary)'`.
 - `scrollbar` / `cursor` / `font` — the visitor's switch for the custom [scrollbar](#scrollbar), [cursor](#cursor) and [font](#typography): `available` (the project has it on), `enabled` (a `Ref<boolean>`, `true` unless the visitor turned it off) and `set(enabled)`.
 - `locale` — `current`, `set()` and `translate()` (see [Translation](#translation)).
 - `persistence` — cookie consent controls (see [Saving preferences](#saving-preferences-cookie-consent)).
 
 **Typed names.** The module writes your project's theme names and variant ids to `.nuxt/types/venix-theme.d.ts`, so `theme.set('')` and `theme.toggle('')` autocomplete the themes you really have (the built-in ones and your own), and `tokens.cssVar('')` the token names (`'fill-warning'`, `'text-error-strong'`…). The types stay open to any string, so a name built at runtime compiles; in development, `theme.set()` and `theme.toggle()` log a `[jade]` warning when a name matches no theme, instead of silently doing nothing. `ThemeName`, `ThemeOrVariantName` and `TokenName` are exported from `@venix-sistemas/jade` if you need the types.
 
-The state is shared app-wide (via Nuxt's `useState`): every component calling `useVenixTheme()` reads and writes the same theme, so they never go out of sync.
+The state is shared app-wide (via Nuxt's `useState`): every component calling `useJade()` reads and writes the same theme, so they never go out of sync.
 
 <br>
 
 ## Saving preferences (cookie consent)
 
 <p align="center">
-  <img alt="venixTheme: color.requireConsent" src="https://img.shields.io/badge/venixTheme-color.requireConsent-00A86B?style=for-the-badge">
+  <img alt="venixJade: color.requireConsent" src="https://img.shields.io/badge/venixJade-color.requireConsent-00A86B?style=for-the-badge">
   <img alt="default: waits for consent" src="https://img.shields.io/badge/default-waits_for_consent-2EA44F?style=for-the-badge">
 </p>
 
@@ -723,7 +757,7 @@ Consent is read from `localStorage['venix-cookie-consent']`, a JSON object with 
 
 ```vue
 <script setup lang="ts">
-const { persistence } = useVenixTheme()
+const { persistence } = useJade()
 </script>
 
 <template>
@@ -749,7 +783,7 @@ window.dispatchEvent(new Event('venix-cookie-preferences-updated'))
 For apps without a consent banner — e.g. an internal tool — turn the requirement off, and the theme is always saved:
 
 ```typescript
-venixTheme: {
+venixJade: {
   color: {
     requireConsent: false,
   },
@@ -763,12 +797,12 @@ Consent is then ignored for the theme cookies and for the locale cookie written 
 ## Translation
 
 <p align="center">
-  <img alt="venixTheme: translation" src="https://img.shields.io/badge/venixTheme-translation-00A86B?style=for-the-badge">
+  <img alt="venixJade: translation" src="https://img.shields.io/badge/venixJade-translation-00A86B?style=for-the-badge">
   <img alt="default: on" src="https://img.shields.io/badge/default-on-2EA44F?style=for-the-badge">
   <a href="https://i18n.nuxtjs.org"><img alt="works with: @nuxtjs/i18n" src="https://img.shields.io/badge/works_with-%40nuxtjs%2Fi18n-1F6FEB?style=for-the-badge"></a>
 </p>
 
-Detects the user's locale to translate the theme names (each theme's `translations`), `<VenixThemeSwitcher>`'s own strings and, optionally, your own strings.
+Detects the user's locale to translate the theme names (each theme's `translations`), `<JadeThemeSwitcher>`'s own strings and, optionally, your own strings.
 
 | Option           | Type      | Default             | Description                                              |
 | ---------------- | --------- | ------------------- | -------------------------------------------------------- |
@@ -792,7 +826,7 @@ With `translation: false`, detection is off: theme names and the switcher's stri
 `locale.translate()` applies the same matching and fallbacks to your own strings:
 
 ```ts
-const { locale } = useVenixTheme()
+const { locale } = useJade()
 
 locale.translate({ 'en-US': 'Hello', 'pt-BR': 'Olá' }, 'Hello') // second argument: fallback
 ```
@@ -804,7 +838,7 @@ locale.translate({ 'en-US': 'Hello', 'pt-BR': 'Olá' }, 'Hello') // second argum
 `<html lang>` isn't touched by default. If your app has **no** routing i18n module, turn on `manageHtmlLang` so `lang` reflects the resolved locale (WCAG 3.1.1 — screen readers pronounce the theme names correctly):
 
 ```ts
-venixTheme: {
+venixJade: {
   translation: {
     manageHtmlLang: true,
   },
@@ -818,14 +852,14 @@ Keep it off with `@nuxtjs/i18n` or similar: that module follows the current rout
 ## Icons
 
 <p align="center">
-  <img alt="venixTheme: icon" src="https://img.shields.io/badge/venixTheme-icon-00A86B?style=for-the-badge">
+  <img alt="venixJade: icon" src="https://img.shields.io/badge/venixJade-icon-00A86B?style=for-the-badge">
   <img alt="default: on" src="https://img.shields.io/badge/default-on-2EA44F?style=for-the-badge">
   <a href="https://github.com/nuxt/icon"><img alt="uses: @nuxt/icon" src="https://img.shields.io/badge/uses-%40nuxt%2Ficon-1F6FEB?style=for-the-badge"></a>
   <a href="https://icon-sets.iconify.design/"><img alt="icons: Iconify" src="https://img.shields.io/badge/icons-Iconify-1F6FEB?style=for-the-badge"></a>
 </p>
 
 <p align="center">
-  <img src="./docs/images/readme/icons.png" alt="VenixIcon rendering an animated Iconify icon, an emoji, inline SVG and aliases" width="528">
+  <img src="./docs/images/readme/icons.png" alt="JadeIcon rendering an animated Iconify icon, an emoji, inline SVG and aliases" width="528">
 </p>
 
 Installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon), so every [Iconify](https://icon-sets.iconify.design/) icon is available in your app.
@@ -839,13 +873,13 @@ Installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon), so every [
 </template>
 ```
 
-**For special cases, use `<VenixIcon>`** (or the matching `useVenixIcon()` composable): when the same value may be an Iconify name, an emoji or an inline SVG — for example an icon that comes from configuration or data, like the [theme icons](#theme-icons):
+**For special cases, use `<JadeIcon>`** (or the matching `useJadeIcon()` composable): when the same value may be an Iconify name, an emoji or an inline SVG — for example an icon that comes from configuration or data, like the [theme icons](#theme-icons):
 
 ```vue
 <template>
-  <VenixIcon icon="line-md:home" />
-  <VenixIcon icon="<svg viewBox=&quot;0 0 24 24&quot;>...</svg>" />
-  <VenixIcon icon="🎨" />
+  <JadeIcon icon="line-md:home" />
+  <JadeIcon icon="<svg viewBox=&quot;0 0 24 24&quot;>...</svg>" />
+  <JadeIcon icon="🎨" />
 </template>
 ```
 
@@ -858,14 +892,14 @@ Installs and configures [`@nuxt/icon`](https://github.com/nuxt/icon), so every [
 | `collections` | `string[]`               | `['line-md']` | Iconify collections bundled whole — see [below](#offline-icon-collections) |
 | `aliases`     | `Record<string, string>` | `{}`          | Short names for any icon value — see [below](#aliases) |
 
-Set `icon: false` to skip `@nuxt/icon` entirely, e.g. if your project already configures it. `<VenixIcon>` isn't registered then, and theme icons always use their emoji (`emote`), so `<VenixThemeSwitcher>` keeps working.
+Set `icon: false` to skip `@nuxt/icon` entirely, e.g. if your project already configures it. `<JadeIcon>` isn't registered then, and theme icons always use their emoji (`emote`), so `<JadeThemeSwitcher>` keeps working.
 
 ### Aliases
 
 `icon.aliases` gives short names to any of the three formats:
 
 ```typescript
-venixTheme: {
+venixJade: {
   icon: {
     aliases: {
       home: 'line-md:home',
@@ -877,7 +911,7 @@ venixTheme: {
 ```
 
 ```vue
-<VenixIcon icon="home" />
+<JadeIcon icon="home" />
 ```
 
 ### Offline icon collections
@@ -889,7 +923,7 @@ Icons are bundled at build time, so they work offline instead of being fetched f
 - **To use any icon of a collection anywhere in your app**, install its `@iconify-json/<collection>` package and list it in `icon.collections` to bundle it whole. The list replaces the default, so keep `line-md` in it if you still want it:
 
 ```typescript
-venixTheme: {
+venixJade: {
   icon: {
     collections: ['line-md', 'tabler'],
   },
@@ -900,7 +934,7 @@ If a referenced collection can't be found, `@nuxt/icon` fetches it from the Icon
 
 ### Theme icons
 
-A theme's `icon` (shown by pickers such as `<VenixThemeSwitcher>`) is either a plain emoji, like `"icon": "🌙"`, or an object with up to three variants:
+A theme's `icon` (shown by pickers such as `<JadeThemeSwitcher>`) is either a plain emoji, like `"icon": "🌙"`, or an object with up to three variants:
 
 ```json
 "natal": {
@@ -916,10 +950,10 @@ A theme's `icon` (shown by pickers such as `<VenixThemeSwitcher>`) is either a p
 - `css` — an Iconify name rendered in CSS mode: lighter, but never animated.
 - `svg` — an Iconify name rendered as a real `<svg>`, needed for animated icons like `line-md`'s.
 
-`color.iconFormat` picks the variant for every theme (default `'svg'`, so the built-in `line-md` icons animate). When a theme doesn't define it, the other Iconify variant is tried before the emoji: `svg` → `css` → `emote` (or `css` → `svg` → `emote`). The mode options (Automatic, Light, Dark) use the same formats. `useVenixTheme().themes` and `.modes` already resolve it to `{ format, value }`, ready for `<VenixIcon>`:
+`color.iconFormat` picks the variant for every theme (default `'svg'`, so the built-in `line-md` icons animate). When a theme doesn't define it, the other Iconify variant is tried before the emoji: `svg` → `css` → `emote` (or `css` → `svg` → `emote`). The mode options (Automatic, Light, Dark) use the same formats. `useJade().themes` and `.modes` already resolve it to `{ format, value }`, ready for `<JadeIcon>`:
 
 ```vue
-<VenixIcon
+<JadeIcon
   v-if="item.icon"
   :icon="item.icon.value"
   :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
@@ -942,28 +976,28 @@ Add the preset to your `uno.config.ts` to use the theme colors as utilities (`te
 ```typescript
 // uno.config.ts
 import { defineConfig } from 'unocss'
-import { venixUnoPreset } from '@venix-sistemas/jade/unocss'
+import { jadeUnoPreset } from '@venix-sistemas/jade/unocss'
 
 export default defineConfig({
   presets: [
-    venixUnoPreset(),
+    jadeUnoPreset(),
     // ...your other presets
   ],
 })
 ```
 
-It maps every [theme color](#themes), plus `inverse`, to its CSS variable (`primary: 'var(--color-primary)'`, …), so utilities follow the active theme. Colors you define yourself in `uno.config.ts` take precedence.
+It maps every [theme color](#themes), plus `inverse`, to its CSS variable (`primary: 'var(--jade-primary)'`, …), so utilities follow the active theme. Colors you define yourself in `uno.config.ts` take precedence.
 
-The [semantic tokens](#semantic-tokens-experimental) (experimental) are classes named after their CSS variable, with the `jade-` prefix: `--jade-bg-subtle` → `jade-bg-subtle`, `jade-text-muted`, `jade-border-strong`, `jade-fill-primary`, `jade-on-primary`, `hover:jade-bg-hover`. Each sets the property the token is for (`bg-*` and `fill-*` the background, `text-*` and `on-*` the text color, `border-*` the border color). The prefix keeps them apart from other color systems' classes (Vuetify's `text-primary`, or the `text-muted` and `bg-muted` of Bootstrap and shadcn), and from the plain `bg-primary` / `text-primary` above. They are rules, not theme colors, so there is no `/50` opacity (it doesn't apply to a `var()` anyway) and no ring, divider or gradient version. They only have a value on themes with `tokens: true`. Pass `venixUnoPreset({ tokens: false })` to leave them out.
+The [semantic tokens](#semantic-tokens-experimental) (experimental) are classes named after their CSS variable, with the `jade-` prefix: `--jade-bg-subtle` → `jade-bg-subtle`, `jade-text-muted`, `jade-border-strong`, `jade-fill-primary`, `jade-on-primary`, `hover:jade-bg-hover`. Each sets the property the token is for (`bg-*` and `fill-*` the background, `text-*` and `on-*` the text color, `border-*` the border color). The prefix keeps them apart from other color systems' classes (Vuetify's `text-primary`, or the `text-muted` and `bg-muted` of Bootstrap and shadcn), and from the plain `bg-primary` / `text-primary` above. They are rules, not theme colors, so there is no `/50` opacity (it doesn't apply to a `var()` anyway) and no ring, divider or gradient version. They only have a value on themes with `tokens: true`. Pass `jadeUnoPreset({ tokens: false })` to leave them out.
 
-It also makes `cursor-default`, `cursor-pointer` and `cursor-text` use the [custom cursor](#cursors-in-your-own-css) (`cursor: var(--cursor-pointer, pointer)`, the system's when the module's cursor is off), with variants and `!` included (`hover:cursor-pointer`, `!cursor-default`). These replace `presetWind`'s rules of the same name wherever the preset sits in `presets`.
+It also makes `cursor-default`, `cursor-pointer` and `cursor-text` use the [custom cursor](#cursors-in-your-own-css) (`cursor: var(--jade-cursor-pointer, pointer)`, the system's when the module's cursor is off), with variants and `!` included (`hover:cursor-pointer`, `!cursor-default`). These replace `presetWind`'s rules of the same name wherever the preset sits in `presets`.
 
 The preset has to be added by hand: `@unocss/nuxt` re-reads `uno.config.ts` from disk and discards a `theme` injected by other modules whenever your file declares its own `theme` key. As a preset in your own file, the colors survive that.
 
 ### Vuetify
 
 <p align="center">
-  <img alt="venixTheme: vuetify" src="https://img.shields.io/badge/venixTheme-vuetify-00A86B?style=for-the-badge">
+  <img alt="venixJade: vuetify" src="https://img.shields.io/badge/venixJade-vuetify-00A86B?style=for-the-badge">
   <img alt="default: off" src="https://img.shields.io/badge/default-off-6E7781?style=for-the-badge">
   <a href="https://nuxt.vuetifyjs.com"><img alt="requires: vuetify-nuxt-module" src="https://img.shields.io/badge/requires-vuetify--nuxt--module-1F6FEB?style=for-the-badge"></a>
 </p>
@@ -976,7 +1010,7 @@ export default defineNuxtConfig({
     '@venix-sistemas/jade', // must come before the Vuetify module
     'vuetify-nuxt-module',
   ],
-  venixTheme: {
+  venixJade: {
     vuetify: true,
   },
 })
@@ -1010,7 +1044,7 @@ Colors, typography, scrollbar, cursor, translation and the switcher are Jade's o
 | Package | Used for | How it's included | License |
 | ------- | -------- | ----------------- | ------- |
 | [`@adobe/leonardo-contrast-colors`](https://github.com/adobe/leonardo) | Generates the 12-step color scales behind the [semantic tokens](#semantic-tokens-experimental), at build time only: it never reaches the browser bundle | Installed with Jade | Apache 2.0 |
-| [`@nuxt/icon`](https://github.com/nuxt/icon) | Renders Iconify icons for `<Icon>` and `<VenixIcon>` ([Icons](#icons)) | Installed with Jade; skipped with `icon: false` | MIT |
+| [`@nuxt/icon`](https://github.com/nuxt/icon) | Renders Iconify icons for `<Icon>` and `<JadeIcon>` ([Icons](#icons)) | Installed with Jade; skipped with `icon: false` | MIT |
 | [`@iconify/utils`](https://github.com/iconify/iconify) | Picks the icons to bundle offline ([Offline icon collections](#offline-icon-collections)) | Installed with Jade | MIT |
 | [`@iconify-json/line-md`](https://github.com/cyberalien/line-md) | Animated Material Line Icons, by Vjacheslav Trushkin | Installed with Jade, bundled by default | MIT |
 | [`@iconify-json/mdi`](https://github.com/Templarian/MaterialDesign) | Material Design Icons, by Pictogrammers, used by the built-in themes | Installed with Jade, only the icons used are bundled | Apache 2.0 |

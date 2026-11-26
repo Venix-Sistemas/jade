@@ -5,14 +5,14 @@
 // one. OverlayScrollbars draws them as page elements instead, which the
 // custom cursor applies to (see shared/css/cursor.ts). Styled by
 // shared/css/scrollbar.ts (`os-theme-jade`).
-import { defineNuxtPlugin } from '#app'
+import { defineNuxtPlugin, useRuntimeConfig } from '#app'
 import { OverlayScrollbars, ClickScrollPlugin } from 'overlayscrollbars'
 import type { PartialOptions } from 'overlayscrollbars'
-import { OVERLAY_SCROLLBAR_THEME, SCROLL_CONTAINER_ATTRIBUTE, SCROLLBAR_ATTRIBUTE } from '../../shared/constants'
+import { OVERLAY_SCROLLBAR_THEME, SCROLL_CONTAINER_ATTRIBUTE, LEGACY_SCROLL_CONTAINER_ATTRIBUTE, SCROLLBAR_ATTRIBUTE } from '../../shared/constants'
 
 // The elements that actually scroll in Vuetify's components (checked against
-// vuetify 4.2.4), plus the project's own, marked with `data-venix-scroll`.
-const CONTAINERS = [
+// vuetify 4.2.4), plus the project's own, marked with `data-jade-scroll`.
+let CONTAINERS = [
   '.v-navigation-drawer__content',
   '.v-dialog--scrollable .v-card-text',
   '.v-select__content .v-list',
@@ -118,6 +118,8 @@ function destroyAll() {
 
 export default defineNuxtPlugin((nuxtApp) => {
   OverlayScrollbars.plugin(ClickScrollPlugin)
+  // The attribute up to 1.5, while `legacyNames` is on
+  if (useRuntimeConfig().public.venixTheme?.legacyNames !== false) CONTAINERS += `, [${LEGACY_SCROLL_CONTAINER_ATTRIBUTE}]`
 
   // After hydration: OverlayScrollbars adds elements to the page, which
   // would otherwise not match the server-rendered HTML.

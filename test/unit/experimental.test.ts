@@ -26,9 +26,9 @@ describe('tokens nos temas embutidos', () => {
   })
 
   it('deve gerar o CSS dos tokens ao lado das variáveis de sempre', () => {
-    const rule = processTheme(theme).match(/:root\[data-theme='dark'\] \{([^}]*)\}/)?.[1]
-    expect(rule).toContain('--color-primary: #FF6B6B')
-    expect(rule).toContain('--color-background2: #191919')
+    const rule = processTheme(theme).match(/:root\[data-jade-theme='dark'\] \{([^}]*)\}/)?.[1]
+    expect(rule).toContain('--jade-primary: #FF6B6B')
+    expect(rule).toContain('--jade-background2: #191919')
     expect(rule).toContain('--jade-text-primary:')
     expect(rule).toContain('--jade-bg-subtle:')
   })
@@ -55,7 +55,7 @@ describe('tokens nos temas embutidos', () => {
   })
 
   it('deve dar o escopo bold às variantes claras e não às escuras', () => {
-    const scopes = [...processTheme(theme).matchAll(/:root\[data-theme='([^']+)'\] \[data-jade-surface='bold'\] \{/g)].map(match => match[1])
+    const scopes = [...processTheme(theme).matchAll(/:root\[data-jade-theme='([^']+)'\] \[data-jade-surface='bold'\] \{/g)].map(match => match[1])
     expect(scopes.sort()).toEqual(BUILT_IN.filter(id => theme.colors.themes[id]!.dark === false).sort())
   })
 
@@ -97,7 +97,7 @@ describe('tokens padrão × Vuetify', () => {
   it('deixa de fora um tema embutido com `tokens: false`', () => {
     const theme = customize({ color: { themes: { natal: { tokens: false } } } })
     expect(theme.colors.themes.natal?.tokens).toBe(false)
-    expect(processTheme(theme)).not.toMatch(/data-theme='natal'\] \{[^}]*--jade-/)
+    expect(processTheme(theme)).not.toMatch(/data-jade-theme='natal'\] \{[^}]*\/\* Semantic tokens/)
   })
 
   it('não marca nada como padrão com as cores desligadas', () => {

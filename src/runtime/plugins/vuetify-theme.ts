@@ -121,7 +121,7 @@ export default defineNuxtPlugin({
       const themes = vuetifyOptions?.theme?.themes
       if (!vuetifyOptions?.theme || !themes) return
 
-      // So Vuetify's first render matches `data-theme`: on the client, the
+      // So Vuetify's first render matches `data-jade-theme`: on the client, the
       // theme the pre-hydration script already applied; on the server, the
       // same guess as the SSR plugin (`theme-init.server.ts`).
       const resolved = (import.meta.client && window.__VENIX_INITIAL_THEME__)
@@ -135,7 +135,7 @@ export default defineNuxtPlugin({
 
     // 'vuetify:before-create' only decides the theme for the first render —
     // without this, switching themes later via
-    // `useVenixTheme().theme.preference` wouldn't reflect on Vuetify
+    // `useJade().theme.preference` wouldn't reflect on Vuetify
     // components (`color="primary"` etc.) until a full reload. 'vuetify:ready'
     // gives access to the live Vuetify instance (`theme.global.name` is
     // reactive — see the vuetify-nuxt-module docs).

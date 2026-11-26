@@ -82,7 +82,7 @@ function boldVuetifyColors(base: Record<string, string>, tokens: Record<string, 
 /**
  * Converts the module's color themes (real hex values, not CSS vars) to the
  * format Vuetify expects, since Vuetify computes contrast/on-colors in JS and
- * needs the concrete values, not `var(--color-x)`.
+ * needs the concrete values, not `var(--jade-x)`.
  */
 export function buildVuetifyThemes(colors: ColorsConfig): Record<string, VuetifyThemeDefinition> {
   const themes: Record<string, VuetifyThemeDefinition> = {}

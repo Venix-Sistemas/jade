@@ -2,7 +2,7 @@ import type { CursorImage, CursorType, ThemeColors, ThemeConfig } from '../types
 import { isColorTheme } from '../utils/theme-resolve'
 import { chromaOf, colorWithHue, hexToOklab, oklabToHex } from '../utils/oklab'
 import { generateCursorSVG } from './cursor-svg'
-import { CURSOR_ATTRIBUTE } from '../constants'
+import { CURSOR_ATTRIBUTE, THEME_ATTRIBUTE } from '../constants'
 
 const CURSOR_TYPES: CursorType[] = ['default', 'pointer', 'text', 'grab', 'grabbing']
 
@@ -115,7 +115,7 @@ function cursorColor(primary: string, colors: ThemeColors, sibling: string | und
 }
 
 const rule = (selectors: string[], type: CursorType): string =>
-  `${selectors.join(',\n')} {\n  cursor: var(--cursor-${type});\n}\n`
+  `${selectors.join(',\n')} {\n  cursor: var(--jade-cursor-${type});\n}\n`
 
 const imageValue = (image: CursorImage, type: CursorType): string =>
   `url('${image.path}')${image.hotspot ? ` ${image.hotspot}` : ''}, ${type}`
@@ -138,7 +138,7 @@ export function generateCustomCursorCSS(theme: ThemeConfig): string {
   }
 
   // The cursor values of each color variant that differ from `:root`: one
-  // block per `data-theme` value, like the color variables (see colors.ts).
+  // block per `data-jade-theme` value, like the color variables (see colors.ts).
   const variants: Array<[string, Partial<Record<CursorType, string>>]> = []
   if (theme.colors?.enabled !== false) {
     for (const [id, colors] of Object.entries(theme.colors?.themes ?? {})) {
@@ -176,30 +176,32 @@ export function generateCustomCursorCSS(theme: ThemeConfig): string {
   css += '/* Custom Cursor                                */\n'
   css += '/* ============================================ */\n'
 
-  // The rules below read `--cursor-<type>`, so switching `data-theme` swaps
+  // The rules below read `--jade-cursor-<type>`, so switching `data-jade-theme` swaps
   // the cursor with no script, the same way it swaps the colors.
   css += '\n/* 0. Cursor values: the default cursors, then each theme\'s own (drawn in its color, its images or the system\'s) */\n'
-  css += `:root {\n${types.map(type => `  --cursor-${type}: ${fallback(type)};`).join('\n')}\n}\n`
+  // The names up to 1.5, aliases of the new ones on the same element, so they follow every block below
+  const aliases = theme.legacyNames !== false ? types.map(type => `  --cursor-${type}: var(--jade-cursor-${type});`) : []
+  css += `:root {\n${[...types.map(type => `  --jade-cursor-${type}: ${fallback(type)};`), ...aliases].join('\n')}\n}\n`
   for (const [id, values] of variants) {
-    const vars = types.filter(type => values[type]).map(type => `  --cursor-${type}: ${values[type]};`)
-    css += `:root[data-theme='${id}'] {\n${vars.join('\n')}\n}\n`
+    const vars = types.filter(type => values[type]).map(type => `  --jade-cursor-${type}: ${values[type]};`)
+    css += `:root[${THEME_ATTRIBUTE}='${id}'] {\n${vars.join('\n')}\n}\n`
   }
   // The visitor turned the custom cursor off (see `cursor.set()`): the
   // system's cursors, as with `'none'`, whatever the theme. Same specificity
   // as the theme blocks above, so it wins by coming after them.
-  css += `:root[${CURSOR_ATTRIBUTE}='off'] {\n${types.map(type => `  --cursor-${type}: ${type};`).join('\n')}\n}\n`
+  css += `:root[${CURSOR_ATTRIBUTE}='off'] {\n${types.map(type => `  --jade-cursor-${type}: ${type};`).join('\n')}\n}\n`
 
   if (types.includes('default')) {
     css += '\n/* 1. Default cursor on everything */\n'
     css += `html {
-  cursor: var(--cursor-default);
+  cursor: var(--jade-cursor-default);
 }\n`
     css += '\n/* 1b. Elements the browser stylesheet sets to `cursor: default`, which would show the system arrow instead of inheriting */\n'
     css += `label,
 select,
 input[type="checkbox"], input[type="radio"],
 input[type="range"], input[type="color"], input[type="file"] {
-  cursor: var(--cursor-default);
+  cursor: var(--jade-cursor-default);
 }\n`
     css += '\n/* 1c. Vuetify elements with a fixed `cursor: default` */\n'
     css += rule(VUETIFY_DEFAULT, 'default')
@@ -217,7 +219,7 @@ summary,
 [role="button"], [role="link"], [role="tab"],
 input[type="button"], input[type="submit"], input[type="reset"],
 .os-scrollbar, .os-scrollbar * {
-  cursor: var(--cursor-pointer) !important;
+  cursor: var(--jade-cursor-pointer) !important;
 }\n`
     // No `!important`: being unlayered already beats Vuetify, and a page
     // can still change a single case, e.g. the rows of a table with
@@ -243,7 +245,7 @@ input[type="week"],
 input[type="time"],
 textarea,
 [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"] {
-  cursor: var(--cursor-text) !important;
+  cursor: var(--jade-cursor-text) !important;
 }\n`
     css += '\n/* 3b. Vuetify elements with a fixed `cursor: text` (the field around the input) */\n'
     css += rule(VUETIFY_TEXT, 'text')
@@ -268,7 +270,7 @@ textarea,
   // UnoCSS rule of the same name, so the class wins, as a utility should.
   // No `!important` (`!cursor-default` in UnoCSS when it must be).
   css += '\n/* 4. Cursor utility classes */\n'
-  css += types.map(type => `html .cursor-${type} {\n  cursor: var(--cursor-${type});\n}\n`).join('')
+  css += types.map(type => `html .cursor-${type} {\n  cursor: var(--jade-cursor-${type});\n}\n`).join('')
 
   if (types.includes('default')) {
     // `html ` raises these to the specificity of the rules above (e.g.
@@ -281,7 +283,7 @@ html [disabled], html [disabled] *,
 html [aria-disabled="true"], html [aria-disabled="true"] *,
 html .disabled,
 html .v-btn--disabled, html .v-btn--disabled * {
-  cursor: var(--cursor-default) !important;
+  cursor: var(--jade-cursor-default) !important;
 }\n`
   }
 

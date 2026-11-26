@@ -49,8 +49,8 @@ describe('generateThemeVars com alto contraste', () => {
   it('deve pôr o bloco @media depois do bloco da variante, no mesmo seletor', () => {
     const css = generateThemeVars('dark', DARK, 'AA', true)
     const media = block(css)!
-    expect(media).toContain(`:root[data-theme='dark']`)
-    expect(css.indexOf(MEDIA)).toBeGreaterThan(css.indexOf(`:root[data-theme='dark'] {`))
+    expect(media).toContain(`:root[data-jade-theme='dark']`)
+    expect(css.indexOf(MEDIA)).toBeGreaterThan(css.indexOf(`:root[data-jade-theme='dark'] {`))
     expect(declarations(media)['text-muted']).toBe(Object.fromEntries(generateTokens(DARK, 'AAA'))['text-muted'])
     expect(declarations(media)).not.toHaveProperty('text')
   })

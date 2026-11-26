@@ -28,7 +28,7 @@
           class="venix-icon venix-icon--emoji"
           aria-hidden="true"
         >{{ activeIcon.value }}</span>
-        <VenixIcon
+        <JadeIcon
           v-else
           :key="activeIconKey"
           :icon="activeIcon.value"
@@ -73,7 +73,7 @@
                 class="venix-icon venix-icon--emoji"
                 aria-hidden="true"
               >{{ icons.back.value }}</span>
-              <VenixIcon
+              <JadeIcon
                 v-else-if="icons.back"
                 :icon="icons.back.value"
                 :mode="icons.back.format"
@@ -113,7 +113,7 @@
                 class="venix-icon venix-icon--emoji venix-theme-switcher__item-icon"
                 aria-hidden="true"
               >{{ option.icon.value }}</span>
-              <VenixIcon
+              <JadeIcon
                 v-else-if="option.icon"
                 class="venix-theme-switcher__item-icon"
                 :icon="option.icon.value"
@@ -170,7 +170,7 @@
                 class="venix-icon venix-icon--emoji"
                 aria-hidden="true"
               >{{ icons.settings.value }}</span>
-              <VenixIcon
+              <JadeIcon
                 v-else-if="icons.settings"
                 :icon="icons.settings.value"
                 :mode="icons.settings.format"
@@ -211,7 +211,7 @@
                   class="venix-icon venix-icon--emoji venix-theme-switcher__item-icon"
                   aria-hidden="true"
                 >{{ item.icon.value }}</span>
-                <VenixIcon
+                <JadeIcon
                   v-else-if="item.icon"
                   class="venix-theme-switcher__item-icon"
                   :icon="item.icon.value"
@@ -258,7 +258,7 @@
                   class="venix-icon venix-icon--emoji venix-theme-switcher__item-icon"
                   aria-hidden="true"
                 >{{ item.icon.value }}</span>
-                <VenixIcon
+                <JadeIcon
                   v-else-if="item.icon"
                   class="venix-theme-switcher__item-icon"
                   :icon="item.icon.value"
@@ -341,16 +341,16 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick, useId } from 'vue'
 import { useRuntimeConfig } from '#app'
-import { useVenixTheme } from '../composables/useVenixTheme'
+import { useJade } from '../composables/useVenixTheme'
 import { getDefaultSelection, getSeasonDates } from '../../shared/utils/theme-resolve'
 import { resolveThemeIcon } from '../../shared/utils/icon'
 import type { ResolvedThemeIcon, ThemeIconFormat } from '../../shared/utils/icon'
 import { SWITCHER_CREDIT, SWITCHER_ICONS } from '../../shared/constants'
 import type { ThemeModePreference } from '../../shared/types'
 // Imported directly (not auto-imported) so the switcher still works with
-// `icon: false`: <VenixIcon> isn't registered then, and theme icons all
+// `icon: false`: <JadeIcon> isn't registered then, and theme icons all
 // resolve to emoji, which render as plain text above without needing it.
-import VenixIcon from './VenixIcon.vue'
+import JadeIcon from './VenixIcon.vue'
 
 // The component's own strings (default label and screen-reader announcement)
 // — translated into the same languages theme-name translations already
@@ -608,7 +608,7 @@ const emit = defineEmits<{
   'consent-needed': []
 }>()
 
-const { theme, themes, mode, modes, locale, persistence, scrollbar, cursor, font } = useVenixTheme()
+const { theme, themes, mode, modes, locale, persistence, scrollbar, cursor, font } = useJade()
 
 // The light or dark mode in effect is all the switcher takes from the theme
 // (see the rule in <style>). Applied once mounted, when the trigger fades in:
@@ -860,7 +860,7 @@ const activeIcon = computed(() => {
   if (!effectiveTheme || effectiveTheme === baseTheme) return mode.data.value?.icon ?? null
   return themes.value.find(item => item.value === effectiveTheme)?.icon ?? null
 })
-// Changes on every theme switch to force Vue to recreate <VenixIcon> (instead
+// Changes on every theme switch to force Vue to recreate <JadeIcon> (instead
 // of just updating props), restarting the new theme's icon CSS/SVG animation.
 const activeIconKey = computed(() => `${theme.value.value}:${activeIcon.value?.format ?? ''}:${activeIcon.value?.value ?? ''}`)
 

@@ -40,9 +40,9 @@ describe('registering a brand-new custom theme (not overriding a built-in one)',
     const theme = customizeTheme(loadTheme(), options)
     const css = processTheme(theme)
 
-    expect(css).toContain(':root[data-theme=\'easter-light\']')
-    expect(css).toContain(':root[data-theme=\'easter-dark\']')
-    expect(css).toContain('--color-primary: #F7C6D9')
+    expect(css).toContain(':root[data-jade-theme=\'easter-light\']')
+    expect(css).toContain(':root[data-jade-theme=\'easter-dark\']')
+    expect(css).toContain('--jade-primary: #F7C6D9')
   })
 
   it('participates in \'system\' seasonal auto-selection like a built-in seasonal theme', () => {

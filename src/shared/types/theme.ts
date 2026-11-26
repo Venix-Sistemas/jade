@@ -9,6 +9,8 @@ export interface ThemeConfig {
   customScrollbar: ScrollbarConfig
   customCursor: CursorConfig
   colors: ColorsConfig
+  /** Also write the names used up to 1.5 (`legacyNames`). Build time only. Default: `true`. */
+  legacyNames?: boolean
 }
 
 /**

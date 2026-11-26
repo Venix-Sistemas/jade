@@ -140,7 +140,7 @@ describe('surfaces e neutralTint', () => {
 describe('generateBoldCss', () => {
   it('deve escrever o escopo com os tokens e pintar o próprio elemento', () => {
     const css = generateThemeVars('verde-light', GREEN)
-    expect(css).toContain(':root[data-theme=\'verde-light\'] [data-jade-surface=\'bold\'] {')
+    expect(css).toContain(':root[data-jade-theme=\'verde-light\'] [data-jade-surface=\'bold\'] {')
     const scope = css.slice(css.indexOf('[data-jade-surface'))
     expect(scope).toContain('color-scheme: dark;')
     expect(scope).toContain('--jade-bg: ')
@@ -181,9 +181,9 @@ describe('barra de rolagem no painel', () => {
 
   it('deve ler as variáveis do painel com a cor do tema como reserva, quando há um tema bold', () => {
     const css = generateCustomScrollbarCSS(theme('bold'))
-    expect(css).toContain('var(--jade-scrollbar-thumb, var(--color-primary))')
-    expect(css).toContain('var(--jade-scrollbar-thumb-hover, var(--color-secondary))')
-    expect(css).toContain('var(--jade-scrollbar-track, var(--color-background2, var(--jade-bg-subtle)))')
+    expect(css).toContain('var(--jade-scrollbar-thumb, var(--jade-primary))')
+    expect(css).toContain('var(--jade-scrollbar-thumb-hover, var(--jade-secondary))')
+    expect(css).toContain('var(--jade-scrollbar-track, var(--jade-background2, var(--jade-bg-subtle)))')
     expect(css).toContain('[data-jade-surface=\'bold\']')
   })
 

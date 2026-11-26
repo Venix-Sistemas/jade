@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   modules: [
     MyModule,
   ],
-  venixTheme: {
+  venixJade: {
     // A theme name that doesn't exist in the bundled theme.json at all —
     // regression coverage for the anti-FOUC script only knowing about the
     // static theme.json and not this runtime customization (see

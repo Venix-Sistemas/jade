@@ -27,9 +27,19 @@ describe('jade module', () => {
       expect(html).toContain('<div>basic</div>')
     })
 
-    it('aplica o data-theme no SSR', async () => {
-      const html = await $fetch('/')
-      expect(html).toMatch(/data-theme="[^"]*"/)
+    it('aplica o tema no SSR, com os nomes novos e os antigos', async () => {
+      const html = await $fetch<string>('/')
+      const tag = html.match(/<html[^>]*>/)![0]
+      const id = tag.match(/data-jade-theme="([^"]+)"/)![1]!
+      expect(tag).toContain(`data-theme="${id}"`)
+      expect(tag).toMatch(new RegExp(`class="jade-theme-${id} ${id}"`))
+    })
+
+    it('serve as fontes sob /_jade/ e, com `legacyNames`, também na raiz', async () => {
+      for (const base of ['/_jade', '']) {
+        const font = await $fetch<Blob>(`${base}/fonts/Iceberg/Iceberg-Regular.woff2`, { responseType: 'blob' })
+        expect(font.size).toBeGreaterThan(1000)
+      }
     })
 
     it('injeta o script anti-FOUC inline no <head>, antes do bundle do Vue', async () => {
@@ -101,8 +111,8 @@ describe('jade module', () => {
     it('deve gerar CSS', () => {
       const theme = loadTheme()
       const css = processTheme(theme)
-      expect(css).toContain('--color-primary')
-      expect(css).toContain(':root[data-theme=\'dark\']')
+      expect(css).toContain('--jade-primary')
+      expect(css).toContain(':root[data-jade-theme=\'dark\']')
     })
   })
 })

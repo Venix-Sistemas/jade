@@ -41,18 +41,18 @@ describe('withAppBaseURL', () => {
     const based = withAppBaseURL(theme, '/jade/')
 
     expect(JSON.stringify(theme)).toBe(before)
-    expect(Object.values(based.typography.customFonts![0]!.sources)[0]).toMatch(/^\/jade\/fonts\//)
-    expect(based.customCursor!.defaultCursors!.pointer!.path).toMatch(/^\/jade\/images\//)
+    expect(Object.values(based.typography.customFonts![0]!.sources)[0]).toMatch(/^\/jade\/_jade\/fonts\//)
+    expect(based.customCursor!.defaultCursors!.pointer!.path).toMatch(/^\/jade\/_jade\/images\//)
     expect(based.customCursor!.defaultCursors!.pointer!.hotspot).toBe(theme.customCursor!.defaultCursors!.pointer!.hotspot)
   })
 
   it('deve levar a base ao CSS e aos preloads das fontes', () => {
     const based = withAppBaseURL(theme, '/jade/')
     const css = processTheme(based)
-    expect(css).toContain(`url('/jade/fonts/`)
-    expect(css).not.toContain(`url('/fonts/`)
-    expect(getFontPreloadLinks(based)[0]!.href).toMatch(/^\/jade\/fonts\//)
-    expect(getFontPreloadLinks(theme)[0]!.href).toMatch(/^\/fonts\//)
+    expect(css).toContain(`url('/jade/_jade/fonts/`)
+    expect(css).not.toContain(`url('/_jade/fonts/`)
+    expect(getFontPreloadLinks(based)[0]!.href).toMatch(/^\/jade\/_jade\/fonts\//)
+    expect(getFontPreloadLinks(theme)[0]!.href).toMatch(/^\/_jade\/fonts\//)
   })
 
   it('deve prefixar também o cursor de um tema', () => {

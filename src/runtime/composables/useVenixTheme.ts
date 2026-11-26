@@ -1,7 +1,7 @@
 // runtime/composables/useVenixTheme.ts
 import { computed, effectScope, watch } from 'vue'
 import { onNuxtReady, useNuxtApp, useRuntimeConfig, useState } from '#app'
-import { DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT, SYSTEM_THEME, SCROLLBAR_ATTRIBUTE, CURSOR_ATTRIBUTE, FONT_ATTRIBUTE, THEME_PREFERENCE_COOKIE, THEME_MODE_COOKIE, SCROLLBAR_COOKIE, CURSOR_COOKIE, FONT_COOKIE } from '../../shared/constants'
+import { DEFAULT_LOCALE, COOKIE_PREFERENCES_UPDATED_EVENT, COOKIE_CONSENT_STORAGE_KEY, THEME_APPLIED_EVENT, SYSTEM_THEME, SCROLLBAR_ATTRIBUTE, CURSOR_ATTRIBUTE, FONT_ATTRIBUTE, LEGACY_SCROLLBAR_ATTRIBUTE, LEGACY_CURSOR_ATTRIBUTE, LEGACY_FONT_ATTRIBUTE, THEME_ATTRIBUTE, LEGACY_THEME_ATTRIBUTE, themeClasses, THEME_PREFERENCE_COOKIE, THEME_MODE_COOKIE, SCROLLBAR_COOKIE, CURSOR_COOKIE, FONT_COOKIE } from '../../shared/constants'
 import { useThemeCookies } from './useThemeCookies'
 import { useThemeLocale } from './useThemeLocale'
 import { useThemeSeasonal } from './useThemeSeasonal'
@@ -15,7 +15,7 @@ import type { ThemeIconFormat } from '../../shared/utils/icon'
 import type { ThemeMode, ThemeModePreference, ThemeName, ThemeOrVariantName, TokenName } from '../../shared/types'
 
 /**
- * State and actions, with no side effects of its own: every `useVenixTheme()`
+ * State and actions, with no side effects of its own: every `useJade()`
  * call builds one, and they all agree because the state lives in `useState`.
  * The effects (applying the theme, persisting it, OS/date listeners) are
  * installed once per app by `installThemeEffects`.
@@ -27,6 +27,7 @@ function createThemeCore() {
   const theme = buildResolvedTheme(themeConfig)
 
   const shouldApplyColors = themeConfig?.applyColors !== false && theme.colors.defaults !== false
+  const legacyNames = themeConfig?.legacyNames !== false
 
   // Cookies — the locale cookie is the same one used by routing i18n
   // solutions (e.g. @nuxtjs/i18n defaults to 'i18n_redirected', same as
@@ -37,7 +38,7 @@ function createThemeCore() {
   })
 
   // Cookie consent — shared via useState for the same reason as `preference`
-  // (multiple calls to useVenixTheme() must agree on the current state).
+  // (multiple calls to useJade() must agree on the current state).
   // `venix-theme-preference`/`venix-theme-resolved` are only written when
   // this is `true` (see useThemeCookies.ts).
   const hasConsent = useState<boolean>('venix-cookie-consent', () =>
@@ -57,8 +58,8 @@ function createThemeCore() {
 
   // Preference state — the theme (`'system'` = by date) and the mode
   // (`'system'` = by OS) are chosen independently. Shared via useState so
-  // multiple calls to useVenixTheme() (e.g. the page and
-  // <VenixThemeSwitcher>) stay in sync instead of each getting its own
+  // multiple calls to useJade() (e.g. the page and
+  // <JadeThemeSwitcher>) stay in sync instead of each getting its own
   // disconnected copy. `normalizeThemeSelection` also migrates cookies saved
   // before the theme/mode split (e.g. a theme cookie of `'dark'`).
   const readCookieSelection = (): ThemeSelection =>
@@ -87,14 +88,16 @@ function createThemeCore() {
   const applyToggles = () => {
     if (typeof document === 'undefined') return
     const html = document.documentElement
-    const flags: Array<[string, boolean]> = [
-      [SCROLLBAR_ATTRIBUTE, scrollbarEnabled.value],
-      [CURSOR_ATTRIBUTE, cursorEnabled.value],
-      [FONT_ATTRIBUTE, fontEnabled.value],
+    const flags: Array<[string, string, boolean]> = [
+      [SCROLLBAR_ATTRIBUTE, LEGACY_SCROLLBAR_ATTRIBUTE, scrollbarEnabled.value],
+      [CURSOR_ATTRIBUTE, LEGACY_CURSOR_ATTRIBUTE, cursorEnabled.value],
+      [FONT_ATTRIBUTE, LEGACY_FONT_ATTRIBUTE, fontEnabled.value],
     ]
-    for (const [attribute, enabled] of flags) {
-      if (enabled) html.removeAttribute(attribute)
-      else html.setAttribute(attribute, 'off')
+    for (const [attribute, legacy, enabled] of flags) {
+      for (const name of legacyNames ? [attribute, legacy] : [attribute]) {
+        if (enabled) html.removeAttribute(name)
+        else html.setAttribute(name, 'off')
+      }
     }
   }
 
@@ -142,9 +145,10 @@ function createThemeCore() {
 
     if (typeof document !== 'undefined') {
       const html = document.documentElement
-      html.classList.remove(...colors.themeValues.value)
-      html.classList.add(resolved)
-      html.setAttribute('data-theme', resolved)
+      html.classList.remove(...colors.themeValues.value.flatMap(id => themeClasses(id, legacyNames)))
+      html.classList.add(...themeClasses(resolved, legacyNames))
+      html.setAttribute(THEME_ATTRIBUTE, resolved)
+      if (legacyNames) html.setAttribute(LEGACY_THEME_ATTRIBUTE, resolved)
       window.__VENIX_INITIAL_THEME__ = resolved
       applyThemeColorMeta(resolved)
 
@@ -396,8 +400,8 @@ function readDocumentCookie(name: string): string | undefined {
 /**
  * Side effects of the theme state — applying it to `<html>`, persisting it,
  * reacting to the OS color scheme and the date. Installed once per app (see
- * `useVenixTheme`): when every call installed its own, a page plus
- * <VenixThemeSwitcher> started two View Transitions per switch (the second
+ * `useJade`): when every call installed its own, a page plus
+ * <JadeThemeSwitcher> started two View Transitions per switch (the second
  * aborting the first) and doubled every listener and cookie write.
  */
 function installThemeEffects(core: ThemeCore) {
@@ -435,7 +439,7 @@ function installThemeEffects(core: ThemeCore) {
     }
 
     // Normally already set by the pre-hydration script (theme-init.ts).
-    if (!document.documentElement.getAttribute('data-theme')) {
+    if (!document.documentElement.getAttribute(THEME_ATTRIBUTE)) {
       core.apply(core.currentSelection())
     }
 
@@ -550,7 +554,7 @@ function installThemeEffects(core: ThemeCore) {
   })
 }
 
-export const useVenixTheme = () => {
+export const useJade = () => {
   const core = createThemeCore()
 
   // The effects live for the whole app, not for the component that happened
@@ -584,7 +588,7 @@ export const useVenixTheme = () => {
     /**
      * The semantic color tokens (experimental, v1.4.0) of the themes with
      * `tokens: true`. `current` follows the applied theme and is `undefined`
-     * when it has none; `all` is every variant's tokens by `data-theme` id.
+     * when it has none; `all` is every variant's tokens by `data-jade-theme` id.
      * `cssVar('text-primary')` is `'var(--jade-text-primary)'`, to use in
      * styles that should follow the theme without reading the value.
      */
@@ -638,3 +642,6 @@ export const useVenixTheme = () => {
     },
   }
 }
+
+/** @deprecated Renamed to `useJade`; removed in 2.0. */
+export const useVenixTheme = useJade

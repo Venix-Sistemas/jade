@@ -21,7 +21,7 @@ export function processTheme(theme: ThemeConfig): string {
       output.push(generateThemeTransitionCSS())
       for (const [themeName, themeColors] of Object.entries(theme.colors.themes)) {
         if (themeName === 'system' || !isColorTheme(themeColors)) continue
-        output.push(generateThemeVars(themeName, themeColors, theme.colors.contrast || undefined, theme.colors.highContrast === true))
+        output.push(generateThemeVars(themeName, themeColors, theme.colors.contrast || undefined, theme.colors.highContrast === true, { legacyNames: theme.legacyNames }))
       }
     }
   }

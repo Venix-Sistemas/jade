@@ -67,7 +67,7 @@ function loadCollectionSubset(name: string, iconNames: Set<string>, projectRequi
   return getIcons(json, [...iconNames]) as IconCollectionEntry | null
 }
 
-export async function registerThemeIcon(nuxt: Nuxt, resolver: Resolver, options: IconOptions, colors: ColorsConfig) {
+export async function registerThemeIcon(nuxt: Nuxt, resolver: Resolver, options: IconOptions, colors: ColorsConfig, legacyNames = true) {
   if (!options.enabled) return
 
   let projectRequire: NodeRequire | null = null
@@ -99,13 +99,12 @@ export async function registerThemeIcon(nuxt: Nuxt, resolver: Resolver, options:
     },
   })
 
-  addImports({
-    name: 'useVenixIcon',
-    from: resolver.resolve('./runtime/composables/useVenixIcon'),
-  })
+  // The `Venix` names are the ones up to 1.5, removed in 2.0
+  for (const name of legacyNames ? ['useJadeIcon', 'useVenixIcon'] : ['useJadeIcon']) {
+    addImports({ name, from: resolver.resolve('./runtime/composables/useVenixIcon') })
+  }
 
-  addComponent({
-    name: 'VenixIcon',
-    filePath: resolver.resolve('./runtime/components/VenixIcon'),
-  })
+  for (const name of legacyNames ? ['JadeIcon', 'VenixIcon'] : ['JadeIcon']) {
+    addComponent({ name, filePath: resolver.resolve('./runtime/components/VenixIcon') })
+  }
 }

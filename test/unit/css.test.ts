@@ -9,7 +9,7 @@ import { customizeTheme } from '../../src/setup/customize-theme'
 import type { CursorConfig } from '../../src/shared/types'
 
 /** O bloco de quem usa os cursores do sistema operacional. */
-const SYSTEM_CURSORS = `${['default', 'pointer', 'text', 'grab', 'grabbing'].map(type => `\n  --cursor-${type}: ${type};`).join('')}\n`
+const SYSTEM_CURSORS = `${['default', 'pointer', 'text', 'grab', 'grabbing'].map(type => `\n  --jade-cursor-${type}: ${type};`).join('')}\n`
 
 describe('processTheme', () => {
   // Sem bold (o padrão das variantes claras): a camada que o escopo põe sobre a scrollbar é testada em `bold.test.ts`
@@ -19,8 +19,8 @@ describe('processTheme', () => {
 
   it('deve gerar CSS com cores', () => {
     const css = processTheme(theme)
-    expect(css).toContain('--color-primary')
-    expect(css).toContain(':root[data-theme=\'dark\']')
+    expect(css).toContain('--jade-primary')
+    expect(css).toContain(':root[data-jade-theme=\'dark\']')
   })
 
   it('não deve gerar CSS de cores se desabilitado', () => {
@@ -35,9 +35,9 @@ describe('processTheme', () => {
 
     const css = processTheme(themeWithoutColors)
 
-    // Só a definição das variáveis: a scrollbar ainda as usa (`var(--color-primary)`)
-    expect(css).not.toContain('--color-primary:')
-    expect(css).not.toContain(':root[data-theme=\'dark\']')
+    // Só a definição das variáveis: a scrollbar ainda as usa (`var(--jade-primary)`)
+    expect(css).not.toContain('--jade-primary:')
+    expect(css).not.toContain(':root[data-jade-theme=\'dark\']')
   })
 
   it('deve gerar CSS de scrollbar se habilitado', () => {
@@ -47,7 +47,7 @@ describe('processTheme', () => {
 
   it('deve aplicar scrollbar-color/scrollbar-width só sem ::-webkit-scrollbar, que o Chromium desliga quando eles existem', () => {
     const css = processTheme(theme)
-    expect(css).toMatch(/@supports not selector\(::-webkit-scrollbar\) \{\n {2}html:not\(\[data-venix-scrollbar='off'\]\) \{\n {4}scrollbar-width: [^;]+;\n {4}scrollbar-color: [^;]+;\n {2}\}\n\}/)
+    expect(css).toMatch(/@supports not selector\(::-webkit-scrollbar\) \{\n {2}html:not\(\[data-jade-scrollbar='off'\]\) \{\n {4}scrollbar-width: [^;]+;\n {4}scrollbar-color: [^;]+;\n {2}\}\n\}/)
     expect(css.replace(/@supports not selector\(::-webkit-scrollbar\) \{[\s\S]*?\n\}\n/, '')).not.toContain('scrollbar-color')
   })
 
@@ -57,35 +57,35 @@ describe('processTheme', () => {
     expect(selectors).toHaveLength(5)
     for (const selector of selectors) {
       const [page, elements] = selector.trim().split(',\n')
-      expect(page).toMatch(/^html:not\(\[data-venix-scrollbar='off'\]\)::-webkit-scrollbar/)
-      expect(elements).toMatch(/^html:not\(\[data-venix-scrollbar='off'\]\) ::-webkit-scrollbar/)
+      expect(page).toMatch(/^html:not\(\[data-jade-scrollbar='off'\]\)::-webkit-scrollbar/)
+      expect(elements).toMatch(/^html:not\(\[data-jade-scrollbar='off'\]\) ::-webkit-scrollbar/)
     }
   })
 
   it('deve deixar só as fontes padrão quando o visitante desliga a fonte personalizada', () => {
-    const off = processTheme(theme).match(/:root\[data-venix-font='off'\] \{([^}]*)\}/)?.[1]
+    const off = processTheme(theme).match(/:root\[data-jade-font='off'\] \{([^}]*)\}/)?.[1]
     const defaults = theme.typography.defaultFonts
-    expect(off).toBe(`\n  --font-family-base: ${defaults};\n  --v-font-body: ${defaults};\n  --v-font-heading: ${defaults};\n`)
+    expect(off).toBe(`\n  --jade-font-family: ${defaults};\n  --v-font-body: ${defaults};\n  --v-font-heading: ${defaults};\n`)
   })
 
   it('deve usar initial sem fontes padrão, para o var() cair no fallback do site', () => {
     const css = processTheme({ ...theme, typography: { ...theme.typography, defaultFonts: '' } })
-    expect(css).toContain(':root[data-venix-font=\'off\'] {\n  --font-family-base: initial;')
+    expect(css).toContain(':root[data-jade-font=\'off\'] {\n  --jade-font-family: initial;')
   })
 
   it('não deve gerar a regra de fonte desligada sem fontes personalizadas', () => {
     const css = processTheme({ ...theme, typography: { ...theme.typography, customFonts: [] } })
-    expect(css).not.toContain('data-venix-font')
+    expect(css).not.toContain('data-jade-font')
   })
 
   it('deve qualificar as regras da scrollbar com html, não :root, para o :hover da alça funcionar no Chromium', () => {
     const css = processTheme(theme)
-    expect(css).toContain('html:not([data-venix-scrollbar=\'off\'])::-webkit-scrollbar-thumb:hover,\nhtml:not([data-venix-scrollbar=\'off\']) ::-webkit-scrollbar-thumb:hover {\n  background: var(--color-secondary);')
-    expect(css).not.toContain(':root:not([data-venix-scrollbar')
+    expect(css).toContain('html:not([data-jade-scrollbar=\'off\'])::-webkit-scrollbar-thumb:hover,\nhtml:not([data-jade-scrollbar=\'off\']) ::-webkit-scrollbar-thumb:hover {\n  background: var(--jade-secondary);')
+    expect(css).not.toContain(':root:not([data-jade-scrollbar')
   })
 
   it('deve mostrar a mão do cursor personalizado sobre a alça da scrollbar em CSS', () => {
-    expect(processTheme(theme)).toMatch(/::-webkit-scrollbar-thumb \{[^}]*cursor: var\(--cursor-pointer, default\);/)
+    expect(processTheme(theme)).toMatch(/::-webkit-scrollbar-thumb \{[^}]*cursor: var\(--jade-cursor-pointer, default\);/)
   })
 
   it('deve gerar o tema do OverlayScrollbars com as mesmas opções da scrollbar', () => {
@@ -93,17 +93,17 @@ describe('processTheme', () => {
     const rule = css.match(/\.os-theme-jade \{([^}]*)\}/)?.[1] ?? ''
     expect(rule).toContain('--os-size: 10px;')
     expect(rule).toContain('--os-handle-border-radius: 8px;')
-    expect(rule).toContain('--os-handle-bg: var(--color-primary);')
-    expect(rule).toContain('--os-handle-bg-hover: var(--color-secondary);')
-    expect(rule).toContain('--os-track-bg: var(--color-background2, var(--jade-bg-subtle));')
+    expect(rule).toContain('--os-handle-bg: var(--jade-primary);')
+    expect(rule).toContain('--os-handle-bg-hover: var(--jade-secondary);')
+    expect(rule).toContain('--os-track-bg: var(--jade-background2, var(--jade-bg-subtle));')
   })
 
   it('deve mudar a cor da alça ao passar o mouse em qualquer ponto da scrollbar, não só sobre a alça', () => {
-    expect(processTheme(overlayTheme)).toContain('.os-theme-jade.os-scrollbar:hover {\n  --os-handle-bg: var(--color-secondary);\n}')
+    expect(processTheme(overlayTheme)).toContain('.os-theme-jade.os-scrollbar:hover {\n  --os-handle-bg: var(--jade-secondary);\n}')
   })
 
   it('deve esconder a scrollbar nativa da página até o OverlayScrollbars assumir, só com JavaScript e com a scrollbar ligada', () => {
-    expect(processTheme(overlayTheme)).toContain('@media (scripting: enabled) {\n  html:not([data-venix-scrollbar=\'off\']):not([data-overlayscrollbars]) {\n    scrollbar-width: none;')
+    expect(processTheme(overlayTheme)).toContain('@media (scripting: enabled) {\n  html:not([data-jade-scrollbar=\'off\']):not([data-overlayscrollbars]) {\n    scrollbar-width: none;')
   })
 
   it('deve anular o deslocamento do <html> que o Vuetify aplica atrás de um diálogo', () => {
@@ -118,19 +118,19 @@ describe('processTheme', () => {
   })
 
   it('deve pintar o canto entre as duas scrollbars com a cor da trilha', () => {
-    expect(processTheme(theme)).toContain('::-webkit-scrollbar-corner {\n  background: var(--color-background2, var(--jade-bg-subtle));\n}')
+    expect(processTheme(theme)).toContain('::-webkit-scrollbar-corner {\n  background: var(--jade-background2, var(--jade-bg-subtle));\n}')
   })
 
   it('deve cair nos tokens quando o tema não define background2/3 (a borda da alça não pode sumir)', () => {
     const css = processTheme(theme)
-    expect(css).toContain('border: 3px solid var(--color-background3, var(--jade-bg-muted));')
-    expect(css).toContain('::-webkit-scrollbar-track {\n  background: var(--color-background2, var(--jade-bg-subtle));')
+    expect(css).toContain('border: 3px solid var(--jade-background3, var(--jade-bg-muted));')
+    expect(css).toContain('::-webkit-scrollbar-track {\n  background: var(--jade-background2, var(--jade-bg-subtle));')
   })
 
   it('deve manter a cor escolhida pelo projeto, sem fallback de token', () => {
     const custom = { ...theme, customScrollbar: { ...theme.customScrollbar, colors: { ...theme.customScrollbar.colors, track: 'accent', border: '#112233' } } }
     const css = processTheme(custom)
-    expect(css).toContain('::-webkit-scrollbar-track {\n  background: var(--color-accent);')
+    expect(css).toContain('::-webkit-scrollbar-track {\n  background: var(--jade-accent);')
     expect(css).toContain('border: 3px solid #112233;')
   })
 
@@ -150,7 +150,7 @@ describe('generateCustomCursorCSS', () => {
   const base = loadTheme()
   const theme = { ...base, customCursor: { ...base.customCursor, enabled: true } }
   const withCursor = (cursor: Partial<CursorConfig>) => generateCustomCursorCSS({ ...theme, customCursor: { ...theme.customCursor, ...cursor } })
-  const block = (css: string, id: string) => css.match(new RegExp(`:root\\[data-theme='${id}'\\] \\{([^}]*)\\}`))?.[1]
+  const block = (css: string, id: string) => css.match(new RegExp(`:root\\[data-jade-theme='${id}'\\] \\{([^}]*)\\}`))?.[1]
   // Os seletores e o corpo da seção `/* <n>. … */`
   const section = (css: string, n: string) => {
     const [, selectors = '', body = ''] = css.match(new RegExp(`/\\* ${n}\\. [^\\n]*\\n([^{]*)\\{([^}]*)\\}`)) ?? []
@@ -169,22 +169,22 @@ describe('generateCustomCursorCSS', () => {
     const css = generateCustomCursorCSS(theme)
     const halloween = block(css, 'halloween') ?? ''
     for (const type of ['default', 'pointer', 'text']) {
-      expect(halloween).toMatch(new RegExp(`--cursor-${type}: url\\("data:image/svg\\+xml,[^"]+"\\) \\d+ \\d+, url\\('[^']+'\\)`))
+      expect(halloween).toMatch(new RegExp(`--jade-cursor-${type}: url\\("data:image/svg\\+xml,[^"]+"\\) \\d+ \\d+, url\\('[^']+'\\)`))
     }
     expect(decodeURIComponent(halloween)).toContain('#FF8A3D')
     // `#` e `<`/`>` cortariam ou invalidariam a URI no `url()`
     for (const [, uri] of halloween.matchAll(/url\("data:image\/svg\+xml,([^"]+)"\)/g)) {
       expect(uri).not.toMatch(/[#<>]/)
     }
-    expect(css).not.toContain('data-theme=\'system\'')
+    expect(css).not.toContain('data-jade-theme=\'system\'')
   })
 
   it('deve usar as imagens como valor padrão, para quando o tema não tem cursor desenhado', () => {
     const css = generateCustomCursorCSS(theme)
-    expect(css).toMatch(/:root \{\n {2}--cursor-default: url\('\/images\/ui\/cursor\/cursor\.png'\) 4 0, default;/)
-    expect(css).toContain('cursor: var(--cursor-default);')
-    expect(css).toContain('cursor: var(--cursor-pointer) !important;')
-    expect(css).toContain('cursor: var(--cursor-text) !important;')
+    expect(css).toMatch(/:root \{\n {2}--jade-cursor-default: url\('\/_jade\/images\/ui\/cursor\/cursor\.png'\) 4 0, default;/)
+    expect(css).toContain('cursor: var(--jade-cursor-default);')
+    expect(css).toContain('cursor: var(--jade-cursor-pointer) !important;')
+    expect(css).toContain('cursor: var(--jade-cursor-text) !important;')
   })
 
   it('deve mostrar a mão só no que é clicável', () => {
@@ -203,7 +203,7 @@ describe('generateCustomCursorCSS', () => {
   it('deve dar a variável aos elementos em que o Vuetify fixa `cursor: pointer`, sem !important', () => {
     const css = generateCustomCursorCSS(theme)
     const { selectors, body } = section(css, '2b')
-    expect(body).toBe('\n  cursor: var(--cursor-pointer);\n')
+    expect(body).toBe('\n  cursor: var(--jade-cursor-pointer);\n')
     // Um de cada grupo: tabela, cartão, chip, campos, seleção, slider, navegação, ativadores, pickers, calendário, labs
     for (const selector of [
       '.v-data-table__tr--clickable', '.v-data-table__th--sortable',
@@ -218,9 +218,9 @@ describe('generateCustomCursorCSS', () => {
     ]) expect(selectors).toContain(selector)
     // O campo de texto em volta do input, e o que o Vuetify deixa no `default`
     expect(section(css, '3b').selectors).toContain('.v-text-field .v-field')
-    expect(section(css, '3b').body).toBe('\n  cursor: var(--cursor-text);\n')
+    expect(section(css, '3b').body).toBe('\n  cursor: var(--jade-cursor-text);\n')
     expect(section(css, '1c').selectors).toContain('.v-text-field__prefix')
-    expect(section(css, '1c').body).toBe('\n  cursor: var(--cursor-default);\n')
+    expect(section(css, '1c').body).toBe('\n  cursor: var(--jade-cursor-default);\n')
   })
 
   it('deve deixar uma regra mais específica da tela trocar o cursor de uma linha clicável', () => {
@@ -235,16 +235,16 @@ describe('generateCustomCursorCSS', () => {
 
   it('deve voltar ao cursor do sistema nos elementos do Vuetify quando o visitante desliga o cursor', () => {
     const css = generateCustomCursorCSS(theme)
-    const off = css.match(/:root\[data-venix-cursor='off'\] \{([^}]*)\}/)?.[1]
-    expect(off).toContain('--cursor-pointer: pointer;')
+    const off = css.match(/:root\[data-jade-cursor='off'\] \{([^}]*)\}/)?.[1]
+    expect(off).toContain('--jade-cursor-pointer: pointer;')
     // Lido da variável, não fixo: segue o `off`
-    for (const n of ['1c', '2b', '3b', '4']) expect(section(css, n).body).toMatch(/^\n {2}cursor: var\(--cursor-(default|pointer|text)\);\n$/)
+    for (const n of ['1c', '2b', '3b', '4']) expect(section(css, n).body).toMatch(/^\n {2}cursor: var\(--jade-cursor-(default|pointer|text)\);\n$/)
   })
 
   it('deve levar as classes utilitárias de cursor às variáveis, acima das regras de componente', () => {
     const css = generateCustomCursorCSS(theme)
     for (const type of ['default', 'pointer', 'text']) {
-      expect(css).toContain(`html .cursor-${type} {\n  cursor: var(--cursor-${type});\n}`)
+      expect(css).toContain(`html .cursor-${type} {\n  cursor: var(--jade-cursor-${type});\n}`)
     }
     // `<tr class="cursor-default">` numa tabela com @click:row
     expect(specificity('html .cursor-default')).toBeGreaterThan(specificity('.v-data-table__tr--clickable'))
@@ -276,29 +276,29 @@ describe('generateCustomCursorCSS', () => {
   it('deve manter as imagens no tema Venix, nas duas variantes, desenhando só as mãos que não têm imagem', () => {
     const css = generateCustomCursorCSS(theme)
     for (const id of ['dark', 'light']) {
-      expect([...block(css, id)!.matchAll(/--cursor-(\w+):/g)].map(match => match[1])).toEqual(['grab', 'grabbing'])
-      expect(block(css, id)).toMatch(/--cursor-grab: url\("data:image\/svg\+xml,/)
+      expect([...block(css, id)!.matchAll(/--jade-cursor-(\w+):/g)].map(match => match[1])).toEqual(['grab', 'grabbing'])
+      expect(block(css, id)).toMatch(/--jade-cursor-grab: url\("data:image\/svg\+xml,/)
     }
   })
 
   it('não deve desenhar as mãos quando há imagem para elas, nem com themed: false', () => {
     const own = withCursor({ defaultCursors: { ...theme.customCursor.defaultCursors, grab: { path: '/mao.png' }, grabbing: { path: '/punho.png' } } })
     expect(block(own, 'dark')).toBeUndefined()
-    expect(own).toContain('--cursor-grab: url(\'/mao.png\'), grab;')
+    expect(own).toContain('--jade-cursor-grab: url(\'/mao.png\'), grab;')
     expect(withCursor({ themed: false })).not.toContain('data:image/svg+xml')
   })
 
   it('não deve desenhar cursores com themed: false', () => {
     const css = withCursor({ themed: false })
     expect(css).not.toContain('data:image/svg+xml')
-    expect(css).toContain('--cursor-default: url(\'/images/ui/cursor/cursor.png\') 4 0, default;')
+    expect(css).toContain('--jade-cursor-default: url(\'/_jade/images/ui/cursor/cursor.png\') 4 0, default;')
   })
 
   it('deve aceitar imagens próprias por tema, desenhando os cursores que ficaram de fora', () => {
     const css = withCursor({ themeCursors: { halloween: { pointer: { path: '/abobora.png', hotspot: '8 0' } } } })
-    expect(block(css, 'halloween')).toContain('--cursor-pointer: url(\'/abobora.png\') 8 0, pointer;')
-    expect(block(css, 'halloween')).toMatch(/--cursor-default: url\("data:image\/svg\+xml,/)
-    expect(block(css, 'halloween-light')).toContain('--cursor-pointer: url(\'/abobora.png\') 8 0, pointer;')
+    expect(block(css, 'halloween')).toContain('--jade-cursor-pointer: url(\'/abobora.png\') 8 0, pointer;')
+    expect(block(css, 'halloween')).toMatch(/--jade-cursor-default: url\("data:image\/svg\+xml,/)
+    expect(block(css, 'halloween-light')).toContain('--jade-cursor-pointer: url(\'/abobora.png\') 8 0, pointer;')
   })
 
   it('deve usar os cursores do sistema operacional com \'none\'', () => {
@@ -308,22 +308,22 @@ describe('generateCustomCursorCSS', () => {
 
   it('deve voltar aos cursores do sistema quando o visitante desliga o cursor, depois dos blocos de tema', () => {
     const css = generateCustomCursorCSS(theme)
-    const off = css.match(/:root\[data-venix-cursor='off'\] \{([^}]*)\}/)?.[1]
+    const off = css.match(/:root\[data-jade-cursor='off'\] \{([^}]*)\}/)?.[1]
     expect(off).toBe(SYSTEM_CURSORS)
-    // Mesma especificidade de `:root[data-theme='…']`: vence por vir depois
-    expect(css.indexOf('data-venix-cursor')).toBeGreaterThan(css.lastIndexOf(':root[data-theme='))
+    // Mesma especificidade de `:root[data-jade-theme='…']`: vence por vir depois
+    expect(css.indexOf('data-jade-cursor')).toBeGreaterThan(css.lastIndexOf(':root[data-jade-theme='))
   })
 
   it('deve priorizar o id da variante sobre o nome do tema', () => {
     const css = withCursor({ themeCursors: { 'carnaval': 'none', 'carnaval-light': 'themed' } })
-    expect(block(css, 'carnaval')).toContain('--cursor-pointer: pointer;')
-    expect(block(css, 'carnaval-light')).toMatch(/--cursor-pointer: url\("data:image\/svg\+xml,/)
+    expect(block(css, 'carnaval')).toContain('--jade-cursor-pointer: pointer;')
+    expect(block(css, 'carnaval-light')).toMatch(/--jade-cursor-pointer: url\("data:image\/svg\+xml,/)
   })
 
   it('deve desenhar cursores mesmo sem imagens, caindo no cursor do sistema', () => {
     const css = withCursor({ defaultCursors: {} })
-    expect(css).toContain('--cursor-pointer: pointer;')
-    expect(css).toMatch(/--cursor-pointer: url\("data:image\/svg\+xml,[^"]+"\) \d+ \d+, pointer;/)
+    expect(css).toContain('--jade-cursor-pointer: pointer;')
+    expect(css).toMatch(/--jade-cursor-pointer: url\("data:image\/svg\+xml,[^"]+"\) \d+ \d+, pointer;/)
   })
 
   it('não deve gerar nada sem imagens e sem cores', () => {
@@ -340,21 +340,21 @@ describe('cursores de arrastar e tom no claro', () => {
   const theme = loadTheme()
   theme.customCursor = { ...theme.customCursor, enabled: true }
   const css = generateCustomCursorCSS(theme)
-  const value = (id: string, type: string) => css.match(new RegExp(`:root\\[data-theme='${id}'\\] \\{[^}]*--cursor-${type}: ([^\n]*);`))?.[1]
+  const value = (id: string, type: string) => css.match(new RegExp(`:root\\[data-jade-theme='${id}'\\] \\{[^}]*--jade-cursor-${type}: ([^\n]*);`))?.[1]
   const fill = (id: string) => value(id, 'default')?.match(/fill='%23([\dA-F]{6})'/i)?.[1]
 
   it('deve desenhar as mãos aberta e fechada, com o do sistema como reserva', () => {
     for (const type of ['grab', 'grabbing']) {
       expect(value('natal', type)).toMatch(new RegExp(`^url\\("data:image/svg\\+xml,[^"]+"\\) \\d+ \\d+, ${type}$`))
-      expect(css).toContain(`  --cursor-${type}: ${type};`)
-      expect(css).toContain(`html .cursor-${type} {\n  cursor: var(--cursor-${type});\n}`)
+      expect(css).toContain(`  --jade-cursor-${type}: ${type};`)
+      expect(css).toContain(`html .cursor-${type} {\n  cursor: var(--jade-cursor-${type});\n}`)
     }
     expect(value('natal', 'grab')).not.toBe(value('natal', 'grabbing'))
   })
 
   it('deve mostrar a mão sobre o que se arrasta, e a fechada enquanto segura', () => {
-    expect(css).toMatch(/\[draggable="true"\],[^{]*\{\n {2}cursor: var\(--cursor-grab\);/)
-    expect(css).toMatch(/\[draggable="true"\]:active,[^{]*\{\n {2}cursor: var\(--cursor-grabbing\);/)
+    expect(css).toMatch(/\[draggable="true"\],[^{]*\{\n {2}cursor: var\(--jade-cursor-grab\);/)
+    expect(css).toMatch(/\[draggable="true"\]:active,[^{]*\{\n {2}cursor: var\(--jade-cursor-grabbing\);/)
     expect(css.indexOf('/* 3d.')).toBeGreaterThan(css.indexOf('/* 3c.'))
   })
 
@@ -371,7 +371,7 @@ describe('cursores de arrastar e tom no claro', () => {
 
   it('deve clarear o primary de um tema claro sem variante escura', () => {
     const own = customizeTheme(loadTheme(), { cursor: true, color: { themes: { so: { light: { primary: '#0B3D91' } } } } })
-    const drawn = generateCustomCursorCSS(own).match(/data-theme='so-light'\] \{[^}]*?fill='%23([\dA-F]{6})'/i)?.[1]
+    const drawn = generateCustomCursorCSS(own).match(/data-jade-theme='so-light'\] \{[^}]*?fill='%23([\dA-F]{6})'/i)?.[1]
     expect(drawn).toBeDefined()
     expect(hexToOklab(`#${drawn}`)[0]).toBeCloseTo(0.72, 1)
   })
@@ -411,7 +411,7 @@ describe('generateThemeVars', () => {
       translations: { 'pt-BR': 'Sistema' },
       icon: 'i-line-md:light-dark-loop',
     })
-    expect(css).not.toContain('--color-primary')
+    expect(css).not.toContain('--jade-primary')
   })
 
   it('deve gerar cores válidas', () => {
@@ -420,8 +420,8 @@ describe('generateThemeVars', () => {
       primary: '#FF6B6B',
       secondary: '#FFB96A',
     })
-    expect(css).toContain('--color-primary: #FF6B6B')
-    expect(css).toContain('--color-secondary: #FFB96A')
+    expect(css).toContain('--jade-primary: #FF6B6B')
+    expect(css).toContain('--jade-secondary: #FFB96A')
   })
 })
 
@@ -432,13 +432,15 @@ describe('generateThemeVars com tokens', () => {
     const expected = `\n/* ============================================ */\n`
       + `/* Colors - Light Theme                     */\n`
       + `/* ============================================ */\n\n`
-      + `:root[data-theme='light'] {\n`
+      + `:root[data-jade-theme='light'] {\n`
       + `  color-scheme: light;\n`
-      + `  --color-scheme: #FFFFFF;\n`
-      + `  --color-inverse: #000000;\n`
-      + `  --color-primary: #FF0000;\n`
-      + `  --color-secondary: #FF8800;\n`
-      + `  --color-background: #FAFAFA;\n`
+      + `  --jade-scheme: #FFFFFF;\n`
+      + `  --jade-inverse: #000000;\n`
+      + `  --jade-primary: #FF0000;\n`
+      + `  --jade-secondary: #FF8800;\n`
+      + `  --jade-background: #FAFAFA;\n`
+      + `  /* Names up to 1.5, removed in 2.0 */\n`
+      + ['scheme', 'inverse', 'primary', 'secondary', 'background'].map(name => `  --color-${name}: var(--jade-${name});\n`).join('')
       + `}\n`
     expect(generateThemeVars('light', flat)).toBe(expected)
     expect(generateThemeVars('light', { ...flat, tokens: false })).toBe(expected)
@@ -464,9 +466,9 @@ describe('generateThemeVars com tokens', () => {
   it('deve acrescentar os tokens ao bloco do tema, depois das variáveis de sempre', () => {
     const css = generateThemeVars('venixTokens-light', { ...flat, tokens: true, surfaces: 'soft' })
     const block = css.slice(css.indexOf(':root'))
-    expect(block.startsWith(`:root[data-theme='venixTokens-light'] {`)).toBe(true)
+    expect(block.startsWith(`:root[data-jade-theme='venixTokens-light'] {`)).toBe(true)
     expect(block.endsWith('}\n')).toBe(true)
-    expect(block.indexOf('--color-primary: #FF0000;')).toBeLessThan(block.indexOf('/* Semantic tokens */'))
+    expect(block.indexOf('--jade-primary: #FF0000;')).toBeLessThan(block.indexOf('/* Semantic tokens */'))
     expect(block.indexOf('/* Semantic tokens */')).toBeLessThan(block.indexOf('--jade-bg: #FAFAFA;'))
     expect(block).toContain('--jade-fill-primary: #FF0000;')
     expect(block).toContain('--jade-on-primary: #000000;')

@@ -11,6 +11,8 @@ import { collectTokens, findTokenContrastIssues, findTokenOverrideIssues } from 
 import { customizeTheme } from './setup/customize-theme'
 import { registerPublicAssets } from './setup/register-assets'
 import { registerThemeComponents } from './setup/register-components'
+import { withLegacyConfigKey } from './setup/legacy-config'
+import type { ConfigKeys } from './setup/legacy-config'
 import { registerThemePlugins } from './setup/register-plugins'
 import { registerThemeCSS } from './setup/register-css'
 import { registerThemeTypes } from './setup/register-types'
@@ -34,7 +36,16 @@ export interface ModuleOptions {
    */
   vuetify?: boolean | Partial<VuetifyOptions>
   /**
-   * Integrates `@nuxt/icon` and registers `<VenixIcon>` / `useVenixIcon`,
+   * Also writes and registers the names used up to 1.5, next to the new
+   * `jade` ones: `data-theme` and the bare theme class on `<html>`,
+   * `--color-*`, `--cursor-*`, `--font-family-base`, `data-venix-*`, the files
+   * at the site root, `useVenixTheme`, `<VenixThemeSwitcher>`, `<VenixIcon>`.
+   * Turn it off to avoid clashing with other packages. Default: `true`;
+   * removed, with those names, in 2.0.
+   */
+  legacyNames?: boolean
+  /**
+   * Integrates `@nuxt/icon` and registers `<JadeIcon>` / `useJadeIcon`,
    * able to render an emoji, an Iconify icon (e.g. `line-md:home`, animated)
    * or an inline SVG from a single value. Installs `@nuxt/icon` automatically.
    */
@@ -48,10 +59,26 @@ export interface ModuleOptions {
   experimental?: boolean | Partial<ExperimentalConfig>
 }
 
+// `venixTheme`, the config key up to 1.5, is still accepted by `nuxt.config`
+// until 2.0. Under both names of the schema: a project is typed through one or the other.
+declare module '@nuxt/schema' {
+  interface NuxtConfig {
+    /** @deprecated Renamed to `venixJade`; removed in 2.0. */
+    venixTheme?: ModuleOptions
+  }
+}
+
+declare module 'nuxt/schema' {
+  interface NuxtConfig {
+    /** @deprecated Renamed to `venixJade`; removed in 2.0. */
+    venixTheme?: ModuleOptions
+  }
+}
+
 export default defineNuxtModule<ModuleOptions>({
   meta: {
     name: '@venix-sistemas/jade',
-    configKey: 'venixTheme',
+    configKey: 'venixJade',
     // The module is built and tested on Nuxt 4 (`@nuxt/kit` ^4). Older
     // versions get a clear message, not the first error that comes up.
     compatibility: { nuxt: '>=4.0.0' },
@@ -63,26 +90,31 @@ export default defineNuxtModule<ModuleOptions>({
     cursor: true,
     typography: true,
     vuetify: false,
+    legacyNames: true,
     icon: true,
     experimental: false,
   },
 
-  async setup(options, nuxt) {
+  async setup(moduleOptions, nuxt) {
     const resolver = createResolver(import.meta.url)
 
+    // `venixTheme`, the config key up to 1.5
+    const { options, warning } = withLegacyConfigKey(moduleOptions, nuxt.options as unknown as ConfigKeys)
+    if (warning) useLogger('jade').warn(warning)
+    const legacyNames = options.legacyNames !== false
+
     // 1. Register public assets
-    registerPublicAssets(nuxt, resolver)
+    registerPublicAssets(nuxt, resolver, legacyNames)
 
     // 2. Load and customize the theme
     const baseTheme = loadTheme()
     const theme = customizeTheme(baseTheme, options)
 
     // 3. Register the composable and the ready-made theme switcher component
-    addImports({
-      name: 'useVenixTheme',
-      from: resolver.resolve('./runtime/composables/useVenixTheme'),
-    })
-    registerThemeComponents(resolver)
+    for (const name of legacyNames ? ['useJade', 'useVenixTheme'] : ['useJade']) {
+      addImports({ name, from: resolver.resolve('./runtime/composables/useVenixTheme') })
+    }
+    registerThemeComponents(resolver, legacyNames)
 
     // 4. Resolve color and translation options
     const colorOptions = resolveFeatureOption<ColorOptions>(options.color, {
@@ -165,13 +197,13 @@ export default defineNuxtModule<ModuleOptions>({
     })
     registerThemeVuetify(nuxt, resolver, theme, colorOptions.defaultColor, vuetifyOptions.enabled)
 
-    // 8. Register @nuxt/icon + <VenixIcon> / useVenixIcon
+    // 8. Register @nuxt/icon + <JadeIcon> / useJadeIcon
     const iconOptions = resolveFeatureOption<IconOptions>(options.icon, {
       enabled: true,
       collections: ['line-md'],
       aliases: {},
     })
-    await registerThemeIcon(nuxt, resolver, iconOptions, theme.colors)
+    await registerThemeIcon(nuxt, resolver, iconOptions, theme.colors, legacyNames)
 
     // 9. Configure runtimeConfig
     const tokens = colorOptions.enabled ? collectTokens(theme.colors.themes, colorOptions.contrast || 'AA') : {}
@@ -186,6 +218,7 @@ export default defineNuxtModule<ModuleOptions>({
       iconFormat: iconOptions.enabled ? colorOptions.iconFormat : 'emote',
       requireConsent: colorOptions.requireConsent,
       seasonal: colorOptions.seasonal,
+      legacyNames,
       ...(themeColorMeta && { themeColorMeta }),
       tokens,
       icon: {

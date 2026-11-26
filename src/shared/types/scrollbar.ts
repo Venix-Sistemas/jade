@@ -4,7 +4,7 @@ export interface ScrollbarConfig {
    * Draws the scrollbars with OverlayScrollbars, as page elements: the
    * browser's own scrollbar ignores CSS `cursor`, so hovering it shows the
    * system cursor instead of the custom one. Covers the page, Vuetify's scroll
-   * containers and any element with `data-venix-scroll`; other elements keep
+   * containers and any element with `data-jade-scroll`; other elements keep
    * the CSS-styled native scrollbar. Off, every scrollbar is the native one,
    * styled with CSS. Default: `false`.
    */

@@ -8,6 +8,7 @@ import { isColorTheme } from '../shared/utils/theme-resolve'
 
 export function customizeTheme(baseTheme: ThemeConfig, options: ModuleOptions): ThemeConfig {
   const customized = structuredClone(baseTheme)
+  customized.legacyNames = options.legacyNames !== false
 
   // ===== TYPOGRAPHY / SCROLLBAR / CURSOR =====
   customized.typography = resolveFeatureOption(options.typography, customized.typography)

@@ -9,7 +9,7 @@
                 "name": "Iceberg",
                 "preload": true,
                 "sources": {
-                    "woff2": "/fonts/Iceberg/Iceberg-Regular.woff2"
+                    "woff2": "/_jade/fonts/Iceberg/Iceberg-Regular.woff2"
                 },
                 "weight": "normal",
                 "style": "normal"
@@ -34,15 +34,15 @@
         "themed": true,
         "defaultCursors": {
             "default": {
-                "path": "/images/ui/cursor/cursor.png",
+                "path": "/_jade/images/ui/cursor/cursor.png",
                 "hotspot": "4 0"
             },
             "pointer": {
-                "path": "/images/ui/cursor/cursor-hand.png",
+                "path": "/_jade/images/ui/cursor/cursor-hand.png",
                 "hotspot": "8 0"
             },
             "text": {
-                "path": "/images/ui/cursor/cursor-text.png",
+                "path": "/_jade/images/ui/cursor/cursor-text.png",
                 "hotspot": "12 12"
             }
         },

@@ -13,7 +13,7 @@ import {
 import { hasCookieConsent } from '../../shared/utils/consent'
 
 // Module-level so the dev warning shows once per page load, not once per
-// `useVenixTheme()` call or per theme change.
+// `useJade()` call or per theme change.
 let warnedMissingConsent = false
 
 export interface UseThemeCookiesOptions {

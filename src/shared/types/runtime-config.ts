@@ -17,6 +17,8 @@ export interface VenixRuntimeConfig {
   iconFormat: 'emote' | 'css' | 'svg'
   requireConsent: boolean
   seasonal: boolean
+  /** `legacyNames`: whether the names up to 1.5 are written too. */
+  legacyNames: boolean
   /** The color of each variant that drives `<meta name="theme-color">` (`color.themeColorMeta`); absent when it is off. */
   themeColorMeta?: string
   /**

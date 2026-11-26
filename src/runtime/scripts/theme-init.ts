@@ -15,6 +15,12 @@ import {
   SCROLLBAR_ATTRIBUTE,
   CURSOR_ATTRIBUTE,
   FONT_ATTRIBUTE,
+  THEME_ATTRIBUTE,
+  THEME_CLASS_PREFIX,
+  LEGACY_THEME_ATTRIBUTE,
+  LEGACY_SCROLLBAR_ATTRIBUTE,
+  LEGACY_CURSOR_ATTRIBUTE,
+  LEGACY_FONT_ATTRIBUTE,
 } from '../../shared/constants'
 
 declare global {
@@ -30,8 +36,12 @@ export interface InitThemeOptions {
   /** In seconds. */
   cookieMaxAge: number
   consentStorageKey: string
-  /** The `<html>` attributes that switch the custom scrollbar, cursor and font off. */
-  attributes: { scrollbar: string, cursor: string, font: string }
+  /** The `<html>` attributes: the applied theme, and the ones that switch the custom scrollbar, cursor and font off. */
+  attributes: { theme: string, scrollbar: string, cursor: string, font: string }
+  /** Prefix of the theme's class on `<html>`. */
+  classPrefix: string
+  /** The names up to 1.5, written too (`legacyNames`); `null` when off. */
+  legacy: { theme: string, scrollbar: string, cursor: string, font: string } | null
   /** The color of each variant that drives `<meta name="theme-color">` (`color.themeColorMeta`), or `null` to leave the tag alone. */
   themeColor: string | null
 }
@@ -59,7 +69,7 @@ export default function initTheme(
   options: InitThemeOptions,
 ): void {
   const resolver = createThemeResolver()
-  const { requireConsent, cookies, cookieMaxAge, consentStorageKey, attributes } = options
+  const { requireConsent, cookies, cookieMaxAge, consentStorageKey, attributes, classPrefix, legacy } = options
 
   function hasCookieConsent(): boolean {
     if (typeof localStorage === 'undefined') return false
@@ -110,13 +120,17 @@ export default function initTheme(
   // OS switched modes. The cookie is only refreshed below.
   const theme = resolver.resolveThemeSelection(selection, colors, systemPrefersDark)
 
-  html.classList.add(theme)
-  html.setAttribute('data-theme', theme)
+  html.classList.add(classPrefix + theme)
+  html.setAttribute(attributes.theme, theme)
+  if (legacy) {
+    html.classList.add(theme)
+    html.setAttribute(legacy.theme, theme)
+  }
   window.__VENIX_INITIAL_THEME__ = theme
 
   // `theme-color`, so the browser bar has the theme's color on the first
   // paint. This script is the first thing in `<head>`, so it writes the tag
-  // itself (the one `useVenixTheme` keeps up to date on each switch).
+  // itself (the one `useJade` keeps up to date on each switch).
   const themeColor = options.themeColor
   const barColor = themeColor ? (colors.themes[theme] as Record<string, string | undefined> | undefined)?.[themeColor] : undefined
   if (barColor && barColor.charAt(0) === '#') {
@@ -129,7 +143,9 @@ export default function initTheme(
   // The custom scrollbar/cursor/font the visitor turned off, before the
   // first paint too, so they don't show for a moment and then disappear.
   for (const toggle of ['scrollbar', 'cursor', 'font'] as const) {
-    if (getCookie(cookies[toggle]) === 'off') html.setAttribute(attributes[toggle], 'off')
+    if (getCookie(cookies[toggle]) !== 'off') continue
+    html.setAttribute(attributes[toggle], 'off')
+    if (legacy) html.setAttribute(legacy[toggle], 'off')
   }
 
   if (resolvedCookie !== theme) {
@@ -145,7 +161,7 @@ export default function initTheme(
   }
 }
 
-export function createInitThemeOptions(requireConsent: boolean, themeColor: string | null = null): InitThemeOptions {
+export function createInitThemeOptions(requireConsent: boolean, themeColor: string | null = null, legacyNames = true): InitThemeOptions {
   return {
     requireConsent,
     themeColor,
@@ -159,7 +175,11 @@ export function createInitThemeOptions(requireConsent: boolean, themeColor: stri
     },
     cookieMaxAge: THEME_COOKIE_MAX_AGE,
     consentStorageKey: COOKIE_CONSENT_STORAGE_KEY,
-    attributes: { scrollbar: SCROLLBAR_ATTRIBUTE, cursor: CURSOR_ATTRIBUTE, font: FONT_ATTRIBUTE },
+    attributes: { theme: THEME_ATTRIBUTE, scrollbar: SCROLLBAR_ATTRIBUTE, cursor: CURSOR_ATTRIBUTE, font: FONT_ATTRIBUTE },
+    classPrefix: THEME_CLASS_PREFIX,
+    legacy: legacyNames
+      ? { theme: LEGACY_THEME_ATTRIBUTE, scrollbar: LEGACY_SCROLLBAR_ATTRIBUTE, cursor: LEGACY_CURSOR_ATTRIBUTE, font: LEGACY_FONT_ATTRIBUTE }
+      : null,
   }
 }
 

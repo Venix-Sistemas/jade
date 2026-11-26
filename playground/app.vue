@@ -38,7 +38,7 @@
         </a>
       </div>
       <client-only>
-        <VenixThemeSwitcher class="module-nav__switcher" />
+        <JadeThemeSwitcher class="module-nav__switcher" />
       </client-only>
     </nav>
 
@@ -116,7 +116,7 @@
                   :class="{ 'chip--active': mode.preference.value === item.value }"
                   @click="mode.set(item.value)"
                 >
-                  <VenixIcon
+                  <JadeIcon
                     v-if="item.icon"
                     :icon="item.icon.value"
                     :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
@@ -149,7 +149,7 @@
                     :class="{ 'chip--active': theme.preference.value === item.value }"
                     @click="theme.set(item.value)"
                   >
-                    <VenixIcon
+                    <JadeIcon
                       v-if="item.icon"
                       :icon="item.icon.value"
                       :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
@@ -179,7 +179,7 @@
               </div>
 
               <p class="demo__status">
-                {{ $t('color.applied') }} <code>data-theme="{{ theme.value.value }}"</code>
+                {{ $t('color.applied') }} <code>data-jade-theme="{{ theme.value.value }}"</code>
               </p>
             </div>
 
@@ -203,7 +203,7 @@
                     class="chip"
                     @click="theme.set(item.value)"
                   >
-                    <VenixIcon
+                    <JadeIcon
                       v-if="item.icon"
                       :icon="item.icon.value"
                       :mode="item.icon.format === 'emote' ? undefined : item.icon.format"
@@ -494,7 +494,7 @@
             </h3>
             <div
               class="scroll-vertical"
-              data-venix-scroll
+              data-jade-scroll
             >
               <div
                 v-for="i in 20"
@@ -514,7 +514,7 @@
             </h3>
             <div
               class="scroll-horizontal"
-              data-venix-scroll
+              data-jade-scroll
             >
               <div
                 v-for="i in 20"
@@ -544,9 +544,9 @@
         >
           <client-only>
             <dl class="specs">
-              <dt><code>--font-family-base</code></dt>
+              <dt><code>--jade-font-family</code></dt>
               <dd>{{ typography.family }}</dd>
-              <dt><code>--font-size-base</code></dt>
+              <dt><code>--jade-font-size</code></dt>
               <dd>{{ typography.size }}</dd>
             </dl>
           </client-only>
@@ -617,7 +617,7 @@
         <ModuleHeader
           id="plugins"
           emoji="🧩"
-          key-label="venixTheme.vuetify · venixTheme.icon · venixUnoPreset()"
+          key-label="venixJade.vuetify · venixJade.icon · jadeUnoPreset()"
         />
 
         <div class="demo-grid demo-grid--plugins">
@@ -713,7 +713,7 @@
                   {{ $t('plugins.uno.tagline') }}
                 </p>
               </div>
-              <code class="plugin__option">venixUnoPreset()</code>
+              <code class="plugin__option">jadeUnoPreset()</code>
             </header>
 
             <div class="plugin__stage">
@@ -736,7 +736,7 @@
             </p>
           </article>
 
-          <!-- Iconify: <VenixIcon> renders an emoji, an Iconify icon or an inline SVG -->
+          <!-- Iconify: <JadeIcon> renders an emoji, an Iconify icon or an inline SVG -->
           <article
             class="demo plugin"
             data-jade-surface="bold"
@@ -746,7 +746,7 @@
                 class="plugin__logo plugin__logo--icon"
                 aria-hidden="true"
               >
-                <VenixIcon icon="line-md:loading-loop" />
+                <JadeIcon icon="line-md:loading-loop" />
               </span>
               <div class="plugin__heading">
                 <h3 class="plugin__title">
@@ -766,7 +766,7 @@
                   :key="item.label"
                   class="icon-sample"
                 >
-                  <VenixIcon
+                  <JadeIcon
                     :icon="item.icon"
                     class="icon-sample__icon"
                   />
@@ -841,7 +841,7 @@ import { ref, computed, onMounted, watch, nextTick, h, defineComponent } from 'v
 
 import { contrastRatio } from '../src/shared/utils/contrast'
 
-const { theme, themes, mode, modes, locale, persistence, tokens } = useVenixTheme()
+const { theme, themes, mode, modes, locale, persistence, tokens } = useJade()
 
 const { t, locale: i18nLocale, locales: availableLocales, setLocale: setI18nLocale } = useI18n()
 
@@ -877,12 +877,12 @@ const unoSamples = [
   { key: 'field', classes: 'jade-bg jade-text-muted jade-border-strong', outlined: true },
 ]
 
-// Title, `venixTheme.<key>` badge and, behind a help button, the description of a module section.
+// Title, `venixJade.<key>` badge and, behind a help button, the description of a module section.
 const ModuleHeader = defineComponent({
   props: {
     id: { type: String, required: true },
     emoji: { type: String, required: true },
-    // The badge on the right, `venixTheme.<id>` unless the section covers more than one module.
+    // The badge on the right, `venixJade.<id>` unless the section covers more than one module.
     keyLabel: { type: String, default: '' },
   },
   setup(props) {
@@ -900,11 +900,11 @@ const ModuleHeader = defineComponent({
           'aria-label': t('app.help'),
           'onClick': () => { open.value = !open.value },
         }, '?'),
-        h('code', { class: 'module__key' }, props.keyLabel || `venixTheme.${props.id}`),
+        h('code', { class: 'module__key' }, props.keyLabel || `venixJade.${props.id}`),
       ]),
       // Component names go in as a parameter: written in the message itself,
       // vue-i18n warns about HTML in it (it's rendered as text either way).
-      open.value ? h('p', { class: 'module__description' }, t(`modules.${props.id}.description`, { component: '<VenixIcon>' })) : null,
+      open.value ? h('p', { class: 'module__description' }, t(`modules.${props.id}.description`, { component: '<JadeIcon>' })) : null,
     ])
   },
 })
@@ -963,8 +963,8 @@ onMounted(() => {
 
   const rootStyle = getComputedStyle(document.documentElement)
   typography.value = {
-    family: rootStyle.getPropertyValue('--font-family-base').trim() || '—',
-    size: rootStyle.getPropertyValue('--font-size-base').trim() || '—',
+    family: rootStyle.getPropertyValue('--jade-font-family').trim() || '—',
+    size: rootStyle.getPropertyValue('--jade-font-size').trim() || '—',
   }
 })
 
@@ -1097,7 +1097,7 @@ const tokenPairs = computed(() => {
   const rows: Array<{ text: string, surface: string, textColor: string, surfaceColor: string, min: number, original?: boolean }> = []
   const original = theme.colors.themes[theme.value.value]
   if (original?.primary && original.background) {
-    rows.push({ text: '--color-primary', surface: '--color-background', textColor: original.primary, surfaceColor: original.background, min: TEXT_MIN, original: true })
+    rows.push({ text: '--jade-primary', surface: '--jade-background', textColor: original.primary, surfaceColor: original.background, min: TEXT_MIN, original: true })
   }
   for (const [text, surface, min] of TOKEN_PAIRS) {
     const textColor = current[text]
@@ -1170,11 +1170,11 @@ const colorList = computed(() => {
    scope, where the `--jade-*` tokens mean the brand panel. */
 :root,
 [data-jade-surface] {
-  --pg-bg: var(--jade-bg, var(--color-background));
-  --pg-surface: var(--jade-bg-subtle, var(--color-background2));
-  --pg-surface-muted: var(--jade-bg-muted, var(--color-background3));
-  --pg-border: var(--jade-border, var(--color-background3));
-  --pg-field-border: var(--jade-border-strong, var(--color-background3));
+  --pg-bg: var(--jade-bg, var(--jade-background));
+  --pg-surface: var(--jade-bg-subtle, var(--jade-background2));
+  --pg-surface-muted: var(--jade-bg-muted, var(--jade-background3));
+  --pg-border: var(--jade-border, var(--jade-background3));
+  --pg-field-border: var(--jade-border-strong, var(--jade-background3));
   /* Text keeps the original Venix page's colors: primary for the main text and
      titles, secondary for the supporting text and labels. On a token theme the
      primary text is the seed itself (\`fill-primary\`), which passes AA on \`bg\`,
@@ -1182,8 +1182,8 @@ const colorList = computed(() => {
      in dark mode (orange on a light background can't), so in light mode it is
      \`text-secondary\`, the step built for that. \`light-dark()\` follows the
      \`color-scheme\` each theme sets. */
-  --pg-text: var(--jade-fill-primary, var(--color-primary));
-  --pg-text-muted: light-dark(var(--jade-text-secondary, var(--color-secondary)), var(--jade-fill-secondary, var(--color-secondary)));
+  --pg-text: var(--jade-fill-primary, var(--jade-primary));
+  --pg-text-muted: light-dark(var(--jade-text-secondary, var(--jade-secondary)), var(--jade-fill-secondary, var(--jade-secondary)));
   --pg-title: var(--pg-text);
   --pg-label: var(--pg-text-muted);
   /* Fading text with `opacity` would take it below AA on a token theme. The
@@ -1193,14 +1193,14 @@ const colorList = computed(() => {
   --pg-dim-hint: var(--jade-bg, 0.85);
   --pg-dim-size: var(--jade-bg, 0.7);
   --pg-link: var(--pg-text);
-  --pg-accent: var(--jade-fill-primary, var(--color-primary));
-  --pg-on-accent: var(--jade-on-primary, var(--color-background));
+  --pg-accent: var(--jade-fill-primary, var(--jade-primary));
+  --pg-on-accent: var(--jade-on-primary, var(--jade-background));
 }
 /* Inside a bold panel the supporting text is the panel's own `text-muted`:
    `light-dark(secondary…)` above is made for the page, not for a brand color.
    Only on the light variants: the dark ones have no bold scope by default. */
-:root[data-theme$='light'] [data-jade-surface] {
-  --pg-text-muted: var(--jade-text-muted, var(--color-secondary));
+:root[data-jade-theme$='light'] [data-jade-surface] {
+  --pg-text-muted: var(--jade-text-muted, var(--jade-secondary));
 }
 
 /* The browser's own placeholder gray fades into a brand color. */
@@ -1221,7 +1221,7 @@ html {
 }
 
 body {
-  font-family: var(--font-family-base, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  font-family: var(--jade-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   background: var(--pg-bg);
   color: var(--pg-text);
   transition: all 0.3s ease;
@@ -1493,23 +1493,23 @@ code {
 }
 
 .chip--success {
-  color: var(--color-success, var(--color-primary));
-  border-color: var(--color-success, var(--pg-border));
+  color: var(--jade-success, var(--jade-primary));
+  border-color: var(--jade-success, var(--pg-border));
 }
 
 .chip--success:hover {
-  background: var(--color-success, var(--color-primary));
-  color: var(--color-background);
+  background: var(--jade-success, var(--jade-primary));
+  color: var(--jade-background);
 }
 
 .chip--error {
-  color: var(--color-error, var(--color-primary));
-  border-color: var(--color-error, var(--pg-border));
+  color: var(--jade-error, var(--jade-primary));
+  border-color: var(--jade-error, var(--pg-border));
 }
 
 .chip--error:hover {
-  background: var(--color-error, var(--color-primary));
-  color: var(--color-background);
+  background: var(--jade-error, var(--jade-primary));
+  color: var(--jade-background);
 }
 
 .tag {
@@ -2255,12 +2255,12 @@ code {
 }
 
 .cursor-area--grab {
-  cursor: var(--cursor-grab, grab);
+  cursor: var(--jade-cursor-grab, grab);
   user-select: none;
 }
 
 .cursor-area--grab:active {
-  cursor: var(--cursor-grabbing, grabbing);
+  cursor: var(--jade-cursor-grabbing, grabbing);
 }
 
 .cursor-area__input {
