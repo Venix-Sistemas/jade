@@ -3,6 +3,7 @@ import type { ContrastLevel, ThemeColors } from '../types'
 import { getThemeHexColors } from '../utils/theme-resolve'
 import { tokensEnabled } from '../token-names'
 import { generateBoldCss } from './bold'
+import { generateMenuCss } from './menu'
 import { generateHighContrastVars, generateTokenVars } from './tokens'
 import { vuetify0Vars } from './vuetify0'
 import { themeSelector } from './selector'
@@ -46,6 +47,9 @@ export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: 
   // `surfaces: 'bold'`: the scope for areas in the brand color, after the variant's own block.
   const boldBlock = generateBoldCss(mode, colors, contrast, highContrast, options.vuetify0, options.lab)
 
+  // The side menu (`data-jade-surface="menu"`)
+  const menuBlock = generateMenuCss(mode, colors, contrast, highContrast, options.vuetify0, options.lab)
+
   const isDark = colors.dark === true
   const colorScheme = isDark ? 'dark' : 'light'
   const inverseColor = isDark ? '#FFFFFF' : '#000000'
@@ -61,4 +65,5 @@ export function generateThemeVars(mode: string, colors: ThemeColors, contrast?: 
     + `}\n`
     + highContrastBlock
     + boldBlock
+    + menuBlock
 }

@@ -1,7 +1,7 @@
 // src/shared/lab/choice.ts
 // A visitor's choices for a theme variant (`color.lab`). No color engine here:
 // this is what loads with the page.
-import type { ThemeBorders, ThemeColors } from '../types'
+import type { ThemeBorders, ThemeColors, ThemeMenu } from '../types'
 import { chromaOf, colorWithHue, hexToOklab, normalizeHex, oklabToHex } from '../utils/oklab'
 import { neutralTintOf, surfacesOf, tokensEnabled } from '../token-names'
 import { COLOR_PROPERTIES } from '../constants'
@@ -19,6 +19,8 @@ export interface LabChoice {
   /** `neutralTint`. */
   tint: boolean | 'vivid'
   borders: ThemeBorders
+  /** The side menu; left out, it follows the theme (`menu`) and its style. */
+  menu?: ThemeMenu
   /** The colors the visitor changed, as `#RRGGBB`; the others are the theme's. */
   colors?: Partial<Record<LabColor, string>>
 }
@@ -70,6 +72,7 @@ export function applyChoice(colors: ThemeColors, choice: LabChoice): ThemeColors
   }
   delete result.surfaces
   if (choice.bold) result.surfaces = 'bold'
+  if (choice.menu) result.menu = choice.menu
   for (const name of LAB_COLORS) {
     const hex = asHex(choice.colors?.[name])
     if (hex) result[name] = BACKGROUNDS.includes(name) ? limitBackground(hex, colors.dark === true) : hex
@@ -77,7 +80,7 @@ export function applyChoice(colors: ThemeColors, choice: LabChoice): ThemeColors
   return result
 }
 
-/** The cookie: per variant, `id,bold,tint,borders` and one `position-RRGGBB` per changed color. */
+/** The cookie: per variant, `id,bold,tint,borders`, `ms`/`mb` for a chosen menu and one `position-RRGGBB` per changed color. */
 export function encodeChoices(choices: LabChoices): string {
   return Object.entries(choices)
     .filter(([id]) => VARIANT_ID.test(id))
@@ -86,6 +89,7 @@ export function encodeChoices(choices: LabChoices): string {
       choice.bold ? '1' : '0',
       choice.tint === 'vivid' ? 'v' : choice.tint ? 's' : 'g',
       choice.borders === 'soft' ? 'q' : 'd',
+      ...(choice.menu ? [choice.menu === 'bold' ? 'mb' : 'ms'] : []),
       ...LAB_COLORS.flatMap((name, i) => {
         const hex = asHex(choice.colors?.[name])
         return hex ? [`${i}-${hex.slice(1)}`] : []
@@ -105,8 +109,10 @@ export function decodeChoices(value: unknown, variants: readonly string[]): LabC
 
   for (const entry of value.split('|').slice(0, MAX_VARIANTS)) {
     const parts = entry.split(',')
-    if (parts.length < 4 || parts.length > 4 + LAB_COLORS.length) continue
-    const [id, bold, tint, borders, ...changed] = parts as [string, string, string, string, ...string[]]
+    if (parts.length < 4 || parts.length > 5 + LAB_COLORS.length) continue
+    const [id, bold, tint, borders, ...rest] = parts as [string, string, string, string, ...string[]]
+    const menu = rest[0] === 'mb' ? 'bold' : rest[0] === 'ms' ? 'soft' : undefined
+    const changed = menu ? rest.slice(1) : rest
     if (!VARIANT_ID.test(id) || !variants.includes(id)) continue
     if (!['0', '1'].includes(bold) || !Object.hasOwn(TINTS, tint) || !['d', 'q'].includes(borders)) continue
 
@@ -116,7 +122,8 @@ export function decodeChoices(value: unknown, variants: readonly string[]): LabC
       const name = match && LAB_COLORS[Number(match[1])]
       return name ? [name, `#${match[2]!.toUpperCase()}`] as const : null
     })
-    if (colors.includes(null)) continue
+    if (colors.includes(null) || changed.length > LAB_COLORS.length) continue
+    if (menu) choice.menu = menu
     if (colors.length) choice.colors = Object.fromEntries(colors as (readonly [LabColor, string])[])
     choices[id] = choice
   }

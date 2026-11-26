@@ -21,14 +21,15 @@ const rows = [
       Superfícies <code>bold</code>
     </h3>
     <p class="bold-demo__hint">
-      A página segue neutra; o menu, os cabeçalhos e alguns cards usam
-      <code>data-jade-surface="bold"</code> e ganham a cor da marca: forte no claro, mais discreta no escuro.
+      A página segue neutra. Os cabeçalhos e alguns cards usam <code>data-jade-surface="bold"</code> e ganham a
+      cor da marca quando o tema é <code>bold</code>. O menu usa <code>data-jade-surface="menu"</code>: discreto
+      ou forte, conforme a opção <code>menu</code> do tema.
     </p>
 
     <div class="shell">
       <aside
         class="shell__side"
-        data-jade-surface="bold"
+        data-jade-surface="menu"
       >
         <strong class="shell__brand">Painel</strong>
         <nav class="shell__nav">
@@ -143,30 +144,18 @@ const rows = [
   border-right: 1px solid var(--jade-border);
 }
 
-/* A dark variant has no bold scope by default. So that the example keeps the
-   same share of color in both modes, every area marked for the scope takes there
-   the soft tone of the brand color, halved with the card gray. */
-:global(:root:not([data-jade-theme$='light']) .bold-demo [data-jade-surface]) {
-  border-color: color-mix(in srgb, var(--jade-border-primary) 50%, var(--jade-border));
-  background: color-mix(in srgb, var(--jade-bg-primary) 50%, var(--jade-bg-subtle));
-}
-
-:global(:root:not([data-jade-theme$='light']) .shell__link) { color: var(--jade-text); }
-:global(:root:not([data-jade-theme$='light']) .shell__link:hover) { background: color-mix(in srgb, var(--jade-bg-primary-hover) 50%, var(--jade-bg-muted)); }
-:global(:root:not([data-jade-theme$='light']) .shell__link--on) { background: color-mix(in srgb, var(--jade-bg-primary-active) 50%, var(--jade-bg-hover)); }
-
 .shell__brand { font-size: 1.15rem; }
 .shell__nav { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
 
 .shell__link {
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
-  color: var(--jade-text-muted);
+  color: var(--jade-text);
   text-decoration: none;
 }
 
-.shell__link:hover { background: var(--jade-bg-hover); color: var(--jade-text); }
-.shell__link--on { background: var(--jade-bg-muted); color: var(--jade-text); }
+.shell__link:hover { background: var(--jade-bg-primary-hover); }
+.shell__link--on { background: var(--jade-bg-primary-active); font-weight: 700; }
 
 .btn {
   padding: 0.6rem 0.9rem;

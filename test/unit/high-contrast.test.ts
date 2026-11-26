@@ -80,9 +80,9 @@ describe('processTheme com colors.highContrast', () => {
     expect(off).not.toContain(MEDIA)
 
     const on = processTheme({ ...theme, colors: { ...theme.colors, highContrast: true } })
-    // um bloco por variante e, nas que têm o escopo `bold`, outro para o escopo
+    // um bloco por variante e, nas que têm o escopo `bold`, outro para o escopo e outro para o menu forte
     const variants = Object.values(themes).filter(colors => colors.tokens)
-    expect(on.split(MEDIA).length - 1).toBe(variants.length + variants.filter(colors => surfacesOf(colors) === 'bold').length)
+    expect(on.split(MEDIA).length - 1).toBe(variants.length + 2 * variants.filter(colors => surfacesOf(colors) === 'bold').length)
     expect(on.startsWith(off.slice(0, 200))).toBe(true)
   })
 })

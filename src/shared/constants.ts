@@ -152,4 +152,5 @@ export const NON_COLOR_PROPERTIES = [
   'neutralTint',
   'surfaces',
   'borders',
+  'menu',
 ] as const

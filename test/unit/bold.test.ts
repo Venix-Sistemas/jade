@@ -158,7 +158,7 @@ describe('generateBoldCss', () => {
   })
 
   it('não deve escrever nada sem bold', () => {
-    expect(generateThemeVars('x', { ...GREEN, surfaces: 'vivid' })).not.toContain('data-jade-surface')
+    expect(generateThemeVars('x', { ...GREEN, surfaces: 'vivid' })).not.toContain('data-jade-surface=\'bold\'')
     expect(generateBoldCss('x', { ...GREEN_DARK, surfaces: undefined })).toBe('')
   })
 

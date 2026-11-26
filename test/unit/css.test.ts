@@ -459,7 +459,9 @@ describe('generateThemeVars com tokens', () => {
     const tokenBlock = /\n {2}\/\* Semantic tokens \*\/\n[\s\S]*?(?=\n\}\n)/g
     // ...nem o escopo `bold`, que só acrescenta um bloco depois do tema
     const boldBlock = /\n\/\* Bold surfaces - [^\n]*\*\/\n[^\n]*\{\n[\s\S]*?\n\}\n/g
-    expect(css.replace(tokenBlock, '').replace(boldBlock, '')).toBe(processTheme(withoutTokens))
+    // ...nem o menu lateral, outro bloco à parte
+    const menuBlock = /\n\/\* Side menu - [^\n]*\*\/\n[^\n]*\{\n[\s\S]*?\n\}\n/g
+    expect(css.replace(tokenBlock, '').replace(boldBlock, '').replace(menuBlock, '')).toBe(processTheme(withoutTokens))
   })
 
   it('deve acrescentar os tokens ao bloco do tema, depois das variáveis de sempre', () => {
@@ -472,7 +474,8 @@ describe('generateThemeVars com tokens', () => {
     expect(block).toContain('--jade-fill-primary: #FF0000;')
     expect(block).toContain('--jade-on-primary: #000000;')
     expect(block).toContain('--jade-text-secondary:')
-    expect(block.match(/:root\[/g)).toHaveLength(1)
+    // Um só bloco do tema (o do menu lateral é um escopo dentro dele)
+    expect(block.match(/:root\[[^\]]+\] \{/g)).toHaveLength(1)
   })
 
   it('deve manter as variáveis antigas do tema com tokens iguais às de um tema sem tokens', () => {

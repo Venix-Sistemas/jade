@@ -16,7 +16,7 @@ const THEMES = { 'sea-light': LIGHT, 'sea-dark': DARK }
 const OPTIONS = { contrast: 'AA', highContrast: false, legacyNames: false, vuetify0: false } as const
 const CHOICES: LabChoices = {
   'sea-light': { bold: false, tint: 'vivid', borders: 'soft', colors: { primary: '#8A0B2E', background: '#FFFFFF', warning: '#8A6D00' } },
-  'sea-dark': { bold: true, tint: false, borders: 'default' },
+  'sea-dark': { bold: true, tint: false, borders: 'default', menu: 'soft' },
 }
 
 describe('escolhas do visitante', () => {
@@ -33,7 +33,7 @@ describe('escolhas do visitante', () => {
     expect(applyChoice(DARK, choiceOf(DARK)).tokens).toBe(true)
     const normal = applyChoice(LIGHT, { ...choiceOf(LIGHT), bold: false })
     expect(normal).not.toHaveProperty('surfaces')
-    expect(generateThemeVars('sea-light', normal)).not.toContain('data-jade-surface')
+    expect(generateThemeVars('sea-light', normal)).not.toContain('data-jade-surface=\'bold\'')
   })
 
   it('aplica qualquer cor do tema, e os fundos ficam do lado deles', () => {

@@ -3,6 +3,7 @@
 import type { ContrastLevel, ThemeColors } from '../types'
 import { generateBoldSurface } from '../css/bold'
 import { generateThemeVars } from '../css/colors'
+import { generateMenuSurface } from '../css/menu'
 import { checkTokenContrast, generateTokens } from '../css/tokens'
 import { applyChoice } from './choice'
 import { chromaOf, colorWithHue, hexToOklab, oklabToHex } from '../utils/oklab'
@@ -29,6 +30,7 @@ const pairs = (colors: ThemeColors, level: ContrastLevel): string[] => {
   return [
     ...checkTokenContrast(tokens, level).map(issue => `${issue.text} / ${issue.surface}`),
     ...checkTokenContrast(generateBoldSurface(colors, level)?.tokens ?? [], level).map(issue => `bold: ${issue.text} / ${issue.surface}`),
+    ...checkTokenContrast(generateMenuSurface(colors, level)?.tokens ?? [], level).map(issue => `menu: ${issue.text} / ${issue.surface}`),
     ...TOKEN_ROLES
       .filter(role => byName.has(`fill-${role}`) && contrastRatio(byName.get(`fill-${role}`)!, byName.get('bg')!) < BRAND_MIN)
       .map(role => `fill-${role} / bg`),

@@ -47,6 +47,8 @@ export interface ThemeVariant extends ThemePalette {
   surfaces?: ThemeSurfaces
   /** `ThemeMeta.borders` for this variant only; wins over the theme's. */
   borders?: ThemeBorders
+  /** `ThemeMeta.menu` for this variant only; wins over the theme's. */
+  menu?: ThemeMenu
 }
 
 /** What a theme is called, how it's drawn and when it's active — shared by both variants. */
@@ -131,7 +133,20 @@ export interface ThemeMeta {
    * Default: `'default'`.
    */
   borders?: ThemeBorders
+  /**
+   * Only with `tokens`. How much brand color a side menu takes: an element with
+   * `data-jade-surface="menu"`, whose tokens are redefined for what is inside.
+   *
+   * - `'soft'`: a light tone of `primary` (`bg-primary`), with the page's text.
+   * - `'bold'`: the panel of the bold scope, also on a theme that isn't bold.
+   *
+   * Default: `'bold'` on a bold variant, `'soft'` on the others.
+   */
+  menu?: ThemeMenu
 }
+
+/** How much brand color a side menu takes. See `ThemeMeta.menu`. */
+export type ThemeMenu = 'soft' | 'bold'
 
 /** How much the card and menu outlines stand out. See `ThemeMeta.borders`. */
 export type ThemeBorders = 'default' | 'soft'
