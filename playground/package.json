@@ -12,11 +12,11 @@
     "nuxt": "^4.7.0"
   },
   "devDependencies": {
-    "@nuxtjs/i18n": "^10.6.0",
+    "@nuxtjs/i18n": "^10.7.0",
     "@unocss/nuxt": "^66.13.0",
     "@vuetify/v0": "1.4.0",
     "unocss": "^66.13.0",
     "vuetify": "^4.3.4",
-    "vuetify-nuxt-module": "1.0.0-rc.6"
+    "vuetify-nuxt-module": "1.0.0-rc.7"
   }
 }
