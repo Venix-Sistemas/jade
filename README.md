@@ -92,7 +92,7 @@ See [Modules](#modules) for what each one does.
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="./docs/images/readme/switcher-light.png">
-    <img src="./docs/images/readme/switcher-dark.png" alt="JadeThemeSwitcher open next to the page: the settings gear, then the Mode, Theme (with each seasonal theme's dates) and Custom theme sections" width="800">
+    <img src="./docs/images/readme/switcher-dark.png" alt="JadeThemeSwitcher open next to the page: the theme lab's pencil and the settings gear, then the Mode, Theme (each name in its color, with the seasonal dates) and Custom theme sections" width="800">
   </picture>
 </p>
 
@@ -579,7 +579,7 @@ Everything else keeps the browser's scrollbar, styled with CSS. Scrolling itself
 Replaces the default, pointer and text cursors, and the open and closed hands for dragging (`grab` and `grabbing`). On by default; set `cursor: false` to keep the system's cursors. Visitors can also turn it off for themselves in the [switcher's settings](#theme-switcher) (or you with `cursor.set(false)`), which sets `data-jade-cursor="off"` on `<html>`:
 
 <p align="center">
-  <img src="./docs/images/readme/cursor.png" alt="The default, pointer and text cursors" width="800">
+  <img src="./docs/images/readme/cursor.png" alt="The default, pointer and text cursors, and the open hand for dragging" width="800">
 </p>
 
 - **`defaultCursors`**: the default cursors, the module's fire images unless you set your own. They show with `themed: false`, in browsers that can't load the drawn cursors and for themes without a `primary`.

@@ -19,6 +19,8 @@ const wait = ms => sleep(ms)
 
 /** Opens the playground; the stills leave out the page's own scrollbar unless `scrollbars` is set. */
 async function prepare({ scrollbars = false } = {}) {
+  // Before the page loads too: set afterwards only, newer Chromium doesn't lay them out
+  await cdp.send('Emulation.setScrollbarsHidden', { hidden: !scrollbars })
   await open(cdp, URL)
   await cdp.send('Emulation.setScrollbarsHidden', { hidden: !scrollbars })
   await evaluate(cdp, 'window.scrollTo(0, 0)')
@@ -125,7 +127,7 @@ async function palettes() {
       const x = Math.min(...els.map(b => b.left)), y = Math.min(...els.map(b => b.top))
       return { x: x - 14, y: y - 14, width: Math.max(...els.map(b => b.right)) - x + 28, height: Math.max(...els.map(b => b.bottom)) - y + 28 }
     })()`)
-    console.log('palette', theme, mode, '->', await evaluate(cdp, 'document.documentElement.dataset.theme'))
+    console.log('palette', theme, mode, '->', await evaluate(cdp, 'document.documentElement.getAttribute("data-jade-theme")'))
     cells.push({ b64: (await viewport()).toString('base64'), rect })
   }
   save('palettes.png', await composite(cells, { columns: 1, gap: 12, radius: 12 }))
@@ -151,7 +153,7 @@ async function tokens() {
       const b = document.querySelector('#color-panel-tokens .sheet').getBoundingClientRect()
       return { x: b.left - 10, y: b.top - 10, width: b.width + 20, height: b.height + 20 }
     })()`)
-    console.log('tokens', mode, view, '->', await evaluate(cdp, 'document.documentElement.dataset.theme'))
+    console.log('tokens', mode, view, '->', await evaluate(cdp, 'document.documentElement.getAttribute("data-jade-theme")'))
     cells.push({ b64: (await viewport()).toString('base64'), rect })
   }
   save('tokens.png', await composite(cells, { columns: 2, gap: 12, radius: 12 }))
@@ -160,9 +162,11 @@ async function tokens() {
 // ------------------------------------------------------------------- icons
 async function icons() {
   await prepare()
-  await evaluate(cdp, `document.querySelectorAll('#plugins .plugin')[2].scrollIntoView({ block: 'center' })`)
+  // The card that shows <JadeIcon>, wherever it sits among the plugins
+  const card = `[...document.querySelectorAll('#plugins .plugin')].find(e => e.textContent.includes('JadeIcon') || e.textContent.includes('icon: true'))`
+  await evaluate(cdp, `${card}.scrollIntoView({ block: 'center' })`)
   await wait(600)
-  save('icons.png', await clip(await boxOf(`[document.querySelectorAll('#plugins .plugin')[2]]`)))
+  save('icons.png', await clip(await boxOf(`[${card}]`)))
 }
 
 // ---------------------------------------------------------------- sections
@@ -200,8 +204,8 @@ async function drawCursors() {
   await evaluate(cdp, `(() => {
     const cs = getComputedStyle(document.documentElement)
     const cards = document.querySelectorAll('#cursor .cursor-area')
-    ;['default', 'pointer', 'text'].forEach((name, i) => {
-      const value = cs.getPropertyValue('--cursor-' + name)
+    ;['default', 'pointer', 'text', 'grab'].forEach((name, i) => {
+      const value = cs.getPropertyValue('--jade-cursor-' + name)
       const m = /url\\((["']?)(.*?)\\1\\)\\s*(-?\\d+)?\\s*(-?\\d+)?/.exec(value)
       if (!m) return
       const b = cards[i].getBoundingClientRect()
@@ -209,7 +213,7 @@ async function drawCursors() {
       img.className = '__demo-cursor'
       img.src = m[2]
       const hx = Number(m[3] || 0), hy = Number(m[4] || 0)
-      const x = b.left + scrollX + b.width * 0.5, y = b.top + scrollY + b.height * (i === 2 ? 0.58 : 0.62)
+      const x = b.left + scrollX + b.width * 0.5, y = b.top + scrollY + b.height * [0.62, 0.62, 0.58, 0.78][i]
       img.style.cssText = 'position:absolute;pointer-events:none;z-index:99999;left:' + (x - hx) + 'px;top:' + (y - hy) + 'px'
       document.body.appendChild(img)
     })
@@ -229,7 +233,7 @@ async function cursorThemes() {
       await evaluate(cdp, `(() => {
         document.querySelectorAll('.__cell').forEach(e => e.remove())
         const cs = getComputedStyle(document.documentElement)
-        const cursor = name => { const m = /url\\((["']?)(.*?)\\1\\)/.exec(cs.getPropertyValue('--cursor-' + name)); return m && m[2] }
+        const cursor = name => { const m = /url\\((["']?)(.*?)\\1\\)/.exec(cs.getPropertyValue('--jade-cursor-' + name)); return m && m[2] }
         const base = ${JSON.stringify(theme)} === 'Venix'
         const cell = document.createElement('div')
         cell.className = '__cell'
