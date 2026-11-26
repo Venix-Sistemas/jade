@@ -19,6 +19,7 @@
       :aria-label="resolvedLabel"
       :aria-expanded="open"
       aria-haspopup="menu"
+      :style="buttonStyle"
       @click="toggleOpen"
     >
       <template v-if="activeIcon">
@@ -590,6 +591,17 @@ const FONT_TITLE_TRANSLATIONS: Record<string, string> = {
   'zh-CN': '自定义字体',
 }
 
+interface ButtonColors {
+  /** The button's fill. */
+  background?: string
+  /** The icon and the label. */
+  icon?: string
+  /** The outline. Without it, the standard gray one. */
+  border?: string
+  /** The fill under the pointer or keyboard focus. Without it, `background`, when set. */
+  hover?: string
+}
+
 const props = defineProps<{
   /** Accessible label for the button and the menu. Without a value, uses the component's own translation based on the current locale. */
   label?: string
@@ -597,6 +609,12 @@ const props = defineProps<{
   showLabel?: boolean
   /** Hides "Save changes" in the settings, for a site whose own cookie banner already records consent. */
   hideConsent?: boolean
+  /**
+   * The colors of the button that opens the menu, for each mode, as any CSS
+   * color. Only the button: the menu stays neutral. Unset colors keep the
+   * standard ones.
+   */
+  buttonColors?: { light?: ButtonColors, dark?: ButtonColors }
 }>()
 
 const emit = defineEmits<{
@@ -614,6 +632,19 @@ const { theme, themes, mode, modes, locale, persistence, scrollbar, cursor, font
 // (see the rule in <style>). Applied once mounted, when the trigger fades in:
 // the server can't know the visitor's system mode.
 const darkMode = computed(() => visible.value && mode.value.value === 'dark')
+
+// The project's colors for the button, over the neutral ones (see <style>).
+// A property left `undefined` isn't set, so the standard color stays.
+const buttonStyle = computed(() => {
+  const colors = props.buttonColors?.[darkMode.value ? 'dark' : 'light']
+  if (!colors) return undefined
+  return {
+    '--venix-switcher-button-bg': colors.background,
+    '--venix-switcher-button-icon': colors.icon,
+    '--venix-switcher-button-border': colors.border,
+    '--venix-switcher-button-hover': colors.hover ?? colors.background,
+  }
+})
 
 const resolvedLabel = computed(() => props.label ?? locale.translate(LABEL_TRANSLATIONS, 'Website color'))
 const modeHeading = computed(() => locale.translate(MODE_HEADING_TRANSLATIONS, 'Mode'))
@@ -1050,6 +1081,9 @@ onUnmounted(() => {
      black on white: that reads as the system's high contrast mode.
    - No faded text: `opacity` is only 0 or 1.
    - A new style takes its colors from the `--venix-switcher-*` variables below.
+   - One exception: the `buttonColors` prop lets a project pick the colors of
+     the button that opens the menu. Without it the button is neutral too, and
+     the menu always is.
 
    `test/unit/switcher-neutral.test.ts` fails when any of this is broken.
    =========================================================================== */
@@ -1109,11 +1143,16 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem;
+  /* What `buttonColors` sets, inline, over these. */
+  --venix-switcher-button-bg: var(--venix-switcher-bg);
+  --venix-switcher-button-icon: var(--venix-switcher-text);
+  --venix-switcher-button-border: var(--venix-switcher-border);
+  --venix-switcher-button-hover: var(--venix-switcher-hover);
   /* Its own background and outline: it may sit on any color of the page. */
-  border: 1px solid var(--venix-switcher-border);
+  border: 1px solid var(--venix-switcher-button-border);
   border-radius: 999px;
-  background: var(--venix-switcher-bg);
-  color: var(--venix-switcher-text);
+  background: var(--venix-switcher-button-bg);
+  color: var(--venix-switcher-button-icon);
   cursor: pointer;
   font-size: 1.25rem;
   line-height: 1;
@@ -1126,7 +1165,7 @@ onUnmounted(() => {
 }
 
 .venix-theme-switcher__trigger:focus-visible {
-  background: var(--venix-switcher-hover);
+  background: var(--venix-switcher-button-hover);
   outline: 2px solid var(--venix-switcher-text);
   outline-offset: 2px;
 }
@@ -1135,7 +1174,7 @@ onUnmounted(() => {
    last thing tapped and would look selected. Same for the menu below. */
 @media (hover: hover) {
   .venix-theme-switcher__trigger:hover {
-    background: var(--venix-switcher-hover);
+    background: var(--venix-switcher-button-hover);
   }
 }
 

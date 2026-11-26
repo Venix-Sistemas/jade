@@ -659,6 +659,20 @@ Or the class `cursor-default` on those rows (`:row-props="row => ({ class: row.i
 | `label`     | `string`  | translated, per locale  | Accessible label for the button and the menu        |
 | `showLabel` | `boolean` | `false`                 | Show the theme and mode names next to the icon      |
 | `hideConsent` | `boolean` | `false`               | Leave "Save changes" and the save reminder out, when your own cookie banner already asks |
+| `buttonColors` | `{ light?, dark? }` | black, white and grays | Colors of the button that opens the menu — see [Button colors](#button-colors) |
+
+<a id="button-colors"></a>**Button colors.** By default the button is white with a dark icon in light mode, and the other way around in dark mode. `buttonColors` changes it, per mode; each takes `background`, `icon` (the icon and the label), `border` and `hover` (the fill under the pointer or keyboard focus, `background` when left out), as any CSS color:
+
+```vue
+<JadeThemeSwitcher
+  :button-colors="{
+    light: { background: '#0B6E8A', icon: '#FFFFFF', border: '#0B6E8A', hover: '#095A71' },
+    dark: { background: '#0E1E26', icon: '#4FC3D9', border: '#2A4A57' },
+  }"
+/>
+```
+
+Only the button changes: the menu stays neutral. A mode or a color you leave out keeps the standard one. The contrast of the colors you pick is yours to check (3:1 or more between the icon and the background, 4.5:1 with `showLabel`). Colored icons, such as emoji, keep their own colors.
 
 And emits one event:
 
@@ -689,7 +703,7 @@ Without any of them, the gear isn't shown. At the bottom, in small faint print, 
 Since "Save changes" is easy to miss, a change that won't be remembered (a theme, a mode or one of the switches, without consent yet) opens a small reminder at the bottom of the menu: **Remember your choices? · Uses cookies**, with **Save** and **×** (not now). **Save** grants consent right there (`persistence.grant()`) and briefly confirms; **×** hides the reminder for the rest of the visit. Nothing is stored for "not now" (that would itself need consent), so it can come back on the next visit after another change. It never shows with `hideConsent`, once consent is recorded, or after the visitor revoked it on this visit.
 
 - **Accessible:** arrow keys, Home/End and Esc navigate the menu, focus returns to the button on close, and each change is announced to screen readers.
-- **Always legible:** the button and the menu are black, white and grays, never the theme's colors, so a visitor can always get out of a theme that is hard to read. The only thing they follow is the light or dark mode, and their text reaches WCAG AA (4.5:1) in both.
+- **Always legible:** the button and the menu are black, white and grays, never the theme's colors, so a visitor can always get out of a theme that is hard to read. The only thing they follow is the light or dark mode, and their text reaches WCAG AA (4.5:1) in both. The button's colors can be changed on purpose, with [`buttonColors`](#button-colors).
 - **Seasons at a glance:** each seasonal theme shows its dates in small faint print beside its name (e.g. `01/10 a 31/10` in Portuguese, `10/01 – 10/31` in English) — the running occurrence, or the next one once this year's is over, so themes relative to Easter show the right year's dates.
 - **Lively:** animated icons (e.g. `line-md`) replay on every switch, and the button fades in on mount. The button shows the mode's icon on the base theme, and the theme's own icon when a seasonal or other theme is in effect.
 - **Quick:** picking a mode or a theme keeps the menu open, so both can be set in one go; it closes on the button, a click or tap outside, or Esc.
