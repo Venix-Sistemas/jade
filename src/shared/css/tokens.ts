@@ -30,7 +30,7 @@ const tokenCache = new Map<string, Array<[string, string]>>()
  * written. Memoized: the CSS and the build check ask for the same variant.
  */
 export function generateTokens(colors: ThemeColors, level: ContrastLevel = 'AA'): Array<[string, string]> {
-  const key = JSON.stringify([colors.dark === true, colors.background, ROLES.map(role => colors[role]), level, neutralTintOf(colors), tokenOverrides(colors)])
+  const key = JSON.stringify([colors.dark === true, colors.background, ROLES.map(role => colors[role]), level, neutralTintOf(colors), colors.borders, tokenOverrides(colors)])
   let tokens = tokenCache.get(key)
   if (!tokens) {
     tokens = buildTokens(colors, level)
@@ -77,9 +77,23 @@ function buildTokens(colors: ThemeColors, level: ContrastLevel): Array<[string, 
     tokens.push([`on-${role}`, scale.on])
   }
 
+  // Before the overrides, so a token re-pointed by the theme still wins
+  if (colors.borders === 'soft') applyOverrides(tokens, softBorders(Object.keys(roles)), neutral, roles)
   applyOverrides(tokens, overrides, neutral, roles)
 
   return tokens
+}
+
+/**
+ * `borders: 'soft'`: the decorative outlines move next to the surfaces they
+ * surround (`bg-muted` for the neutral one, the role's `bg-hover` for its own).
+ * `border-strong`, which outlines form fields at 3:1, stays.
+ */
+function softBorders(roles: string[]): Record<string, string> {
+  return Object.fromEntries([
+    ['border', 'neutral-3'],
+    ...roles.map(role => [roleTokenName('border', role), `${role}-4`]),
+  ])
 }
 
 /**

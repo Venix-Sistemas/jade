@@ -1,9 +1,9 @@
 // src/shared/utils/merge-themes.ts
-import type { ThemeSurfaces, ThemeColors, ThemeDefinition, ThemeEntry, ThemeMode, ThemePalette, ThemeVariant, ResolvedThemeGroup } from '../types'
+import type { ThemeBorders, ThemeSurfaces, ThemeColors, ThemeDefinition, ThemeEntry, ThemeMode, ThemePalette, ThemeVariant, ResolvedThemeGroup } from '../types'
 import { COLOR_PROPERTIES, THEME_MODES } from '../constants'
 import { tokensEnabled } from '../token-names'
 
-const META_PROPERTIES = ['seasonal', 'dateRange', 'translations', 'icon', 'tokens', 'neutralTint', 'surfaces'] as const
+const META_PROPERTIES = ['seasonal', 'dateRange', 'translations', 'icon', 'tokens', 'neutralTint', 'surfaces', 'borders'] as const
 
 /** Grouped format: at least one `light`/`dark` variant object. */
 export function isThemeDefinition(entry: Partial<ThemeEntry> | undefined): entry is ThemeDefinition {
@@ -42,16 +42,21 @@ function pickPalette(entry: Partial<ThemeEntry> | ThemeVariant): ThemePalette {
 /**
  * `{ tokens: true }` for a theme that opted in, `{ tokens: false }` for one that
  * opted out on purpose (the `experimental` option leaves it alone). With them go
- * `neutralTint` and `surfaces`, the variant's winning over the theme's, also
+ * `neutralTint`, `surfaces` and `borders`, the variant's winning over the theme's, also
  * without `tokens`, since `experimental` turns them on later. A variant that
  * sets none of these stays as it was.
  */
-function tokensFlag(entry: Partial<ThemeEntry>, variant?: ThemeVariant): { tokens?: boolean | Record<string, string>, neutralTint?: boolean | 'vivid', surfaces?: ThemeSurfaces } {
+function tokensFlag(entry: Partial<ThemeEntry>, variant?: ThemeVariant): { tokens?: boolean | Record<string, string>, neutralTint?: boolean | 'vivid', surfaces?: ThemeSurfaces, borders?: ThemeBorders } {
   if (entry.tokens === false) return { tokens: false }
-  const { neutralTint = (entry as ThemeColors).neutralTint, surfaces = (entry as ThemeColors).surfaces } = variant ?? {}
+  const {
+    neutralTint = (entry as ThemeColors).neutralTint,
+    surfaces = (entry as ThemeColors).surfaces,
+    borders = (entry as ThemeColors).borders,
+  } = variant ?? {}
   const choices = {
     ...(typeof neutralTint === 'boolean' || neutralTint === 'vivid' ? { neutralTint } : {}),
     ...(surfaces === 'soft' || surfaces === 'vivid' || surfaces === 'bold' ? { surfaces } : {}),
+    ...(borders === 'soft' || borders === 'default' ? { borders } : {}),
   }
   if (!tokensEnabled(entry)) return choices
   const tokens = typeof entry.tokens === 'object' ? { ...entry.tokens } : true as const

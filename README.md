@@ -350,6 +350,20 @@ color: {
 }
 ```
 
+<a id="borders"></a>**Quiet outlines.** On a dark theme, a line much lighter than the card it surrounds can read as a neon glow. `borders: 'soft'` brings the outlines of cards, panels and menus next to the color of the card: `--jade-border` and `--jade-border-<role>`, also inside a bold scope. The outlines of form fields (`border-strong`) and the focus ring keep their contrast. Like `surfaces`, set it on the theme or inside `light`/`dark`; `'default'` is the standard line.
+
+```ts
+color: {
+  themes: {
+    marca: {
+      tokens: true,
+      light: { primary: '#2D900C', background: '#FFFFFF' },
+      dark: { primary: '#4CAF50', background: '#0C1A0C', borders: 'soft' },
+    },
+  },
+}
+```
+
 Tokens for each role (`primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`), shown for `primary`:
 
 | Token | Use |

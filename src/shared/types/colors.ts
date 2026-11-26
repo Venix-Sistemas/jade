@@ -45,6 +45,8 @@ export interface ThemeVariant extends ThemePalette {
   neutralTint?: boolean | 'vivid'
   /** `ThemeMeta.surfaces` for this variant only; wins over the theme's. */
   surfaces?: ThemeSurfaces
+  /** `ThemeMeta.borders` for this variant only; wins over the theme's. */
+  borders?: ThemeBorders
 }
 
 /** What a theme is called, how it's drawn and when it's active — shared by both variants. */
@@ -114,7 +116,24 @@ export interface ThemeMeta {
    * When set, it wins over `neutralTint`.
    */
   surfaces?: ThemeSurfaces
+  /**
+   * Only with `tokens`. How much the outlines of cards, panels and menus stand
+   * out:
+   *
+   * - `'default'`: a line clearly apart from the surface it surrounds.
+   * - `'soft'`: a line close to the color of the card, for a calm look. On a
+   *   dark theme, where a lighter line around a tinted card reads as a neon
+   *   glow, this turns it off. It sets `--jade-border` and
+   *   `--jade-border-<role>`, also inside a bold scope. Form field outlines
+   *   (`border-strong`) and the focus ring keep their contrast.
+   *
+   * Default: `'default'`.
+   */
+  borders?: ThemeBorders
 }
+
+/** How much the card and menu outlines stand out. See `ThemeMeta.borders`. */
+export type ThemeBorders = 'default' | 'soft'
 
 /** How much of the page a theme paints in its own color. See `ThemeMeta.surfaces`. */
 export type ThemeSurfaces = 'soft' | 'vivid' | 'bold'

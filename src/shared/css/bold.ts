@@ -132,7 +132,7 @@ const boldCache = new Map<string, BoldSurface | null>()
  */
 export function generateBoldSurface(colors: ThemeColors, level: ContrastLevel = 'AA'): BoldSurface | null {
   if (surfacesOf(colors) !== 'bold' || !tokensEnabled(colors)) return null
-  const key = JSON.stringify([colors.dark === true, ROLES.map(role => colors[role]), level])
+  const key = JSON.stringify([colors.dark === true, ROLES.map(role => colors[role]), level, colors.borders])
   if (!boldCache.has(key)) boldCache.set(key, buildBoldSurface(colors, level))
   return boldCache.get(key)!
 }
@@ -156,7 +156,9 @@ function buildBoldSurface(colors: ThemeColors, level: ContrastLevel): BoldSurfac
 
   const subtle = stronger(SURFACE_STEPS['bg-subtle'])
   const muted = stronger(SURFACE_STEPS['bg-muted'])
-  const border = mixForRatio(surface, text, surface, 1.5, 'about')
+  // `borders: 'soft'`: a deeper tone of the panel instead of a light line around it
+  const soft = colors.borders === 'soft'
+  const border = soft ? muted : mixForRatio(surface, text, surface, 1.5, 'about')
   const borderStrong = mixForRatio(text, surface, surface, 3 * SLACK)
   const textMuted = mixForRatio(text, surface, surface, min * SLACK)
   const textDisabled = mixForRatio(text, surface, surface, 2, 'about')
@@ -197,13 +199,14 @@ function buildBoldSurface(colors: ThemeColors, level: ContrastLevel): BoldSurfac
     // Its soft backgrounds are the panel's stronger shades with a hint of the
     // role, not the lighter steps the page version uses: they would sit
     // between the panel and the text and take contrast from it.
-    const soft = (share: number, over: string[]) => hintKeepingText(stronger(share), seed, over, min)
+    const tinted = (share: number, over: string[]) => hintKeepingText(stronger(share), seed, over, min)
     const [roleText, roleTextStrong] = [scale.steps[10]!, scale.steps[11]!]
     const byName: Record<string, string> = {
-      'bg': soft(SURFACE_STEPS['bg-subtle'], [roleText, text]),
-      'bg-hover': soft(SURFACE_STEPS['bg-muted'], [roleTextStrong]),
-      'bg-active': soft(SURFACE_STEPS['bg-hover'], [roleTextStrong, text]),
+      'bg': tinted(SURFACE_STEPS['bg-subtle'], [roleText, text]),
+      'bg-hover': tinted(SURFACE_STEPS['bg-muted'], [roleTextStrong]),
+      'bg-active': tinted(SURFACE_STEPS['bg-hover'], [roleTextStrong, text]),
     }
+    if (soft) byName.border = byName['bg-hover']!
     byName['fill-hover'] = hoverKeepingText(seed, scale.steps[9]!, scale.on, min)
     for (const [name, step] of ROLE_TOKENS) tokens.push([roleTokenName(name, role), byName[name] ?? scale.steps[step - 1]!])
     tokens.push([`on-${role}`, scale.on])
