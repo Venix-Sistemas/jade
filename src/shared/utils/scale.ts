@@ -93,8 +93,24 @@ function generateSteps(key: string, background: string, mode: ThemeMode, ratios:
   return steps
 }
 
+/**
+ * The engine's background objects, by hex. Building one means 1,000 swatches to
+ * find its lightness steps, about half of a call, and it depends on nothing but
+ * the color: every scale over the same background shares it.
+ */
+const backgrounds = new Map<string, BackgroundColor>()
+
+function engineBackground(background: string): BackgroundColor {
+  let bg = backgrounds.get(background)
+  if (!bg) {
+    bg = new BackgroundColor({ name: 'background', colorKeys: [background as CssColor], ratios: [1], colorSpace: 'OKLCH' })
+    backgrounds.set(background, bg)
+  }
+  return bg
+}
+
 function runEngine(key: string, background: string, ratios: number[]): string[] {
-  const bg = new BackgroundColor({ name: 'background', colorKeys: [background as CssColor], ratios: [1], colorSpace: 'OKLCH' })
+  const bg = engineBackground(background)
   const color = new Color({ name: 'scale', colorKeys: [key as CssColor], ratios, colorSpace: 'OKLCH', smooth: true })
   const theme = new Theme({
     colors: [bg, color],
@@ -253,29 +269,25 @@ export function generateNeutralScale(
   // that grows with its distance from the page, at the same contrast ratio.
   const vividHue = vivid ? tintSeed : null
   const vividSeedChroma = vividHue ? chromaOf(vividHue) : 0
-  const generate = (ratios: number[]) => {
-    const steps = generateSteps(key, key, mode, ratios)
-    if (vividHue) return steps.map((step, i) => i === 0 ? step : tintStep(step, exact, ratios[i]!, vividHue, vividChroma(vividSeedChroma, ratios[i]!)))
-    return keepGray ? steps.map(grayWithLuminanceOf) : steps
+  /** A step as the engine gave it, in the colors of this scale. */
+  const finish = (step: string, ratio: number): string => {
+    if (vividHue) return tintStep(step, exact, ratio, vividHue, vividChroma(vividSeedChroma, ratio))
+    return keepGray ? grayWithLuminanceOf(step) : step
   }
 
   const ratios = [...NEUTRAL_RATIOS]
   ratios[10] = TARGETS[level].text
-  const steps = generate(ratios)
-  steps[0] = exact
+  // Step 1 is the background itself, never recolored
+  const steps = generateSteps(key, key, mode, ratios).map((step, i) => i === 0 ? exact : finish(step, ratios[i]!))
   if (themed && !vividHue) {
     for (let i = 1; i <= 7; i++) steps[i] = enrichSurface(steps[i]!, exact, ratios[i]!, ownChroma)
   }
 
-  const withRatio = (index: number, ratio: number) => {
-    const attempt = [...ratios]
-    attempt[index] = ratio
-    return generate(attempt)[index]!
-  }
+  const withRatio = (ratio: number) => finish(generateSteps(key, key, mode, [ratio])[0]!, ratio)
 
   // Step 9 outlines form fields: 3:1 on the page and on the subtle area.
-  steps[8] = reachTarget(ratios[8]!, OUTLINE_TARGET, steps.slice(0, 2), r => withRatio(8, r)).color
-  steps[10] = reachTarget(ratios[10]!, TARGETS[level].text, steps.slice(0, Math.min(10, Math.max(DEFAULT_MUTED_OVER, mutedOver))), r => withRatio(10, r)).color
+  steps[8] = reachTarget(ratios[8]!, OUTLINE_TARGET, steps.slice(0, 2), withRatio).color
+  steps[10] = reachTarget(ratios[10]!, TARGETS[level].text, steps.slice(0, Math.min(10, Math.max(DEFAULT_MUTED_OVER, mutedOver))), withRatio).color
 
   return steps
 }
@@ -331,18 +343,15 @@ export function generateScale(
   const steps = generateSteps(exactSeed, background, mode, ratios)
   steps[8] = exactSeed
 
-  const withRatio = (index: number, ratio: number) => {
-    const attempt = [...ratios]
-    attempt[index] = ratio
-    return generateSteps(exactSeed, background, mode, attempt)[index]!
-  }
+  // Each ratio is searched on its own, so a retry asks for that one only
+  const withRatio = (ratio: number) => generateSteps(exactSeed, background, mode, [ratio])[0]!
 
-  const text = reachTarget(textRatio, targets.text, [neutral[0]!, neutral[1]!, neutral[2]!, steps[2]!], r => withRatio(10, r))
+  const text = reachTarget(textRatio, targets.text, [neutral[0]!, neutral[1]!, neutral[2]!, steps[2]!], withRatio)
   steps[10] = text.color
 
   // Keep strong text ahead of colored text even after the colored text moved.
   const strongStart = Math.max(strongTextRatio, text.ratio * TEXT_FACTOR)
-  const strong = reachTarget(strongStart, targets.text, [steps[3]!, steps[4]!], r => withRatio(11, r))
+  const strong = reachTarget(strongStart, targets.text, [steps[3]!, steps[4]!], withRatio)
   steps[11] = strong.color
 
   return { steps, on }
