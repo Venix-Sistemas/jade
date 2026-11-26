@@ -40,20 +40,22 @@ function pickPalette(entry: Partial<ThemeEntry> | ThemeVariant): ThemePalette {
 }
 
 /**
- * `{ tokens: true }` for a theme that opted in (plus `neutralTint` when it turned
- * the tint off or made it `'vivid'`, and `surfaces` when it sets one), `{ tokens: false }` for one that opted out
- * on purpose (the `experimental` option leaves it alone), nothing otherwise, so
- * other variants stay as they were.
+ * `{ tokens: true }` for a theme that opted in, `{ tokens: false }` for one that
+ * opted out on purpose (the `experimental` option leaves it alone). With them go
+ * `neutralTint` and `surfaces`, the variant's winning over the theme's, also
+ * without `tokens`, since `experimental` turns them on later. A variant that
+ * sets none of these stays as it was.
  */
-function tokensFlag(entry: Partial<ThemeEntry>): { tokens?: boolean | Record<string, string>, neutralTint?: false | 'vivid', surfaces?: ThemeSurfaces } {
+function tokensFlag(entry: Partial<ThemeEntry>, variant?: ThemeVariant): { tokens?: boolean | Record<string, string>, neutralTint?: boolean | 'vivid', surfaces?: ThemeSurfaces } {
   if (entry.tokens === false) return { tokens: false }
-  if (!tokensEnabled(entry)) return {}
-  const tokens = typeof entry.tokens === 'object' ? { ...entry.tokens } : true as const
-  return {
-    tokens,
-    ...(entry.neutralTint === false || entry.neutralTint === 'vivid' ? { neutralTint: entry.neutralTint } : {}),
-    ...(entry.surfaces === 'soft' || entry.surfaces === 'vivid' || entry.surfaces === 'bold' ? { surfaces: entry.surfaces } : {}),
+  const { neutralTint = (entry as ThemeColors).neutralTint, surfaces = (entry as ThemeColors).surfaces } = variant ?? {}
+  const choices = {
+    ...(typeof neutralTint === 'boolean' || neutralTint === 'vivid' ? { neutralTint } : {}),
+    ...(surfaces === 'soft' || surfaces === 'vivid' || surfaces === 'bold' ? { surfaces } : {}),
   }
+  if (!tokensEnabled(entry)) return choices
+  const tokens = typeof entry.tokens === 'object' ? { ...entry.tokens } : true as const
+  return { tokens, ...choices }
 }
 
 const variantId = (themeName: string, mode: ThemeMode, variant: ThemeVariant): string =>
@@ -166,7 +168,7 @@ export function normalizeColorThemes(entries: Record<string, ThemeEntry>): {
         const variant = entry[mode]
         if (!variant) continue
         const id = variantId(themeName, mode, variant)
-        themes[id] = { dark: mode === 'dark', ...tokensFlag(entry), ...pickPalette(variant) }
+        themes[id] = { dark: mode === 'dark', ...tokensFlag(entry, variant), ...pickPalette(variant) }
         group.variants[mode] = id
       }
     }

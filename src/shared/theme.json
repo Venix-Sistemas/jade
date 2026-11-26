@@ -105,7 +105,6 @@
             },
             "venix": {
                 "tokens": true,
-                "neutralTint": false,
                 "translations": {
                     "pt-BR": "Venix",
                     "en-US": "Venix"
@@ -117,6 +116,7 @@
                 },
                 "dark": {
                     "id": "dark",
+                    "neutralTint": false,
                     "primary": "#FF6B6B",
                     "secondary": "#FFB96A",
                     "accent": "#82B1FF",

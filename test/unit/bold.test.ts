@@ -21,9 +21,20 @@ const tokensOf = (colors: ThemeColors, level: 'AA' | 'AAA' = 'AA') => Object.fro
 describe('generateBoldSurface', () => {
   it('não deve gerar sem `surfaces: "bold"`, sem tokens ou sem seed', () => {
     expect(generateBoldSurface({ ...GREEN, surfaces: 'vivid' })).toBeNull()
-    expect(generateBoldSurface({ ...GREEN, surfaces: undefined })).toBeNull()
+    expect(generateBoldSurface({ ...GREEN_DARK, surfaces: undefined })).toBeNull()
     expect(generateBoldSurface({ ...GREEN, tokens: false })).toBeNull()
     expect(generateBoldSurface({ dark: false, tokens: true, surfaces: 'bold', background: '#FFFFFF' })).toBeNull()
+  })
+
+  it('deve ser o padrão de uma variante clara, mas não da escura', () => {
+    expect(generateBoldSurface({ ...GREEN, surfaces: undefined })).toEqual(generateBoldSurface(GREEN))
+    expect(generateBoldSurface({ ...GREEN_DARK, surfaces: undefined })).toBeNull()
+  })
+
+  it('não deve ser o padrão de uma variante clara que escolhe os neutros com `neutralTint`', () => {
+    for (const neutralTint of [true, false, 'vivid'] as const) {
+      expect(generateBoldSurface({ ...GREEN, surfaces: undefined, neutralTint })).toBeNull()
+    }
   })
 
   it.each(VARIANTS)('deve gerar os mesmos tokens do tema, para o escopo substituí-los por inteiro (%s)', (_label, colors) => {
@@ -121,7 +132,8 @@ describe('surfaces e neutralTint', () => {
     expect(themes['t-light']).toMatchObject({ tokens: true, surfaces: 'bold' })
     expect(themes['t-dark']).toMatchObject({ tokens: true, surfaces: 'bold' })
     expect(normalizeColorThemes({ t: { tokens: true, light } }).themes['t-light']).not.toHaveProperty('surfaces')
-    expect(normalizeColorThemes({ t: { surfaces: 'bold', light } }).themes['t-light']).not.toHaveProperty('surfaces')
+    // sem tokens também: o `experimental` pode ligá-los depois
+    expect(normalizeColorThemes({ t: { surfaces: 'soft', light } }).themes['t-light']).toMatchObject({ surfaces: 'soft' })
   })
 })
 
@@ -142,7 +154,7 @@ describe('generateBoldCss', () => {
 
   it('não deve escrever nada sem bold', () => {
     expect(generateThemeVars('x', { ...GREEN, surfaces: 'vivid' })).not.toContain('data-jade-surface')
-    expect(generateBoldCss('x', { ...GREEN, surfaces: undefined })).toBe('')
+    expect(generateBoldCss('x', { ...GREEN_DARK, surfaces: undefined })).toBe('')
   })
 
   it('deve escrever o AAA do escopo em prefers-contrast: more só com highContrast, e só o que muda', () => {

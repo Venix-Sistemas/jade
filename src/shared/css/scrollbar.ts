@@ -1,5 +1,6 @@
 import type { ThemeConfig } from '../types'
 import { OVERLAY_SCROLLBAR_THEME, SCROLLBAR_ATTRIBUTE } from '../constants'
+import { surfacesOf, tokensEnabled } from '../token-names'
 
 // Every rule only applies while `<html>` doesn't have the attribute set to
 // 'off' (the visitor's choice, see `scrollbar.set()`), which brings back the
@@ -28,10 +29,10 @@ export function generateCustomScrollbarCSS(theme: ThemeConfig): string {
   const borderRadius = scrollbar.borderRadius || '8px'
   const borderWidth = scrollbar.borderWidth || '3px'
 
-  // With a `surfaces: 'bold'` theme, the theme colors give way inside a bold
+  // With a bold variant (see `surfacesOf`), the theme colors give way inside a bold
   // panel to the `--jade-scrollbar-*` variables its scope sets. A literal color
   // the project chose stays as it is everywhere.
-  const bold = Object.values(theme.colors?.themes ?? {}).some(colors => colors.surfaces === 'bold')
+  const bold = Object.values(theme.colors?.themes ?? {}).some(colors => tokensEnabled(colors) && surfacesOf(colors) === 'bold')
 
   const colorVar = (key: keyof NonNullable<ThemeConfig['customScrollbar']>['colors'], fallback: string): string => {
     const value = scrollbar.colors?.[key] || fallback

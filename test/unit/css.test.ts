@@ -8,9 +8,9 @@ import { customizeTheme } from '../../src/setup/customize-theme'
 import type { CursorConfig } from '../../src/shared/types'
 
 describe('processTheme', () => {
-  // Sem `surfaces`: a camada que o escopo `bold` põe sobre a scrollbar é testada em `bold.test.ts`
+  // Sem bold (o padrão das variantes claras): a camada que o escopo põe sobre a scrollbar é testada em `bold.test.ts`
   const theme = loadTheme()
-  for (const colors of Object.values(theme.colors.themes)) delete colors.surfaces
+  for (const colors of Object.values(theme.colors.themes)) colors.surfaces = 'soft'
   const overlayTheme = { ...theme, customScrollbar: { ...theme.customScrollbar, overlay: true } }
 
   it('deve gerar CSS com cores', () => {
@@ -392,6 +392,8 @@ describe('generateThemeVars com tokens', () => {
 
   it('deve dar tokens a todos os temas embutidos, sem mudar nenhuma variável de sempre', () => {
     const theme = loadTheme()
+    // A scrollbar passa a ler as variáveis do painel bold: testada em `bold.test.ts`
+    theme.customScrollbar = { ...theme.customScrollbar, enabled: false }
     const css = processTheme(theme)
     expect(css).toContain('/* Semantic tokens */')
     expect(css).toContain('--jade-text-primary:')
@@ -400,11 +402,13 @@ describe('generateThemeVars com tokens', () => {
     const withoutTokens = structuredClone(theme)
     for (const colors of Object.values(withoutTokens.colors.themes)) delete colors.tokens
     const tokenBlock = /\n {2}\/\* Semantic tokens \*\/\n[\s\S]*?(?=\n\}\n)/g
-    expect(css.replace(tokenBlock, '')).toBe(processTheme(withoutTokens))
+    // ...nem o escopo `bold`, que só acrescenta um bloco depois do tema
+    const boldBlock = /\n\/\* Bold surfaces - [^\n]*\*\/\n[^\n]*\{\n[\s\S]*?\n\}\n/g
+    expect(css.replace(tokenBlock, '').replace(boldBlock, '')).toBe(processTheme(withoutTokens))
   })
 
   it('deve acrescentar os tokens ao bloco do tema, depois das variáveis de sempre', () => {
-    const css = generateThemeVars('venixTokens-light', { ...flat, tokens: true })
+    const css = generateThemeVars('venixTokens-light', { ...flat, tokens: true, surfaces: 'soft' })
     const block = css.slice(css.indexOf(':root'))
     expect(block.startsWith(`:root[data-theme='venixTokens-light'] {`)).toBe(true)
     expect(block.endsWith('}\n')).toBe(true)

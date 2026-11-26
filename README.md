@@ -250,7 +250,7 @@ The old variables stay: a token theme still emits `--color-primary` and `--color
 
 **Names.** `--color-<property>[-<role>][-<variant>][-<state>]`: the property says what the color is for (`bg`, `text`, `fill`, `on`, `border`), the role is `primary`, `secondary`, `accent`, `error`, `info`, `success` or `warning`, the variant is `subtle`, `muted`, `strong` or `focus`, and the state is `hover` or `active`. None of them repeats a name from the original model, so both live side by side.
 
-Neutral tokens, built from the theme's `background` (`--jade-bg` *is* the background, exactly). By default they lean very slightly toward the hue of `primary`, so the surfaces feel of one piece with the theme. A `background` that already has a color of its own (a peach `#FFF8F0`, say) is not pulled toward `primary`: its own hue is kept, and the surfaces and borders get more of it the farther they sit from the page, the way a hand-made palette does, so a card doesn't look grayer than the page behind it. A gray `background` (`#FAFAFA`, `#0C0C0C`) works as described above. Set `neutralTint: false` next to `tokens: true` for plain grays instead (contrast is the same either way):
+Neutral tokens, built from the theme's `background` (`--jade-bg` *is* the background, exactly). On a dark variant they lean very slightly toward the hue of `primary` by default, so the surfaces feel of one piece with the theme (a light variant is [bold](#surfaces) by default, with the stronger tint described below). A `background` that already has a color of its own (a peach `#FFF8F0`, say) is not pulled toward `primary`: its own hue is kept, and the surfaces and borders get more of it the farther they sit from the page, the way a hand-made palette does, so a card doesn't look grayer than the page behind it. A gray `background` (`#FAFAFA`, `#0C0C0C`) works as described above. Set `neutralTint: false` next to `tokens: true` for plain grays instead (contrast is the same either way):
 
 | Token | Use |
 | ----- | --- |
@@ -280,7 +280,9 @@ color: {
 }
 ```
 
-**Surfaces: how much of the page is the brand's.** `surfaces` is a per-theme preference with three levels: `'soft'` (the default tint), `'vivid'` (the colorful neutrals above, same as `neutralTint: 'vivid'`) and `'bold'`, for a client who wants the brand color on a big part of the page (a side menu, a header, some cards) instead of white or black everywhere. It wins over `neutralTint`.
+<a id="surfaces"></a>**Surfaces: how much of the page is the brand's.** `surfaces` is a preference with three levels: `'soft'` (the subtle tint), `'vivid'` (the colorful neutrals above, same as `neutralTint: 'vivid'`) and `'bold'`, for a client who wants the brand color on a big part of the page (a side menu, a header, some cards) instead of white or black everywhere. It wins over `neutralTint`.
+
+**The default depends on the mode:** a light variant is `'bold'`, a dark one is not (it keeps the subtle tint). Set it on the theme for both variants, or inside `light`/`dark` for one of them, which wins. A light variant that sets `neutralTint` and no `surfaces` follows its `neutralTint` and is not bold.
 
 `'bold'` is `'vivid'` for the page plus a **scope**. Inside an element with `data-jade-surface="bold"` the tokens are redefined on a deep tone of `primary`, so what you put in it adapts by itself:
 
@@ -304,9 +306,8 @@ color: {
   themes: {
     marca: {
       tokens: true,
-      surfaces: 'bold',
-      light: { primary: '#2D900C', background: '#FFFFFF' },
-      dark: { primary: '#4CAF50', background: '#0C1A0C' },
+      light: { primary: '#2D900C', background: '#FFFFFF' }, // bold by default
+      dark: { primary: '#4CAF50', background: '#0C1A0C', surfaces: 'bold' },
     },
   },
 }
@@ -382,7 +383,7 @@ The tokens are generated at build time with [Adobe Leonardo](https://github.com/
 
 #### Built-in themes and `experimental`
 
-Venix and the four seasonal themes ship with `tokens: true`, **next to** the old model: `--color-primary`, `--color-background2`… keep exactly the values they had, so nothing written for 1.x changes. Venix keeps plain gray surfaces (`neutralTint: false`); a seasonal theme keeps the hue of its own `background`.
+Venix and the four seasonal themes ship with `tokens: true`, **next to** the old model: `--color-primary`, `--color-background2`… keep exactly the values they had. Their light variants are bold, as any light variant is by default: the page keeps its `background`, cards, borders and text take the hue of the theme's `primary`, and elements with `data-jade-surface="bold"` are painted in it. The dark ones look as before (Venix with plain gray surfaces, `neutralTint: false`; a seasonal theme with the hue of its own `background`). Set `surfaces: 'soft'` on a theme to give its light variant the subtle tint too, or `surfaces: 'bold'` to make the dark one bold.
 
 Two things are left as they were for projects that already exist:
 

@@ -98,12 +98,23 @@ export function parseStepRef(ref: unknown): { scale: string, step: number } | nu
 }
 
 /**
- * How the neutral tokens are tinted, from the theme's `surfaces` (which wins)
+ * The `surfaces` of a variant: the one set, else `'bold'` on a light variant
+ * that doesn't choose its neutrals with `neutralTint` either. A dark variant
+ * has none by default.
+ */
+export function surfacesOf(entry: { dark?: boolean, neutralTint?: boolean | 'vivid', surfaces?: 'soft' | 'vivid' | 'bold' }): 'soft' | 'vivid' | 'bold' | undefined {
+  if (entry.surfaces) return entry.surfaces
+  return entry.dark === false && entry.neutralTint === undefined ? 'bold' : undefined
+}
+
+/**
+ * How the neutral tokens are tinted, from the variant's `surfaces` (which wins)
  * or its `neutralTint`: `true` leans slightly toward the primary's hue, `false`
  * is plain gray, `'vivid'` takes the hue at a clearly visible strength.
  */
-export function neutralTintOf(entry: { neutralTint?: boolean | 'vivid', surfaces?: 'soft' | 'vivid' | 'bold' }): boolean | 'vivid' {
-  if (entry.surfaces === 'vivid' || entry.surfaces === 'bold') return 'vivid'
-  if (entry.surfaces === 'soft') return true
+export function neutralTintOf(entry: Parameters<typeof surfacesOf>[0]): boolean | 'vivid' {
+  const surfaces = surfacesOf(entry)
+  if (surfaces === 'vivid' || surfaces === 'bold') return 'vivid'
+  if (surfaces === 'soft') return true
   return entry.neutralTint ?? true
 }

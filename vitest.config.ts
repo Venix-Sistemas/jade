@@ -8,7 +8,8 @@ export default defineConfig({
     // suíte por causa de `tsconfig.json`/config ausentes nesses diretórios.
     exclude: ['**/node_modules/**', '**/dist/**', '**/.nuxt/**', '**/.claude/**'],
     // Os testes que geram o CSS de todos os temas embutidos calculam as
-    // escalas de 7 papéis por variante (~0,3 s cada); 5 s não bastam.
-    testTimeout: 30_000,
+    // escalas de 7 papéis por variante (~0,3 s cada, mais ~0,7 s do painel
+    // bold das claras), com os arquivos em paralelo; 5 s não bastam.
+    testTimeout: 60_000,
   },
 })

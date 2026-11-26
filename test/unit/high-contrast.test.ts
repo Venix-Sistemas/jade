@@ -4,6 +4,7 @@ import { generateHighContrastVars, generateTokens } from '../../src/shared/css/t
 import { processTheme } from '../../src/shared/css'
 import { loadTheme } from '../../src/shared/utils/load'
 import type { ThemeColors } from '../../src/shared/types'
+import { surfacesOf } from '../../src/shared/token-names'
 
 const DARK: ThemeColors = { dark: true, tokens: true, primary: '#FF6B6B', secondary: '#FFB96A', background: '#0C0C0C' }
 const LIGHT: ThemeColors = { dark: false, tokens: true, primary: '#1D4ED8', background: '#FFFFFF' }
@@ -81,7 +82,7 @@ describe('processTheme com colors.highContrast', () => {
     const on = processTheme({ ...theme, colors: { ...theme.colors, highContrast: true } })
     // um bloco por variante e, nas que têm o escopo `bold`, outro para o escopo
     const variants = Object.values(themes).filter(colors => colors.tokens)
-    expect(on.split(MEDIA).length - 1).toBe(variants.length + variants.filter(colors => colors.surfaces === 'bold').length)
+    expect(on.split(MEDIA).length - 1).toBe(variants.length + variants.filter(colors => surfacesOf(colors) === 'bold').length)
     expect(on.startsWith(off.slice(0, 200))).toBe(true)
   })
 })

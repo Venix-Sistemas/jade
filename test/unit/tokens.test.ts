@@ -143,7 +143,7 @@ describe('findTokenContrastIssues', () => {
   })
 
   it('deve gerar um aviso por variante com os pares que falham', () => {
-    const messages = findTokenContrastIssues({ 'venixTokens-light': LIGHT, 'venixTokens-dark': DARK }, 'AAA')
+    const messages = findTokenContrastIssues({ 'venixTokens-light': { ...LIGHT, surfaces: 'soft' }, 'venixTokens-dark': DARK }, 'AAA')
     // o escuro passa: preto sobre #FF6B6B dá 7.57:1
     expect(messages).toHaveLength(1)
     expect(messages[0]).toContain('`venixTokens-light`')

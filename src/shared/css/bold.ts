@@ -5,10 +5,11 @@ import { deriveSeeds } from '../utils/derive-seeds'
 import { chromaOf, colorWithHue, hexToOklab, normalizeHex } from '../utils/oklab'
 import { generateScale } from '../utils/scale'
 import type { RoleScale } from '../utils/scale'
-import { NEUTRAL_TOKENS, ROLE_TOKENS, TOKEN_ROLES as ROLES, roleTokenName, tokensEnabled } from '../token-names'
+import { NEUTRAL_TOKENS, ROLE_TOKENS, TOKEN_ROLES as ROLES, roleTokenName, surfacesOf, tokensEnabled } from '../token-names'
 
 /**
- * The `bold` surfaces of a theme variant (`surfaces: 'bold'`): a scope for
+ * The `bold` surfaces of a theme variant (`surfaces: 'bold'`, the default of a
+ * light one): a scope for
  * areas painted in the brand color. Inside an element with
  * `data-jade-surface="bold"` the semantic tokens are redefined on a deep tone
  * of the first seed (`primary`), so a menu, a header or a card in the brand
@@ -123,11 +124,12 @@ export interface BoldSurface {
 const boldCache = new Map<string, BoldSurface | null>()
 
 /**
- * The tokens of the bold scope of a variant, or `null` when it has none: it
- * doesn't ask for `surfaces: 'bold'`, or has no seed to build the surface from.
+ * The tokens of the bold scope of a variant, or `null` when it has none: its
+ * `surfaces` aren't `'bold'` (see `surfacesOf`), or it has no seed to build the
+ * surface from.
  */
 export function generateBoldSurface(colors: ThemeColors, level: ContrastLevel = 'AA'): BoldSurface | null {
-  if (colors.surfaces !== 'bold' || !tokensEnabled(colors)) return null
+  if (surfacesOf(colors) !== 'bold' || !tokensEnabled(colors)) return null
   const key = JSON.stringify([colors.dark === true, ROLES.map(role => colors[role]), level])
   if (!boldCache.has(key)) boldCache.set(key, buildBoldSurface(colors, level))
   return boldCache.get(key)!

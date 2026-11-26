@@ -295,14 +295,26 @@ describe('neutralTint (experimental)', () => {
   })
 
   it('não deve acrescentar `neutralTint` quando o tema deixa o padrão', () => {
-    const { themes } = normalizeColorThemes({ t: { tokens: true, light, dark }, u: { tokens: true, neutralTint: true, light } })
+    const { themes } = normalizeColorThemes({ t: { tokens: true, light, dark } })
     expect(themes['t-light']).not.toHaveProperty('neutralTint')
-    expect(themes['u-light']).not.toHaveProperty('neutralTint')
   })
 
-  it('não deve levar `neutralTint` a um tema sem tokens', () => {
+  it('deve manter um `neutralTint: true` explícito, que tira o bold padrão da variante clara', () => {
+    const { themes } = normalizeColorThemes({ u: { tokens: true, neutralTint: true, light } })
+    expect(themes['u-light']).toMatchObject({ neutralTint: true })
+  })
+
+  it('deve levar `neutralTint` também sem tokens, que o `experimental` pode ligar depois', () => {
     const { themes } = normalizeColorThemes({ t: { neutralTint: false, light, dark } })
+    expect(themes['t-light']).toMatchObject({ neutralTint: false })
+    expect(themes['t-light']).not.toHaveProperty('tokens')
+  })
+
+  it('deve deixar a variante ganhar do tema em `neutralTint` e `surfaces`', () => {
+    const { themes } = normalizeColorThemes({ t: { tokens: true, surfaces: 'vivid', light, dark: { ...dark, neutralTint: false, surfaces: 'bold' } } })
+    expect(themes['t-light']).toMatchObject({ surfaces: 'vivid' })
     expect(themes['t-light']).not.toHaveProperty('neutralTint')
+    expect(themes['t-dark']).toMatchObject({ neutralTint: false, surfaces: 'bold' })
   })
 
   it('deve aplicar `neutralTint` por override num tema existente', () => {

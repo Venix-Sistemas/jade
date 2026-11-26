@@ -42,12 +42,21 @@ describe('tokens nos temas embutidos', () => {
     expect(findTokenOverrideIssues(theme.colors.themes)).toEqual([])
   })
 
-  it('deve manter o Venix em cinzas puros, sem o tom do vermelho', () => {
-    for (const id of ['light', 'dark']) {
-      const tokens = Object.fromEntries(generateTokens(theme.colors.themes[id]!))
-      expect(chromaOf(tokens['bg-subtle']!)).toBeLessThan(0.002)
-      expect(chromaOf(tokens['bg-muted']!)).toBeLessThan(0.002)
-    }
+  it('deve manter o Venix escuro em cinzas puros, sem o tom do vermelho', () => {
+    const tokens = Object.fromEntries(generateTokens(theme.colors.themes.dark!))
+    expect(chromaOf(tokens['bg-subtle']!)).toBeLessThan(0.002)
+    expect(chromaOf(tokens['bg-muted']!)).toBeLessThan(0.002)
+  })
+
+  it('deve dar o tom do vermelho às superfícies do Venix claro', () => {
+    const tokens = Object.fromEntries(generateTokens(theme.colors.themes.light!))
+    expect(chromaOf(tokens['bg-subtle']!)).toBeGreaterThan(0.01)
+    expect(chromaOf(tokens['bg-muted']!)).toBeGreaterThan(0.01)
+  })
+
+  it('deve dar o escopo bold às variantes claras e não às escuras', () => {
+    const scopes = [...processTheme(theme).matchAll(/:root\[data-theme='([^']+)'\] \[data-jade-surface='bold'\] \{/g)].map(match => match[1])
+    expect(scopes.sort()).toEqual(BUILT_IN.filter(id => theme.colors.themes[id]!.dark === false).sort())
   })
 
   it('não deve alterar o tema base nem a cópia de outra chamada', () => {
@@ -65,7 +74,10 @@ describe('tokens padrão × Vuetify', () => {
     const vuetify = buildVuetifyThemes(customize().colors)
     expect(vuetify.light?.colors['on-primary']).toBeUndefined()
     expect(vuetify.dark?.colors['on-surface']).toBeUndefined()
-    expect(vuetify).toEqual(buildVuetifyThemes(loadThemeWithoutTokens().colors))
+    // (os temas `-bold` do escopo são novos: não mudam nenhum dos que já existiam)
+    const withoutBold = Object.fromEntries(Object.entries(vuetify).filter(([name]) => !name.endsWith('-bold')))
+    expect(withoutBold).toEqual(buildVuetifyThemes(loadThemeWithoutTokens().colors))
+    expect(Object.keys(vuetify).filter(name => name.endsWith('-bold')).length).toBeGreaterThan(0)
   })
 
   it('deve dar ao Vuetify as cores dos tokens que o projeto ligou no próprio tema', () => {

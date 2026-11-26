@@ -41,6 +41,10 @@ export interface ThemeVariant extends ThemePalette {
    * Vuetify theme name. Default: `<theme>-<mode>` (e.g. `carnaval-light`).
    */
   id?: string
+  /** `ThemeMeta.neutralTint` for this variant only; wins over the theme's. */
+  neutralTint?: boolean | 'vivid'
+  /** `ThemeMeta.surfaces` for this variant only; wins over the theme's. */
+  surfaces?: ThemeSurfaces
 }
 
 /** What a theme is called, how it's drawn and when it's active — shared by both variants. */
@@ -84,18 +88,20 @@ export interface ThemeMeta {
    * strength, even over a `background` that has a color of its own: cards and panels
    * (`bg-subtle`, `bg-muted`) come out tinted, borders colored, text a deep
    * tone of the hue. For a light theme on a white page that still reads as
-   * colorful. Contrast is the same as the default. Default: `true`.
+   * colorful. Contrast is the same as the default. Default: `true` on a dark
+   * variant; a light one that doesn't set it gets `surfaces: 'bold'`.
    */
   neutralTint?: boolean | 'vivid'
   /**
    * Only with `tokens`. How much of the page the theme's own color takes, a
    * preference of the design rather than of the visitor:
    *
-   * - `'soft'` (default): the neutrals lean slightly toward `primary`, as
-   *   `neutralTint: true`.
+   * - `'soft'`: the neutrals lean slightly toward `primary`, as
+   *   `neutralTint: true`. What a dark variant looks like by default.
    * - `'vivid'`: `neutralTint: 'vivid'`. The page stays as the `background`;
    *   cards, borders and text take the hue of `primary` at a visible strength.
-   * - `'bold'`: `'vivid'` plus a **scope** for areas painted in the brand
+   * - `'bold'` (default of a light variant that sets no `neutralTint`):
+   *   `'vivid'` plus a **scope** for areas painted in the brand
    *   color (a side menu, a header, some cards). Inside an element with
    *   `data-jade-surface="bold"` the neutral and role tokens (`--jade-bg`,
    *   `--jade-text`, `--jade-fill-primary`…) are redefined on a deep tone of
