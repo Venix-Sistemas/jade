@@ -1,6 +1,9 @@
 <template>
   <div class="playground">
-    <header class="header">
+    <header
+      class="header"
+      data-jade-surface="bold"
+    >
       <h1 class="header__title">
         <img
           src="/images/jade-logo.png"
@@ -18,6 +21,7 @@
 
     <nav
       class="module-nav"
+      data-jade-surface="bold"
       :aria-label="$t('app.modules')"
     >
       <!-- Only the links scroll sideways on narrow screens: a scrolling
@@ -39,6 +43,8 @@
     </nav>
 
     <main class="content">
+      <BoldDemo id="bold-demo" />
+
       <!-- ===== Colors ===== -->
       <section
         id="color"
@@ -54,6 +60,7 @@
             <div class="tabs">
               <div
                 class="tabs__list"
+                data-jade-surface="bold"
                 role="tablist"
                 :aria-label="$t('modules.color.title')"
               >
@@ -434,18 +441,25 @@
         />
 
         <div class="demo-grid demo-grid--three">
-          <div class="demo cursor-area">
+          <div
+            class="demo cursor-area"
+            data-jade-surface="bold"
+          >
             <strong>default</strong>
             <span class="demo__hint">{{ $t('cursor.default') }}</span>
           </div>
           <button
             type="button"
             class="demo cursor-area"
+            data-jade-surface="bold"
           >
             <strong>pointer</strong>
             <span class="demo__hint">{{ $t('cursor.pointer') }}</span>
           </button>
-          <label class="demo cursor-area">
+          <label
+            class="demo cursor-area"
+            data-jade-surface="bold"
+          >
             <strong>text</strong>
             <input
               type="text"
@@ -467,7 +481,10 @@
         />
 
         <div class="demo-grid">
-          <div class="demo">
+          <div
+            class="demo"
+            data-jade-surface="bold"
+          >
             <h3 class="demo__title">
               {{ $t('scrollbar.vertical') }}
             </h3>
@@ -484,7 +501,10 @@
               </div>
             </div>
           </div>
-          <div class="demo">
+          <div
+            class="demo"
+            data-jade-surface="bold"
+          >
             <h3 class="demo__title">
               {{ $t('scrollbar.horizontal') }}
             </h3>
@@ -514,7 +534,10 @@
           emoji="🔤"
         />
 
-        <div class="demo">
+        <div
+          class="demo"
+          data-jade-surface="bold"
+        >
           <client-only>
             <dl class="specs">
               <dt><code>--font-family-base</code></dt>
@@ -547,7 +570,10 @@
         />
 
         <!-- Kept short: how it works with @nuxtjs/i18n is shown under Plugins. -->
-        <div class="demo panel--compact">
+        <div
+          class="demo panel--compact"
+          data-jade-surface="bold"
+        >
           <h4 class="demo__label">
             {{ $t('translation.languageHeading') }}
           </h4>
@@ -592,7 +618,10 @@
 
         <div class="demo-grid demo-grid--plugins">
           <!-- Vuetify: the color themes registered with it, and its colors kept in sync -->
-          <article class="demo plugin">
+          <article
+            class="demo plugin"
+            data-jade-surface="bold"
+          >
             <header class="plugin__header">
               <span
                 class="plugin__logo plugin__logo--letter"
@@ -663,7 +692,10 @@
           </article>
 
           <!-- UnoCSS: the preset's token classes, which are plain rules -->
-          <article class="demo plugin">
+          <article
+            class="demo plugin"
+            data-jade-surface="bold"
+          >
             <header class="plugin__header">
               <span
                 class="plugin__logo"
@@ -701,7 +733,10 @@
           </article>
 
           <!-- Iconify: <VenixIcon> renders an emoji, an Iconify icon or an inline SVG -->
-          <article class="demo plugin">
+          <article
+            class="demo plugin"
+            data-jade-surface="bold"
+          >
             <header class="plugin__header">
               <span
                 class="plugin__logo plugin__logo--icon"
@@ -738,7 +773,10 @@
           </article>
 
           <!-- i18n: the locale cookie shared with the theme module -->
-          <article class="demo plugin">
+          <article
+            class="demo plugin"
+            data-jade-surface="bold"
+          >
             <header class="plugin__header">
               <span
                 class="plugin__logo plugin__logo--letter"
@@ -1105,7 +1143,11 @@ const colorList = computed(() => {
    variable as its fallback, so on a theme with `tokens: true` the whole page
    uses the tokens (legible by construction) and on every other theme it looks
    as it always did. */
-:root {
+/* `[data-jade-surface]` too: a custom property that reads another one is
+   resolved where it is declared, so these are declared again inside the bold
+   scope, where the `--jade-*` tokens mean the brand panel. */
+:root,
+[data-jade-surface] {
   --pg-bg: var(--jade-bg, var(--color-background));
   --pg-surface: var(--jade-bg-subtle, var(--color-background2));
   --pg-surface-muted: var(--jade-bg-muted, var(--color-background3));
@@ -1132,6 +1174,18 @@ const colorList = computed(() => {
   --pg-accent: var(--jade-fill-primary, var(--color-primary));
   --pg-on-accent: var(--jade-on-primary, var(--color-background));
 }
+/* Inside a bold panel the supporting text is the panel's own `text-muted`:
+   `light-dark(secondary…)` above is made for the page, not for a brand color. */
+[data-jade-surface] {
+  --pg-text-muted: var(--jade-text-muted, var(--color-secondary));
+}
+
+/* The browser's own placeholder gray fades into a brand color. */
+[data-jade-surface] ::placeholder {
+  color: var(--jade-text-muted);
+  opacity: 1;
+}
+
 * {
   margin: 0;
   padding: 0;
