@@ -60,7 +60,6 @@
             <div class="tabs">
               <div
                 class="tabs__list"
-                data-jade-surface="bold"
                 role="tablist"
                 :aria-label="$t('modules.color.title')"
               >
