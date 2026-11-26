@@ -747,6 +747,40 @@ venixJade: { color: { lab: true } }
 
 <br>
 
+## Checking colors
+
+Themes, modes and the visitor's choices change the colors at runtime, so a color picked by eye can be unreadable on another theme. `venix-jade` checks for that:
+
+```bash
+# The code: .vue, .css, .scss and .less files of the project
+npx venix-jade audit
+
+# Also the screen: every theme variant, in a real browser (the dev server running)
+npx venix-jade audit --url http://localhost:3000 --url http://localhost:3000/settings
+```
+
+| Code finding | What it catches |
+| --- | --- |
+| `brand-text` | A theme color as it is (`--jade-primary`, `--jade-fill-*`) used as text, also through your own variables |
+| `on-mismatch` | Text over a fill that isn't its `--jade-on-*`, or an `on-*` color off its fill |
+| `fixed-color` | A literal color in text or backgrounds (a warning on outlines) |
+| `unknown-var` | A `--jade-*` variable that doesn't exist, with the closest one |
+| `faded`, `mixed-color` | Warnings: text faded with `opacity`, colors mixed with `color-mix()` |
+
+The screen check measures the contrast of each visible text against WCAG AA (4.5:1, 3:1 for large text), so it catches mistakes however they are written; it needs Playwright (`npm install -D playwright`) and uses the installed Chrome or Edge when there is no browser of its own. It sees what the page shows when it loads: menus and tabs that are closed aren't measured, and neither is text over an image or a gradient. Neither check judges taste, like an area that barely stands out from the page.
+
+It exits with `1` on an error, so it can run in CI. A comment with `jade-audit-ignore` on a line, or the line above, silences the code check there; `--json` prints the findings as data.
+
+### For AI assistants
+
+The package ships [`AI.md`](./AI.md), a short guide with the color rules, ready combinations and the order to run the audit. For Claude, this adds it to your project's `CLAUDE.md`:
+
+```bash
+npx venix-jade claude
+```
+
+<br>
+
 ## `useJade()`
 
 <p align="center">

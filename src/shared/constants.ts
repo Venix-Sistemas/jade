@@ -34,6 +34,9 @@ export const LAB_COOKIE = 'jade-theme-custom'
 /** The `<style>` that CSS goes in. */
 export const LAB_STYLE_ID = 'jade-theme-lab'
 
+/** Development only: `venix-jade audit` asks the app for a theme variant with it. */
+export const AUDIT_SELECT_EVENT = 'jade:audit-select'
+
 export const THEME_ATTRIBUTE = 'data-jade-theme'
 export const LEGACY_THEME_ATTRIBUTE = 'data-theme'
 /** Prefix of the variant's class on `<html>` (`jade-theme-natal`). The old class is the bare variant id. */

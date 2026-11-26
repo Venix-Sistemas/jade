@@ -3,8 +3,13 @@ import { addPlugin, addNitroPlugin } from '@nuxt/kit'
 import type { Resolver } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
 
-export function registerThemePlugins(_nuxt: Nuxt, resolver: Resolver, shouldApplyColors: boolean) {
+export function registerThemePlugins(nuxt: Nuxt, resolver: Resolver, shouldApplyColors: boolean) {
   if (shouldApplyColors) {
+    // For `venix-jade audit`, run against the development server
+    if (nuxt.options.dev) {
+      addPlugin({ src: resolver.resolve('./runtime/plugins/audit.client'), mode: 'client' })
+    }
+
     addPlugin({
       src: resolver.resolve('./runtime/plugins/theme-init.server'),
       mode: 'server',

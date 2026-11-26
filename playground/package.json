@@ -3,6 +3,7 @@
   "name": "jade-playground",
   "type": "module",
   "scripts": {
+    "audit": "node ../bin/venix-jade.mjs audit .",
     "dev": "nuxt dev",
     "build": "nuxt build",
     "generate": "nuxt generate"

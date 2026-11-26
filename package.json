@@ -62,8 +62,13 @@
       ]
     }
   },
+  "bin": {
+    "venix-jade": "./bin/venix-jade.mjs"
+  },
   "files": [
-    "dist"
+    "dist",
+    "bin",
+    "AI.md"
   ],
   "workspaces": [
     "playground"
@@ -91,13 +96,17 @@
   },
   "peerDependencies": {
     "overlayscrollbars": "^2.17.0",
-    "@vuetify/v0": "^1.0.0"
+    "@vuetify/v0": "^1.0.0",
+    "playwright-core": "^1.40.0"
   },
   "peerDependenciesMeta": {
     "overlayscrollbars": {
       "optional": true
     },
     "@vuetify/v0": {
+      "optional": true
+    },
+    "playwright-core": {
       "optional": true
     }
   },
