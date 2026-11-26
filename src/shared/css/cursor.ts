@@ -1,5 +1,6 @@
-import type { CursorImage, CursorType, ThemeConfig } from '../types'
+import type { CursorImage, CursorType, ThemeColors, ThemeConfig } from '../types'
 import { isColorTheme } from '../utils/theme-resolve'
+import { chromaOf, colorWithHue, hexToOklab, oklabToHex } from '../utils/oklab'
 import { generateCursorSVG } from './cursor-svg'
 import { CURSOR_ATTRIBUTE } from '../constants'
 
@@ -79,6 +80,25 @@ const VUETIFY_TEXT = [
   '.v-combobox .v-field .v-text-field__prefix, .v-combobox .v-field .v-text-field__suffix, .v-combobox .v-field .v-field__input, .v-combobox .v-field.v-field',
 ]
 
+/** OKLab lightness a drawn cursor is lifted to on a light variant with no dark one to take the tone from. */
+const LIGHT_CURSOR_LIGHTNESS = 0.72
+
+/**
+ * The color the cursors of a variant are drawn in: its `primary`. A light
+ * variant's is usually a deep tone, made to read as text on the page, and a
+ * cursor in it looks heavy: it takes the lighter of its own and its dark
+ * sibling's, or, without a sibling, its hue lifted to a light tone. The black
+ * outline keeps it visible on a light page.
+ */
+function cursorColor(primary: string, colors: ThemeColors, sibling: string | undefined): string {
+  if (colors.dark !== false) return primary
+  const lightness = (hex: string): number => hexToOklab(hex)[0]
+  if (sibling?.startsWith('#')) return lightness(sibling) > lightness(primary) ? sibling : primary
+  if (lightness(primary) >= LIGHT_CURSOR_LIGHTNESS) return primary
+  // `colorWithHue` has nothing to keep on a gray primary
+  return colorWithHue(LIGHT_CURSOR_LIGHTNESS, primary, chromaOf(primary)) ?? oklabToHex(LIGHT_CURSOR_LIGHTNESS, 0, 0) ?? primary
+}
+
 const rule = (selectors: string[], type: CursorType): string =>
   `${selectors.join(',\n')} {\n  cursor: var(--cursor-${type});\n}\n`
 
@@ -123,7 +143,9 @@ export function generateCustomCursorCSS(theme: ThemeConfig): string {
           values[type] = type
         }
         else if (mode === 'themed' && colors.primary?.startsWith('#')) {
-          const { url, hotspot } = generateCursorSVG(type, colors.primary)
+          const darkId = owners[id] ? theme.colors.groups[owners[id]]?.variants.dark : undefined
+          const sibling = darkId ? theme.colors.themes[darkId]?.primary : undefined
+          const { url, hotspot } = generateCursorSVG(type, cursorColor(colors.primary, colors, sibling))
           values[type] = `url("${url}") ${hotspot}, ${fallback(type)}`
         }
         // 'base', or no `primary` to draw with: the `:root` value

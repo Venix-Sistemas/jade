@@ -10,7 +10,8 @@ export interface CursorImage {
 
 /**
  * What a color theme shows as its cursor:
- * - `'themed'`: drawn in the theme's `primary`
+ * - `'themed'`: drawn in the theme's `primary` (a light variant draws in the
+ *   lighter tone of its dark sibling)
  * - `'base'`: the `defaultCursors` images (the module's fire cursors, unless
  *   the project set its own)
  * - `'none'`: no custom cursor, the operating system's own

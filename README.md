@@ -523,7 +523,7 @@ Replaces the default, pointer and text cursors. On by default; set `cursor: fals
 </p>
 
 - **`defaultCursors`**: the default cursors, the module's fire images unless you set your own. They show with `themed: false`, in browsers that can't load the drawn cursors and for themes without a `primary`.
-- **`themed`** (on by default): draws each cursor as an SVG in the active color theme's `primary`, so it changes along with the theme. Custom themes get one too, with nothing to draw.
+- **`themed`** (on by default): draws each cursor as an SVG in the active color theme's `primary`, so it changes along with the theme. Custom themes get one too, with nothing to draw. A light variant is drawn in the lighter tone of its dark sibling (without one, its own hue lifted to a light tone), so the cursor is as light in both modes.
 - **`themeCursors`**: the cursor of a single color theme, by theme name (both modes) or variant id (just that one, which wins over the theme name). It is merged with the module's own entry, `venix: 'base'`, which keeps the Venix theme on the default cursors.
 
 <p align="center">
@@ -533,7 +533,7 @@ Replaces the default, pointer and text cursors. On by default; set `cursor: fals
 | `themeCursors` value | Cursor shown |
 | --- | --- |
 | `'base'` | the `defaultCursors` (the module's fire cursors, unless you set your own) |
-| `'themed'` | drawn in the theme's `primary` |
+| `'themed'` | drawn in the theme's `primary` (light variants, in the dark sibling's tone) |
 | `'none'` | no custom cursor: the operating system's own |
 | `{ pointer: { path, hotspot } }` | its own images; the cursors left out show as if the theme had no entry |
 

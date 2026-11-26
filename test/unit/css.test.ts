@@ -4,6 +4,7 @@ import { generateThemeVars } from '../../src/shared/css/colors'
 import { generateCustomCursorCSS } from '../../src/shared/css/cursor'
 import { generateCursorSVG } from '../../src/shared/css/cursor-svg'
 import { loadTheme } from '../../src/shared/utils/load'
+import { hexToOklab } from '../../src/shared/utils/oklab'
 import { customizeTheme } from '../../src/setup/customize-theme'
 import type { CursorConfig } from '../../src/shared/types'
 
@@ -320,6 +321,27 @@ describe('generateCustomCursorCSS', () => {
       colors: { ...theme.colors, enabled: false },
     })
     expect(css).toBe('')
+  })
+})
+
+describe('cursor desenhado no tema claro', () => {
+  const theme = loadTheme()
+  theme.customCursor = { ...theme.customCursor, enabled: true }
+  const css = generateCustomCursorCSS(theme)
+  const fill = (id: string) => css.match(new RegExp(`:root\\[data-theme='${id}'\\] \\{[^}]*?fill='%23([\\dA-F]{6})'`, 'i'))?.[1]
+
+  it('deve desenhar o cursor do claro no mesmo tom do escuro', () => {
+    for (const [light, dark] of [['natal-light', 'natal'], ['halloween-light', 'halloween']] as const) {
+      expect(fill(light)).toBeDefined()
+      expect(fill(light)).toBe(fill(dark))
+    }
+  })
+
+  it('deve clarear o primary de um tema claro sem variante escura', () => {
+    const own = customizeTheme(loadTheme(), { cursor: true, color: { themes: { so: { light: { primary: '#0B3D91' } } } } })
+    const drawn = generateCustomCursorCSS(own).match(/data-theme='so-light'\] \{[^}]*?fill='%23([\dA-F]{6})'/i)?.[1]
+    expect(drawn).toBeDefined()
+    expect(hexToOklab(`#${drawn}`)[0]).toBeCloseTo(0.72, 1)
   })
 })
 
