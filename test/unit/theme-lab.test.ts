@@ -132,6 +132,29 @@ describe('painel do editor: segue a regra do seletor', () => {
   })
 })
 
+describe('Vuetify segue as escolhas', () => {
+  const css = choicesCss(THEMES, CHOICES, { ...OPTIONS, vuetify: true })
+
+  it('sobrepõe as variáveis do Vuetify, só nas variantes escolhidas', () => {
+    expect(css).toContain(':root[data-jade-lab~=\'sea-light\'] .v-theme--sea-light {')
+    expect(css).toContain(':root[data-jade-lab~=\'sea-light\'] .v-theme--sea-light-bold {')
+    // #8A0B2E, e o texto legível sobre ele
+    expect(css).toContain('--v-theme-primary: 138,11,46;')
+    expect(css).toContain('--v-theme-on-primary: 255,255,255;')
+    expect(css).toContain('--v-theme-background: 255,255,255;')
+  })
+
+  it('sem bold, o tema `-bold` fica como o da variante', () => {
+    const block = (name: string) => css.match(new RegExp(`\\.v-theme--${name} \\{([^}]*)\\}`))?.[1]
+    expect(block('sea-light-bold')).toBe(block('sea-light'))
+    expect(block('sea-dark-bold')).not.toBe(block('sea-dark'))
+  })
+
+  it('não escreve nada do Vuetify sem o módulo dele', () => {
+    expect(choicesCss(THEMES, CHOICES, OPTIONS)).not.toContain('--v-theme-')
+  })
+})
+
 describe('tom legível mais próximo', () => {
   it('mantém a cor escolhida quando ela já é legível', () => {
     expect(nearestColor(DARK, choiceOf(DARK), 'primary', '#B388FF', 'AA')).toBe('#B388FF')

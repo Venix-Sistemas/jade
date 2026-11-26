@@ -743,7 +743,8 @@ venixJade: { color: { lab: true } }
 - **Legible by construction:** the backgrounds stay light on a light variant and dark on a dark one. A color that would make some text or outline fall below `color.contrast`, or leave a brand or status color under 3:1 on the background, is swapped for the closest tone of the same hue that doesn't, and the panel says which; a style choice that would do it is refused. The switcher and the panel keep their neutral grays, so there is always a way back (**Reset**).
 - **Saved like the theme:** in the `jade-theme-custom` cookie, under the same consent rule (`color.requireConsent`); without consent the choices last for the visit. The CSS is also kept in `localStorage`, and an inline script puts it back before the page is painted.
 - **Weight:** the color engine (about 42 kB gzipped) goes to the browser only when it is needed: on a change, or to rebuild the CSS after a new deploy.
-- **Not covered yet:** the drawn cursors, the Vuetify themes, `theme-color` and `useJade().tokens` keep the project's colors.
+- **Vuetify and Vuetify0:** their components follow the choices, through their CSS variables. What is read in JavaScript (Vuetify's `useTheme().current`) keeps the project's colors.
+- **Not covered yet:** the drawn cursors, `theme-color` and `useJade().tokens` keep the project's colors.
 
 <br>
 

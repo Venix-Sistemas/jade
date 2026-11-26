@@ -1,11 +1,13 @@
 // src/shared/lab/preview.ts
 // The part of `color.lab` that needs the color engine, imported on demand.
-import type { ContrastLevel, ThemeColors } from '../types'
+import type { ColorsConfig, ContrastLevel, ThemeColors } from '../types'
 import { generateBoldSurface } from '../css/bold'
 import { generateThemeVars } from '../css/colors'
 import { generateMenuSurface } from '../css/menu'
 import { checkTokenContrast, generateTokens } from '../css/tokens'
 import { applyChoice } from './choice'
+import { buildVuetifyThemes } from '../vuetify'
+import { LAB_ATTRIBUTE } from '../constants'
 import { chromaOf, colorWithHue, hexToOklab, oklabToHex } from '../utils/oklab'
 import { contrastRatio } from '../utils/contrast'
 import { TOKEN_ROLES } from '../token-names'
@@ -16,6 +18,8 @@ export interface LabBuildOptions {
   highContrast: boolean
   legacyNames: boolean
   vuetify0: boolean
+  /** Also Vuetify's `--v-theme-*` (the `vuetify` option). */
+  vuetify?: boolean
 }
 
 /**
@@ -82,14 +86,44 @@ export function nearestColor(base: ThemeColors, choice: LabChoice, name: LabColo
   return null
 }
 
+/** `#RRGGBB` as the `r,g,b` Vuetify keeps its colors in. */
+const channels = (hex: string): string => {
+  const digits = hex.length === 4 ? hex.slice(1).replace(/./g, '$&$&') : hex.slice(1)
+  return [0, 2, 4].map(i => Number.parseInt(digits.slice(i, i + 2), 16)).join(',')
+}
+
+/**
+ * Vuetify paints from its own `--v-theme-*`, which it writes from the themes
+ * registered at build time: these go over them, for the variant and its bold
+ * theme, so its components follow the choice, from the first paint too. What
+ * a component reads in JavaScript (`useTheme().current`) keeps the project's.
+ */
+function vuetifyCss(id: string, colors: ThemeColors, level: ContrastLevel): string {
+  // Customized, a variant is made of tokens: Vuetify's surfaces follow them
+  const themes = buildVuetifyThemes({ themes: { [id]: colors }, contrast: level } as unknown as ColorsConfig)
+  const plain = themes[id]
+  if (!plain) return ''
+  // A choice that isn't bold leaves a `theme="…-bold"` component like the rest of the page
+  return [[id, plain], [`${id}-bold`, themes[`${id}-bold`] ?? plain]]
+    .map(([name, theme]) => {
+      const vars = Object.entries((theme as typeof plain).colors).map(([key, value]) => `  --v-theme-${key}: ${channels(value)};`)
+      return `\n:root[${LAB_ATTRIBUTE}~='${id}'] .v-theme--${name as string} {\n${vars.join('\n')}\n}\n`
+    })
+    .join('')
+}
+
 /** The CSS of the visitor's choices, over the built one. */
 export function choicesCss(themes: Record<string, ThemeColors>, choices: LabChoices, options: LabBuildOptions): string {
   return Object.entries(choices)
     .filter(([id]) => themes[id])
-    .map(([id, choice]) => generateThemeVars(id, applyChoice(themes[id]!, choice), options.contrast, options.highContrast, {
-      legacyNames: options.legacyNames,
-      vuetify0: options.vuetify0,
-      lab: 'preview',
-    }))
+    .map(([id, choice]) => {
+      const colors = applyChoice(themes[id]!, choice)
+      const css = generateThemeVars(id, colors, options.contrast, options.highContrast, {
+        legacyNames: options.legacyNames,
+        vuetify0: options.vuetify0,
+        lab: 'preview',
+      })
+      return options.vuetify ? css + vuetifyCss(id, colors, options.contrast) : css
+    })
     .join('\n')
 }

@@ -47,6 +47,7 @@ export const useThemeLab = () => {
     contrast: config?.lab?.contrast ?? 'AA' as const,
     highContrast: config?.lab?.highContrast === true,
     vuetify0: config?.lab?.vuetify0 === true,
+    vuetify: config?.enabled?.vuetify === true,
     legacyNames: config?.legacyNames !== false,
   })
 
