@@ -1,9 +1,9 @@
 // src/shared/utils/merge-themes.ts
-import type { ThemeColors, ThemeDefinition, ThemeEntry, ThemeMode, ThemePalette, ThemeVariant, ResolvedThemeGroup } from '../types'
+import type { ThemeSurfaces, ThemeColors, ThemeDefinition, ThemeEntry, ThemeMode, ThemePalette, ThemeVariant, ResolvedThemeGroup } from '../types'
 import { COLOR_PROPERTIES, THEME_MODES } from '../constants'
 import { tokensEnabled } from '../token-names'
 
-const META_PROPERTIES = ['seasonal', 'dateRange', 'translations', 'icon', 'tokens', 'neutralTint'] as const
+const META_PROPERTIES = ['seasonal', 'dateRange', 'translations', 'icon', 'tokens', 'neutralTint', 'surfaces'] as const
 
 /** Grouped format: at least one `light`/`dark` variant object. */
 export function isThemeDefinition(entry: Partial<ThemeEntry> | undefined): entry is ThemeDefinition {
@@ -41,15 +41,19 @@ function pickPalette(entry: Partial<ThemeEntry> | ThemeVariant): ThemePalette {
 
 /**
  * `{ tokens: true }` for a theme that opted in (plus `neutralTint` when it turned
- * the tint off or made it `'vivid'`), `{ tokens: false }` for one that opted out
+ * the tint off or made it `'vivid'`, and `surfaces` when it sets one), `{ tokens: false }` for one that opted out
  * on purpose (the `experimental` option leaves it alone), nothing otherwise, so
  * other variants stay as they were.
  */
-function tokensFlag(entry: Partial<ThemeEntry>): { tokens?: boolean | Record<string, string>, neutralTint?: false | 'vivid' } {
+function tokensFlag(entry: Partial<ThemeEntry>): { tokens?: boolean | Record<string, string>, neutralTint?: false | 'vivid', surfaces?: ThemeSurfaces } {
   if (entry.tokens === false) return { tokens: false }
   if (!tokensEnabled(entry)) return {}
   const tokens = typeof entry.tokens === 'object' ? { ...entry.tokens } : true as const
-  return entry.neutralTint === false || entry.neutralTint === 'vivid' ? { tokens, neutralTint: entry.neutralTint } : { tokens }
+  return {
+    tokens,
+    ...(entry.neutralTint === false || entry.neutralTint === 'vivid' ? { neutralTint: entry.neutralTint } : {}),
+    ...(entry.surfaces === 'soft' || entry.surfaces === 'vivid' || entry.surfaces === 'bold' ? { surfaces: entry.surfaces } : {}),
+  }
 }
 
 const variantId = (themeName: string, mode: ThemeMode, variant: ThemeVariant): string =>

@@ -87,7 +87,31 @@ export interface ThemeMeta {
    * colorful. Contrast is the same as the default. Default: `true`.
    */
   neutralTint?: boolean | 'vivid'
+  /**
+   * Only with `tokens`. How much of the page the theme's own color takes, a
+   * preference of the design rather than of the visitor:
+   *
+   * - `'soft'` (default): the neutrals lean slightly toward `primary`, as
+   *   `neutralTint: true`.
+   * - `'vivid'`: `neutralTint: 'vivid'`. The page stays as the `background`;
+   *   cards, borders and text take the hue of `primary` at a visible strength.
+   * - `'bold'`: `'vivid'` plus a **scope** for areas painted in the brand
+   *   color (a side menu, a header, some cards). Inside an element with
+   *   `data-jade-surface="bold"` the neutral and role tokens (`--jade-bg`,
+   *   `--jade-text`, `--jade-fill-primary`…) are redefined on a deep tone of
+   *   `primary`, so what you put in it adapts by itself. Nested panels get
+   *   darker, text is white (or black over a light seed), contrast is the
+   *   same as everywhere else. With Vuetify, each such variant also
+   *   registers a `<variant>-bold` theme for `<v-navigation-drawer theme>`,
+   *   `<v-card theme>`… The page itself is not painted: you choose where.
+   *
+   * When set, it wins over `neutralTint`.
+   */
+  surfaces?: ThemeSurfaces
 }
+
+/** How much of the page a theme paints in its own color. See `ThemeMeta.surfaces`. */
+export type ThemeSurfaces = 'soft' | 'vivid' | 'bold'
 
 /**
  * A theme in the grouped format: shared metadata plus a `light` and/or a

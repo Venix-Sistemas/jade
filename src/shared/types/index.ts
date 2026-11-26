@@ -5,6 +5,7 @@ export type { ScrollbarConfig } from './scrollbar'
 export type { CursorConfig, CursorType, CursorImage, ThemeCursor } from './cursor'
 export type {
   ThemeColors,
+  ThemeSurfaces,
   ThemeTranslations,
   ColorsConfig,
   ThemeIconFormats,

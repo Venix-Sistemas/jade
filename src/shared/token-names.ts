@@ -96,3 +96,14 @@ export function parseStepRef(ref: unknown): { scale: string, step: number } | nu
   if (scale !== 'neutral' && !(TOKEN_ROLES as readonly string[]).includes(scale)) return null
   return { scale, step }
 }
+
+/**
+ * How the neutral tokens are tinted, from the theme's `surfaces` (which wins)
+ * or its `neutralTint`: `true` leans slightly toward the primary's hue, `false`
+ * is plain gray, `'vivid'` takes the hue at a clearly visible strength.
+ */
+export function neutralTintOf(entry: { neutralTint?: boolean | 'vivid', surfaces?: 'soft' | 'vivid' | 'bold' }): boolean | 'vivid' {
+  if (entry.surfaces === 'vivid' || entry.surfaces === 'bold') return 'vivid'
+  if (entry.surfaces === 'soft') return true
+  return entry.neutralTint ?? true
+}

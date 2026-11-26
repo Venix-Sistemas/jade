@@ -280,6 +280,37 @@ color: {
 }
 ```
 
+**Surfaces: how much of the page is the brand's.** `surfaces` is a per-theme preference with three levels: `'soft'` (the default tint), `'vivid'` (the colorful neutrals above, same as `neutralTint: 'vivid'`) and `'bold'`, for a client who wants the brand color on a big part of the page (a side menu, a header, some cards) instead of white or black everywhere. It wins over `neutralTint`.
+
+`'bold'` is `'vivid'` for the page plus a **scope**. Inside an element with `data-jade-surface="bold"` the tokens are redefined on a deep tone of `primary`, so what you put in it adapts by itself:
+
+```vue
+<aside data-jade-surface="bold">
+  <nav class="text-[var(--jade-text-muted)]">…</nav>
+  <button class="bg-[var(--jade-fill-primary)] text-[var(--jade-on-primary)]">Open</button>
+  <div class="bg-[var(--jade-bg-subtle)]">a nested panel, a shade deeper</div>
+</aside>
+```
+
+- **The panel.** `bg` is the seed, moved only as far as needed so the text reaches the level over it with some room (white text 5.6:1 for AA, 8.75:1 for AAA): `#2D900C` becomes `#2B7617`. A light seed (a yellow) keeps its color and gets black text instead. The element is painted too (`background-color`, `color`, `color-scheme`), so the attribute alone gives a colored panel.
+- **Inside it.** `bg-subtle` … `bg-active` go *away* from the text (darker under white), so contrast only grows with them; `text-muted` is the lightest tone that still reaches the level; `border-strong` keeps 3:1. `fill-primary` flips: a white button on the green panel, with the panel color as `on-primary`. The other roles (`success`, `error`…) are generated against the panel, like any role is against the page, and the build checks every pair as it does for the page (a warning names `The bold surface tokens of …`).
+- **You choose the coverage.** The module doesn't paint the page: put the attribute on the menu, the header or the cards that should carry the color, as much of the page as the design asks.
+- **Both modes.** Each light and dark variant gets its own scope, and with `color.highContrast` its AAA values too. A dark variant gets a deep panel with white text even when its seed is a light tone (a light green becomes a deep green), so the page stays dark and the brand shows in the panels, not as a neon block.
+- **Vuetify.** Each bold variant also registers a `<variant>-bold` theme (`natal-light-bold`) with the panel as `background`/`surface` and the flipped `primary`, so `<v-navigation-drawer theme="natal-light-bold">` or `<v-card theme="natal-light-bold">` paint and read right with no extra CSS.
+
+```ts
+color: {
+  themes: {
+    marca: {
+      tokens: true,
+      surfaces: 'bold',
+      light: { primary: '#2D900C', background: '#FFFFFF' },
+      dark: { primary: '#4CAF50', background: '#0C1A0C' },
+    },
+  },
+}
+```
+
 Tokens for each role (`primary`, `secondary`, `accent`, `error`, `info`, `success`, `warning`), shown for `primary`:
 
 | Token | Use |

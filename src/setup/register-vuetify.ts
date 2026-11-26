@@ -5,6 +5,7 @@ import type { Nuxt } from '@nuxt/schema'
 import type { ThemeConfig, ColorsConfig, ContrastLevel, ThemeColors } from '../shared/types'
 import { isColorTheme, getThemeHexColors } from '../shared/utils/theme-resolve'
 import { generateTokens } from '../shared/css/tokens'
+import { generateBoldSurface } from '../shared/css/bold'
 import { tokensEnabled } from '../shared/token-names'
 
 /**
@@ -59,6 +60,25 @@ function tokenColorsForVuetify(themeColors: ThemeColors, level: ContrastLevel, h
   return colors
 }
 
+/** The Vuetify colors of the bold scope: the variant's own, with the panel as background and surface and the flipped fills. */
+function boldVuetifyColors(base: Record<string, string>, tokens: Record<string, string>, themeColors: ThemeColors): Record<string, string> {
+  const colors: Record<string, string> = { ...base }
+  if (tokens.bg) colors.background = tokens.bg
+  if (tokens['bg-subtle']) colors.surface = tokens['bg-subtle']
+  colors['on-background'] = tokens.text ?? base['on-background'] ?? '#FFFFFF'
+  colors['on-surface'] = colors['on-background']
+  colors.inverse = tokens.bg ?? base.inverse ?? '#000000'
+
+  for (const role of ['primary', 'secondary'] as const) {
+    if (!themeColors[role]) continue
+    const fill = tokens[`fill-${role}`]
+    const on = tokens[`on-${role}`]
+    if (fill) colors[role] = fill
+    if (on) colors[`on-${role}`] = on
+  }
+  return colors
+}
+
 /**
  * Converts the module's color themes (real hex values, not CSS vars) to the
  * format Vuetify expects, since Vuetify computes contrast/on-colors in JS and
@@ -83,6 +103,13 @@ export function buildVuetifyThemes(colors: ColorsConfig): Record<string, Vuetify
     if (tokensEnabled(themeColors) && !colors.defaultTokens?.includes(name)) Object.assign(vuetifyColors, tokenColorsForVuetify(themeColors, colors.contrast || 'AA', !!themeColors.background2))
 
     themes[name] = { dark: isDark, colors: vuetifyColors }
+
+    // `surfaces: 'bold'`: a second Vuetify theme for the areas in the brand
+    // color (`<v-navigation-drawer theme="natal-light-bold">`). Its `primary`
+    // is the flipped fill (a white button on the panel), so `color="primary"`
+    // reads there.
+    const bold = tokensEnabled(themeColors) ? generateBoldSurface(themeColors, colors.contrast || 'AA') : null
+    if (bold) themes[`${name}-bold`] = { dark: bold.dark, colors: boldVuetifyColors(vuetifyColors, Object.fromEntries(bold.tokens), themeColors) }
   }
 
   return themes

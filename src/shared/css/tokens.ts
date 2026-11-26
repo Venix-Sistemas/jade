@@ -1,10 +1,11 @@
 // src/shared/css/tokens.ts
 import type { ContrastLevel, ThemeColors } from '../types'
+import { generateBoldSurface } from './bold'
 import { contrastRatio } from '../utils/contrast'
 import { deriveSeeds } from '../utils/derive-seeds'
 import { generateScales } from '../utils/scale'
 import type { RoleScale } from '../utils/scale'
-import { NEUTRAL_TOKENS, OVERRIDABLE_TOKEN_NAMES, ROLE_TOKENS, TOKEN_ROLES as ROLES, parseStepRef, roleTokenName, tokenOverrides, tokensEnabled } from '../token-names'
+import { NEUTRAL_TOKENS, OVERRIDABLE_TOKEN_NAMES, ROLE_TOKENS, TOKEN_ROLES as ROLES, neutralTintOf, parseStepRef, roleTokenName, tokenOverrides, tokensEnabled } from '../token-names'
 import type { TokenRole } from '../token-names'
 
 /**
@@ -29,7 +30,7 @@ const tokenCache = new Map<string, Array<[string, string]>>()
  * written. Memoized: the CSS and the build check ask for the same variant.
  */
 export function generateTokens(colors: ThemeColors, level: ContrastLevel = 'AA'): Array<[string, string]> {
-  const key = JSON.stringify([colors.dark === true, colors.background, ROLES.map(role => colors[role]), level, colors.neutralTint ?? true, tokenOverrides(colors)])
+  const key = JSON.stringify([colors.dark === true, colors.background, ROLES.map(role => colors[role]), level, neutralTintOf(colors), tokenOverrides(colors)])
   let tokens = tokenCache.get(key)
   if (!tokens) {
     tokens = buildTokens(colors, level)
@@ -58,8 +59,8 @@ function buildTokens(colors: ThemeColors, level: ContrastLevel): Array<[string, 
 
   const overrides = tokenOverrides(colors)
   const { neutral, roles } = generateScales(background, seeds, mode, level, {
-    tint: colors.neutralTint !== false,
-    vivid: colors.neutralTint === 'vivid',
+    tint: neutralTintOf(colors) !== false,
+    vivid: neutralTintOf(colors) === 'vivid',
     mutedOver: farthestNeutralSurface(overrides),
   })
   const tokens: Array<[string, string]> = NEUTRAL_TOKENS.map(([name, step]) => [name, neutral[step - 1]!])
@@ -225,18 +226,22 @@ export function findTokenContrastIssues(themes: Record<string, ThemeColors>, lev
   for (const [id, colors] of Object.entries(themes)) {
     if (!tokensEnabled(colors)) continue
     const issues = checkTokenContrast(generateTokens(colors, level), level)
-    if (!issues.length) continue
-
-    const pairs = issues
-      .map(issue => `\`${issue.text}\` on \`${issue.surface}\` ${formatRatio(issue.ratio)}:1 (needs ${issue.min}:1)`)
-      .join('; ')
-    const hint = level === 'AAA'
-      ? 'Pick another seed, or set `color.contrast` to `\'AA\'` (or `false` to skip this check).'
-      : 'Pick another seed, or set `color.contrast` to `false` to skip this check.'
-    messages.push(`The semantic tokens of \`${id}\` fall short of WCAG ${level}: ${pairs}. ${hint}`)
+    const boldIssues = checkTokenContrast(generateBoldSurface(colors, level)?.tokens ?? [], level)
+    if (issues.length) messages.push(describeIssues(id, 'The semantic tokens', issues, level))
+    if (boldIssues.length) messages.push(describeIssues(id, 'The bold surface tokens', boldIssues, level))
   }
 
   return messages
+}
+
+function describeIssues(id: string, what: string, issues: TokenContrastIssue[], level: ContrastLevel): string {
+  const pairs = issues
+    .map(issue => `\`${issue.text}\` on \`${issue.surface}\` ${formatRatio(issue.ratio)}:1 (needs ${issue.min}:1)`)
+    .join('; ')
+  const hint = level === 'AAA'
+    ? 'Pick another seed, or set `color.contrast` to `\'AA\'` (or `false` to skip this check).'
+    : 'Pick another seed, or set `color.contrast` to `false` to skip this check.'
+  return `${what} of \`${id}\` fall short of WCAG ${level}: ${pairs}. ${hint}`
 }
 
 /** Whether the variant gets tokens for `role`: it has the seed, or a `primary` to derive one from. */

@@ -121,4 +121,5 @@ export const NON_COLOR_PROPERTIES = [
   'icon',
   'tokens',
   'neutralTint',
+  'surfaces',
 ] as const
