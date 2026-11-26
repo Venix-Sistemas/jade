@@ -244,34 +244,39 @@
               >
                 {{ section.heading }}
               </div>
-              <button
-                v-for="item in section.items"
-                :key="item.value"
-                type="button"
-                role="menuitemradio"
-                class="venix-theme-switcher__item"
-                :class="{ 'venix-theme-switcher__item--active': item.value === theme.preference.value }"
-                :aria-checked="item.value === theme.preference.value"
-                @click="selectTheme(item.value)"
-              >
-                <span
-                  v-if="item.icon?.format === 'emote'"
-                  class="venix-icon venix-icon--emoji venix-theme-switcher__item-icon"
-                  aria-hidden="true"
-                >{{ item.icon.value }}</span>
-                <JadeIcon
-                  v-else-if="item.icon"
-                  class="venix-theme-switcher__item-icon"
-                  :icon="item.icon.value"
-                  :mode="item.icon.format"
-                  aria-hidden="true"
-                />
-                <span>{{ item.name }}</span>
-                <span
-                  v-if="seasonLabels[item.value]"
-                  class="venix-theme-switcher__item-season"
-                >{{ seasonLabels[item.value] }}</span>
-              </button>
+              <div class="venix-theme-switcher__themes">
+                <button
+                  v-for="item in section.items"
+                  :key="item.value"
+                  type="button"
+                  role="menuitemradio"
+                  class="venix-theme-switcher__item venix-theme-switcher__item--theme"
+                  :class="{ 'venix-theme-switcher__item--active': item.value === theme.preference.value }"
+                  :aria-checked="item.value === theme.preference.value"
+                  :style="themeColors[item.value]"
+                  @click="selectTheme(item.value)"
+                >
+                  <span
+                    v-if="item.icon?.format === 'emote'"
+                    class="venix-icon venix-icon--emoji venix-theme-switcher__item-icon"
+                    aria-hidden="true"
+                  >{{ item.icon.value }}</span>
+                  <JadeIcon
+                    v-else-if="item.icon"
+                    class="venix-theme-switcher__item-icon"
+                    :icon="item.icon.value"
+                    :mode="item.icon.format"
+                    aria-hidden="true"
+                  />
+                  <span class="venix-theme-switcher__item-text">
+                    <span class="venix-theme-switcher__item-name">{{ item.name }}</span>
+                    <span
+                      v-if="seasonLabels[item.value]"
+                      class="venix-theme-switcher__item-season"
+                    >{{ seasonLabels[item.value] }}</span>
+                  </span>
+                </button>
+              </div>
             </div>
           </template>
 
@@ -347,6 +352,7 @@ import { getDefaultSelection, getSeasonDates } from '../../shared/utils/theme-re
 import { resolveThemeIcon } from '../../shared/utils/icon'
 import type { ResolvedThemeIcon, ThemeIconFormat } from '../../shared/utils/icon'
 import { SWITCHER_CREDIT, SWITCHER_ICONS } from '../../shared/constants'
+import { switcherThemeColor } from '../../shared/utils/switcher-color'
 import type { ThemeModePreference } from '../../shared/types'
 // Imported directly (not auto-imported) so the switcher still works with
 // `icon: false`: <JadeIcon> isn't registered then, and theme icons all
@@ -655,6 +661,19 @@ const themeSections = computed(() => [
   { key: 'built-in', heading: themeHeading.value, items: themes.value.filter(item => !item.custom) },
   { key: 'custom', heading: locale.translate(CUSTOM_HEADING_TRANSLATIONS, 'Custom theme'), items: themes.value.filter(item => item.custom) },
 ].filter(section => section.items.length > 0))
+// Each theme's own `primary`, in the mode in effect, for its name and icon:
+// what the theme looks like before picking it, toned to stay legible on the
+// menu. "Automatic", which has no colors of its own, stays neutral.
+const themeColors = computed(() => {
+  const styles: Record<string, Record<string, string>> = {}
+  for (const item of themes.value) {
+    const variants = theme.colors.groups[item.value]?.variants
+    const id = variants?.[darkMode.value ? 'dark' : 'light'] ?? variants?.dark ?? variants?.light
+    const color = switcherThemeColor(id ? theme.colors.themes[id]?.primary : undefined, darkMode.value)
+    if (color) styles[item.value] = { '--venix-switcher-theme': color }
+  }
+  return styles
+})
 const triggerLabel = computed(() => [theme.data.value?.name, mode.data.value?.name].filter(Boolean).join(' · '))
 
 // Today's date, read after mounting: the server's date (and time zone) can
@@ -1082,8 +1101,10 @@ onUnmounted(() => {
    - No faded text: `opacity` is only 0 or 1.
    - A new style takes its colors from the `--venix-switcher-*` variables below.
    - One exception: the `buttonColors` prop lets a project pick the colors of
-     the button that opens the menu. Without it the button is neutral too, and
-     the menu always is.
+     the button that opens the menu. Without it the button is neutral too.
+   - One more: in the menu, each theme's name and icon take that theme's
+     `primary`, toned until it reads at AA (`switcher-color.ts`).
+     Backgrounds, outlines, the selection and everything else stay neutral.
 
    `test/unit/switcher-neutral.test.ts` fails when any of this is broken.
    =========================================================================== */
@@ -1189,7 +1210,7 @@ onUnmounted(() => {
   z-index: 50;
   /* Fits the settings' one-line titles too, so the menu keeps its width when
      switching views; never wider than the screen. */
-  min-width: min(16rem, calc(100vw - 1rem));
+  min-width: min(19rem, calc(100vw - 1rem));
   max-width: calc(100vw - 1rem);
   /* `max-height` comes from updatePlacement(): what doesn't fit on a small
      screen scrolls inside the menu, without scrolling the page behind it. */
@@ -1382,7 +1403,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: 0.25rem;
   padding: 0.5rem 0.25rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   text-align: center;
 }
 
@@ -1416,6 +1437,36 @@ onUnmounted(() => {
   }
 }
 
+/* The themes, two side by side, so the menu stays short. */
+.venix-theme-switcher__themes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.venix-theme-switcher__item--theme {
+  /* Set inline to the theme's own color; without one, the item's text color */
+  --venix-switcher-theme: currentColor;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.375rem;
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+
+.venix-theme-switcher__item-name {
+  overflow-wrap: anywhere;
+}
+
+.venix-theme-switcher__item--theme .venix-theme-switcher__item-icon {
+  font-size: 1.125rem;
+}
+
+.venix-theme-switcher__item-name,
+.venix-theme-switcher__item--theme .venix-theme-switcher__item-icon {
+  color: var(--venix-switcher-theme);
+}
+
 /* Outlined too: the gray alone is too faint to tell what is selected. */
 .venix-theme-switcher__item--active {
   background: var(--venix-switcher-active);
@@ -1428,13 +1479,11 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-/* A seasonal theme's dates, on the right: small and a step softer. Same
+/* A seasonal theme's dates, under its name: small and a step softer. Same
    weight whether or not the theme is selected. */
 .venix-theme-switcher__item-season {
-  margin-left: auto;
-  padding-left: 0.5rem;
   color: var(--venix-switcher-text-soft);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 400;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
