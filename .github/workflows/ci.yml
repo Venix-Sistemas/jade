@@ -31,6 +31,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Colors legible only by luck: a theme color as text, a fixed color…
+      - name: Audit the playground colors (code)
+        run: node bin/venix-jade.mjs audit playground
+
   test:
     runs-on: ubuntu-latest
 
@@ -58,6 +62,15 @@ jobs:
 
       - name: Type check
         run: npm run test:types
+
+      # The contrast on screen, on every theme and mode. A development server:
+      # only there the audit switches themes the way the app does (Vuetify too)
+      - name: Audit the playground colors (screen)
+        run: |
+          npx nuxt dev playground --port 3000 > playground-dev.log 2>&1 &
+          timeout 240 bash -c 'until curl -sf -o /dev/null http://localhost:3000/; do sleep 2; done' || { cat playground-dev.log; exit 1; }
+          node bin/venix-jade.mjs audit --no-code --url http://localhost:3000/
+          kill $! || true
 
       - name: Build
         run: npm run prepack
