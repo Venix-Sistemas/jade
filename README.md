@@ -574,7 +574,7 @@ Replaces the default, pointer and text cursors, and the open and closed hands fo
 </p>
 
 - **`defaultCursors`**: the default cursors, the module's fire images unless you set your own. They show with `themed: false`, in browsers that can't load the drawn cursors and for themes without a `primary`.
-- **`themed`** (on by default): draws each cursor as an SVG in the active color theme's `primary`, so it changes along with the theme. Custom themes get one too, with nothing to draw. A light variant is drawn in the lighter tone of its dark sibling (without one, its own hue lifted to a light tone), so the cursor is as light in both modes.
+- **`themed`** (on by default): draws each cursor as an SVG in the active color theme's `primary`, so it changes along with the theme. Custom themes get one too, with nothing to draw. The fill is a very light tint of that color, close to the system's white arrow, so the cursor is easy to find in both modes; the black outline keeps it visible on a light page.
 - **The hands** show over elements marked `draggable="true"` (closed while held), Vuetify's draggable components and the `cursor-grab`/`cursor-grabbing` classes. The module's fire images have no hands, so on a theme set to `'base'` (Venix) they are drawn in its color, unless you add `grab` and `grabbing` images to `defaultCursors` (or set `themed: false`, for the system's). During a native drag and drop the browser picks the cursor.
 - **`themeCursors`**: the cursor of a single color theme, by theme name (both modes) or variant id (just that one, which wins over the theme name). It is merged with the module's own entry, `venix: 'base'`, which keeps the Venix theme on the default cursors.
 
@@ -585,7 +585,7 @@ Replaces the default, pointer and text cursors, and the open and closed hands fo
 | `themeCursors` value | Cursor shown |
 | --- | --- |
 | `'base'` | the `defaultCursors` (the module's fire cursors, unless you set your own); a hand without an image is drawn |
-| `'themed'` | drawn in the theme's `primary` (light variants, in the dark sibling's tone) |
+| `'themed'` | drawn in a light tint of the theme's `primary` |
 | `'none'` | no custom cursor: the operating system's own |
 | `{ pointer: { path, hotspot } }` | its own images; the cursors left out show as if the theme had no entry |
 

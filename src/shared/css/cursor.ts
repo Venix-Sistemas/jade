@@ -1,4 +1,4 @@
-import type { CursorImage, CursorType, ThemeColors, ThemeConfig } from '../types'
+import type { CursorImage, CursorType, ThemeConfig } from '../types'
 import { isColorTheme } from '../utils/theme-resolve'
 import { chromaOf, colorWithHue, hexToOklab, oklabToHex } from '../utils/oklab'
 import { generateCursorSVG } from './cursor-svg'
@@ -99,23 +99,22 @@ const HANDS: CursorType[] = ['grab', 'grabbing']
 const VUETIFY0_GRAB = ['[role="slider"]']
 const VUETIFY0_GRABBING = ['[role="slider"]:active']
 
-/** OKLab lightness a drawn cursor is lifted to on a light variant with no dark one to take the tone from. */
-const LIGHT_CURSOR_LIGHTNESS = 0.72
+/** OKLab lightness of a drawn cursor, and the most chroma it keeps: close to the system's white arrow. */
+const CURSOR_LIGHTNESS = 0.92
+const CURSOR_CHROMA = 0.07
 
 /**
- * The color the cursors of a variant are drawn in: its `primary`. A light
- * variant's is usually a deep tone, made to read as text on the page, and a
- * cursor in it looks heavy: it takes the lighter of its own and its dark
- * sibling's, or, without a sibling, its hue lifted to a light tone. The black
- * outline keeps it visible on a light page.
+ * The color the cursors of a variant are drawn in: a very light tint of its
+ * `primary`, so the cursor is as easy to find as a white one and still follows
+ * the theme. The black outline keeps it visible on a light page. A `primary`
+ * lighter than that keeps its own lightness.
  */
-function cursorColor(primary: string, colors: ThemeColors, sibling: string | undefined): string {
-  if (colors.dark !== false) return primary
-  const lightness = (hex: string): number => hexToOklab(hex)[0]
-  if (sibling?.startsWith('#')) return lightness(sibling) > lightness(primary) ? sibling : primary
-  if (lightness(primary) >= LIGHT_CURSOR_LIGHTNESS) return primary
+function cursorColor(primary: string): string {
+  const lightness = Math.max(CURSOR_LIGHTNESS, hexToOklab(primary)[0])
   // `colorWithHue` has nothing to keep on a gray primary
-  return colorWithHue(LIGHT_CURSOR_LIGHTNESS, primary, chromaOf(primary)) ?? oklabToHex(LIGHT_CURSOR_LIGHTNESS, 0, 0) ?? primary
+  return colorWithHue(lightness, primary, Math.min(chromaOf(primary), CURSOR_CHROMA))
+    ?? oklabToHex(Math.min(lightness, 1), 0, 0)
+    ?? primary
 }
 
 const rule = (selectors: string[], type: CursorType): string =>
@@ -162,9 +161,7 @@ export function generateCustomCursorCSS(theme: ThemeConfig): string {
           values[type] = type
         }
         else if ((mode === 'themed' || (mode === 'base' && cursor.themed !== false && !images[type] && HANDS.includes(type))) && colors.primary?.startsWith('#')) {
-          const darkId = owners[id] ? theme.colors.groups[owners[id]]?.variants.dark : undefined
-          const sibling = darkId ? theme.colors.themes[darkId]?.primary : undefined
-          const { url, hotspot } = generateCursorSVG(type, cursorColor(colors.primary, colors, sibling))
+          const { url, hotspot } = generateCursorSVG(type, cursorColor(colors.primary))
           values[type] = `url("${url}") ${hotspot}, ${fallback(type)}`
         }
         // 'base', or no `primary` to draw with: the `:root` value

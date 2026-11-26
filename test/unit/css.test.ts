@@ -4,7 +4,7 @@ import { generateThemeVars } from '../../src/shared/css/colors'
 import { generateCustomCursorCSS } from '../../src/shared/css/cursor'
 import { generateCursorSVG } from '../../src/shared/css/cursor-svg'
 import { loadTheme } from '../../src/shared/utils/load'
-import { hexToOklab } from '../../src/shared/utils/oklab'
+import { hexToOklab, chromaOf, hueOf } from '../../src/shared/utils/oklab'
 import { customizeTheme } from '../../src/setup/customize-theme'
 import type { CursorConfig } from '../../src/shared/types'
 
@@ -171,7 +171,8 @@ describe('generateCustomCursorCSS', () => {
     for (const type of ['default', 'pointer', 'text']) {
       expect(halloween).toMatch(new RegExp(`--jade-cursor-${type}: url\\("data:image/svg\\+xml,[^"]+"\\) \\d+ \\d+, url\\('[^']+'\\)`))
     }
-    expect(decodeURIComponent(halloween)).toContain('#FF8A3D')
+    // O tom claro do primary (#FF8A3D)
+    expect(decodeURIComponent(halloween)).toContain('fill=\'#FFDDCA\'')
     // `#` e `<`/`>` cortariam ou invalidariam a URI no `url()`
     for (const [, uri] of halloween.matchAll(/url\("data:image\/svg\+xml,([^"]+)"\)/g)) {
       expect(uri).not.toMatch(/[#<>]/)
@@ -336,12 +337,11 @@ describe('generateCustomCursorCSS', () => {
   })
 })
 
-describe('cursores de arrastar e tom no claro', () => {
+describe('cursores de arrastar e tom claro', () => {
   const theme = loadTheme()
   theme.customCursor = { ...theme.customCursor, enabled: true }
   const css = generateCustomCursorCSS(theme)
   const value = (id: string, type: string) => css.match(new RegExp(`:root\\[data-jade-theme='${id}'\\] \\{[^}]*--jade-cursor-${type}: ([^\n]*);`))?.[1]
-  const fill = (id: string) => value(id, 'default')?.match(/fill='%23([\dA-F]{6})'/i)?.[1]
 
   it('deve desenhar as mãos aberta e fechada, com o do sistema como reserva', () => {
     for (const type of ['grab', 'grabbing']) {
@@ -358,22 +358,21 @@ describe('cursores de arrastar e tom no claro', () => {
     expect(css.indexOf('/* 3d.')).toBeGreaterThan(css.indexOf('/* 3c.'))
   })
 
-  it('deve desenhar as mãos do Venix claro no tom do escuro', () => {
-    expect(value('light', 'grab')).toBe(value('dark', 'grab'))
+  it.each(['dark', 'light', 'natal', 'natal-light', 'halloween', 'halloween-light'])('deve desenhar o cursor de %s num tom bem claro do primary', (id) => {
+    const primary = theme.colors.themes[id]!.primary!
+    // O Venix fica nas imagens do módulo: só as mãos são desenhadas
+    const type = id === 'dark' || id === 'light' ? 'grab' : 'default'
+    const drawn = `#${value(id, type)?.match(/fill='%23([\dA-F]{6})'/i)?.[1]}`
+    expect(hexToOklab(drawn)[0]).toBeCloseTo(0.92, 1)
+    expect(chromaOf(drawn)).toBeLessThanOrEqual(0.072)
+    expect(hueOf(drawn)).toBeCloseTo(hueOf(primary)!, -1)
   })
 
-  it('deve desenhar o cursor do claro no mesmo tom do escuro', () => {
-    for (const [light, dark] of [['natal-light', 'natal'], ['halloween-light', 'halloween']] as const) {
-      expect(fill(light)).toBeDefined()
-      expect(fill(light)).toBe(fill(dark))
-    }
-  })
-
-  it('deve clarear o primary de um tema claro sem variante escura', () => {
-    const own = customizeTheme(loadTheme(), { cursor: true, color: { themes: { so: { light: { primary: '#0B3D91' } } } } })
+  it.each([['#0B3D91', 0.92], ['#777777', 0.92], ['#FFFFFF', 1]] as const)('deve clarear o primary %s de um tema próprio', (primary, lightness) => {
+    const own = customizeTheme(loadTheme(), { cursor: true, color: { themes: { so: { light: { primary } } } } })
     const drawn = generateCustomCursorCSS(own).match(/data-jade-theme='so-light'\] \{[^}]*?fill='%23([\dA-F]{6})'/i)?.[1]
     expect(drawn).toBeDefined()
-    expect(hexToOklab(`#${drawn}`)[0]).toBeCloseTo(0.72, 1)
+    expect(hexToOklab(`#${drawn}`)[0]).toBeCloseTo(lightness, 1)
   })
 })
 

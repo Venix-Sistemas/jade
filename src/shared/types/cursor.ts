@@ -10,8 +10,7 @@ export interface CursorImage {
 
 /**
  * What a color theme shows as its cursor:
- * - `'themed'`: drawn in the theme's `primary` (a light variant draws in the
- *   lighter tone of its dark sibling)
+ * - `'themed'`: drawn in a very light tint of the theme's `primary`
  * - `'base'`: the `defaultCursors` images (the module's fire cursors, unless
  *   the project set its own); a hand (`grab`, `grabbing`) without an image is
  *   drawn in the theme's color, unless `themed` is `false`
