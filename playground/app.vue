@@ -464,6 +464,13 @@
               :placeholder="$t('cursor.text')"
             >
           </label>
+          <div
+            class="demo cursor-area cursor-area--grab"
+            data-jade-surface="bold"
+          >
+            <strong>grab</strong>
+            <span class="demo__hint">{{ $t('cursor.grab') }}</span>
+          </div>
         </div>
       </section>
 
@@ -2245,6 +2252,15 @@ code {
   font: inherit;
   color: var(--pg-link);
   text-align: left;
+}
+
+.cursor-area--grab {
+  cursor: var(--cursor-grab, grab);
+  user-select: none;
+}
+
+.cursor-area--grab:active {
+  cursor: var(--cursor-grabbing, grabbing);
 }
 
 .cursor-area__input {

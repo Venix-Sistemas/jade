@@ -4,7 +4,7 @@ import { chromaOf, colorWithHue, hexToOklab, oklabToHex } from '../utils/oklab'
 import { generateCursorSVG } from './cursor-svg'
 import { CURSOR_ATTRIBUTE } from '../constants'
 
-const CURSOR_TYPES: CursorType[] = ['default', 'pointer', 'text']
+const CURSOR_TYPES: CursorType[] = ['default', 'pointer', 'text', 'grab', 'grabbing']
 
 // The cursor comes from `html` by inheritance, and any element with a
 // `cursor` of its own (the browser's stylesheet, a component library) shows
@@ -80,6 +80,21 @@ const VUETIFY_TEXT = [
   '.v-combobox .v-field .v-text-field__prefix, .v-combobox .v-field .v-text-field__suffix, .v-combobox .v-field .v-field__input, .v-combobox .v-field.v-field',
 ]
 
+// Vuetify 4's draggable components (labs), with a fixed `cursor: grab`/`grabbing`
+const VUETIFY_GRAB = [
+  '.v-infinite-carousel--draggable',
+  '.v-map--interactive .v-map__svg',
+]
+
+const VUETIFY_GRABBING = [
+  '.v-infinite-carousel--dragging',
+  '.v-map--dragging .v-map__svg, .v-map--dragging .v-map__region',
+]
+
+// Drawn even on `'base'` when `defaultCursors` has no image for them: the
+// module's image cursors (Venix) have no hands, and they leave in 2.0.
+const HANDS: CursorType[] = ['grab', 'grabbing']
+
 /** OKLab lightness a drawn cursor is lifted to on a light variant with no dark one to take the tone from. */
 const LIGHT_CURSOR_LIGHTNESS = 0.72
 
@@ -142,7 +157,7 @@ export function generateCustomCursorCSS(theme: ThemeConfig): string {
         else if (mode === 'none') {
           values[type] = type
         }
-        else if (mode === 'themed' && colors.primary?.startsWith('#')) {
+        else if ((mode === 'themed' || (mode === 'base' && cursor.themed !== false && !images[type] && HANDS.includes(type))) && colors.primary?.startsWith('#')) {
           const darkId = owners[id] ? theme.colors.groups[owners[id]]?.variants.dark : undefined
           const sibling = darkId ? theme.colors.themes[darkId]?.primary : undefined
           const { url, hotspot } = generateCursorSVG(type, cursorColor(colors.primary, colors, sibling))
@@ -232,6 +247,20 @@ textarea,
 }\n`
     css += '\n/* 3b. Vuetify elements with a fixed `cursor: text` (the field around the input) */\n'
     css += rule(VUETIFY_TEXT, 'text')
+  }
+
+  // What can be moved: an element marked `draggable="true"` (not the links and
+  // images the browser drags on its own) and Vuetify's draggable components.
+  // No `!important`: links and buttons inside keep the pointer, and a page can
+  // change a single case.
+  if (types.includes('grab')) {
+    css += '\n/* 3c. Open hand over what can be dragged */\n'
+    css += rule(['[draggable="true"]', ...VUETIFY_GRAB], 'grab')
+  }
+
+  if (types.includes('grabbing')) {
+    css += '\n/* 3d. Closed hand while it is held */\n'
+    css += rule(['[draggable="true"]:active', ...VUETIFY_GRABBING], 'grabbing')
   }
 
   // The utility classes of Vuetify (`.cursor-pointer`) and UnoCSS/Tailwind:

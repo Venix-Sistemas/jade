@@ -516,7 +516,7 @@ Everything else keeps the browser's scrollbar, styled with CSS. Scrolling itself
   <img alt="third-party: none" src="https://img.shields.io/badge/third--party-none-6E7781?style=for-the-badge">
 </p>
 
-Replaces the default, pointer and text cursors. On by default; set `cursor: false` to keep the system's cursors. Visitors can also turn it off for themselves in the [switcher's settings](#theme-switcher) (or you with `cursor.set(false)`), which sets `data-venix-cursor="off"` on `<html>`:
+Replaces the default, pointer and text cursors, and the open and closed hands for dragging (`grab` and `grabbing`). On by default; set `cursor: false` to keep the system's cursors. Visitors can also turn it off for themselves in the [switcher's settings](#theme-switcher) (or you with `cursor.set(false)`), which sets `data-venix-cursor="off"` on `<html>`:
 
 <p align="center">
   <img src="./docs/images/readme/cursor.png" alt="The default, pointer and text cursors" width="800">
@@ -524,6 +524,7 @@ Replaces the default, pointer and text cursors. On by default; set `cursor: fals
 
 - **`defaultCursors`**: the default cursors, the module's fire images unless you set your own. They show with `themed: false`, in browsers that can't load the drawn cursors and for themes without a `primary`.
 - **`themed`** (on by default): draws each cursor as an SVG in the active color theme's `primary`, so it changes along with the theme. Custom themes get one too, with nothing to draw. A light variant is drawn in the lighter tone of its dark sibling (without one, its own hue lifted to a light tone), so the cursor is as light in both modes.
+- **The hands** show over elements marked `draggable="true"` (closed while held), Vuetify's draggable components and the `cursor-grab`/`cursor-grabbing` classes. The module's fire images have no hands, so on a theme set to `'base'` (Venix) they are drawn in its color, unless you add `grab` and `grabbing` images to `defaultCursors` (or set `themed: false`, for the system's). During a native drag and drop the browser picks the cursor.
 - **`themeCursors`**: the cursor of a single color theme, by theme name (both modes) or variant id (just that one, which wins over the theme name). It is merged with the module's own entry, `venix: 'base'`, which keeps the Venix theme on the default cursors.
 
 <p align="center">
@@ -532,7 +533,7 @@ Replaces the default, pointer and text cursors. On by default; set `cursor: fals
 
 | `themeCursors` value | Cursor shown |
 | --- | --- |
-| `'base'` | the `defaultCursors` (the module's fire cursors, unless you set your own) |
+| `'base'` | the `defaultCursors` (the module's fire cursors, unless you set your own); a hand without an image is drawn |
 | `'themed'` | drawn in the theme's `primary` (light variants, in the dark sibling's tone) |
 | `'none'` | no custom cursor: the operating system's own |
 | `{ pointer: { path, hotspot } }` | its own images; the cursors left out show as if the theme had no entry |
@@ -569,9 +570,11 @@ The custom cursor is set on `<html>` and reaches the rest of the page by inherit
 .my-clickable { cursor: var(--cursor-pointer); }
 .my-readonly  { cursor: var(--cursor-default); }
 .my-editor    { cursor: var(--cursor-text); }
+.my-card      { cursor: var(--cursor-grab); }
+.my-card:active { cursor: var(--cursor-grabbing); }
 ```
 
-They follow the color theme and switch to the system's cursors when the visitor turns the custom cursor off. The utility classes `cursor-default`, `cursor-pointer` and `cursor-text` (Vuetify's, and UnoCSS's with the [UnoCSS preset](#unocss-preset)) use them too.
+They follow the color theme and switch to the system's cursors when the visitor turns the custom cursor off. The utility classes `cursor-default`, `cursor-pointer`, `cursor-text`, `cursor-grab` and `cursor-grabbing` (Vuetify's, and UnoCSS's with the [UnoCSS preset](#unocss-preset)) use them too.
 
 The module already gives the variables to what browsers and Vuetify 4 style with a fixed cursor: links, buttons, form fields, and Vuetify's clickable components (table rows with `@click:row`, sortable headers, `v-card` with `hover`, chip close buttons, `v-select`, switches, sliders, menu activators and so on). Its CSS is outside any `@layer`, so it wins over Vuetify's, which is layered, without `!important`. Your own rules (outside a layer, too) still win over it when they are more specific. For a table with `@click:row` where only some rows do something:
 

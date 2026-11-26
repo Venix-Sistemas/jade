@@ -56,12 +56,14 @@ describe('venixUnoPreset', () => {
     expect(source).not.toMatch(/utils\/scale|leonardo|css\/tokens/i)
   })
 
-  it('deve levar cursor-default/pointer/text às variáveis do cursor, com o do sistema como reserva', () => {
+  it('deve levar as classes de cursor às variáveis do cursor, com o do sistema como reserva', () => {
     const preset = venixUnoPreset()
     expect(preset.rules.filter(([name]) => name.startsWith('cursor-'))).toEqual([
       ['cursor-default', { cursor: 'var(--cursor-default, default)' }],
       ['cursor-pointer', { cursor: 'var(--cursor-pointer, pointer)' }],
       ['cursor-text', { cursor: 'var(--cursor-text, text)' }],
+      ['cursor-grab', { cursor: 'var(--cursor-grab, grab)' }],
+      ['cursor-grabbing', { cursor: 'var(--cursor-grabbing, grabbing)' }],
     ])
     // Depois do presetWind/presetUno, cujas regras de mesmo nome substitui
     expect(preset.enforce).toBe('post')

@@ -1,5 +1,5 @@
-/** The cursors the module replaces. */
-export type CursorType = 'default' | 'pointer' | 'text'
+/** The cursors the module replaces. `grab` is the open hand over what can be moved, `grabbing` the closed one while moving it. */
+export type CursorType = 'default' | 'pointer' | 'text' | 'grab' | 'grabbing'
 
 export interface CursorImage {
   /** Image served from `public/`. */
@@ -13,7 +13,8 @@ export interface CursorImage {
  * - `'themed'`: drawn in the theme's `primary` (a light variant draws in the
  *   lighter tone of its dark sibling)
  * - `'base'`: the `defaultCursors` images (the module's fire cursors, unless
- *   the project set its own)
+ *   the project set its own); a hand (`grab`, `grabbing`) without an image is
+ *   drawn in the theme's color, unless `themed` is `false`
  * - `'none'`: no custom cursor, the operating system's own
  * - an object: its own images; a cursor it leaves out is shown as if the
  *   theme had no entry

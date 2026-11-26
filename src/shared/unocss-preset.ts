@@ -28,7 +28,7 @@ export interface VenixUnoPresetOptions {
   tokens?: boolean
 }
 
-const CURSOR_TYPES = ['default', 'pointer', 'text'] as const
+const CURSOR_TYPES = ['default', 'pointer', 'text', 'grab', 'grabbing'] as const
 
 /**
  * What a token's first word says it is for, and the CSS property that sets:

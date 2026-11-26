@@ -8,6 +8,9 @@ import { hexToOklab } from '../../src/shared/utils/oklab'
 import { customizeTheme } from '../../src/setup/customize-theme'
 import type { CursorConfig } from '../../src/shared/types'
 
+/** O bloco de quem usa os cursores do sistema operacional. */
+const SYSTEM_CURSORS = `${['default', 'pointer', 'text', 'grab', 'grabbing'].map(type => `\n  --cursor-${type}: ${type};`).join('')}\n`
+
 describe('processTheme', () => {
   // Sem bold (o padrão das variantes claras): a camada que o escopo põe sobre a scrollbar é testada em `bold.test.ts`
   const theme = loadTheme()
@@ -270,10 +273,19 @@ describe('generateCustomCursorCSS', () => {
     expect(css.indexOf('/* 5.')).toBeGreaterThan(css.indexOf('/* 3.'))
   })
 
-  it('deve manter as imagens no tema Venix, nas duas variantes', () => {
+  it('deve manter as imagens no tema Venix, nas duas variantes, desenhando só as mãos que não têm imagem', () => {
     const css = generateCustomCursorCSS(theme)
-    expect(block(css, 'dark')).toBeUndefined()
-    expect(block(css, 'light')).toBeUndefined()
+    for (const id of ['dark', 'light']) {
+      expect([...block(css, id)!.matchAll(/--cursor-(\w+):/g)].map(match => match[1])).toEqual(['grab', 'grabbing'])
+      expect(block(css, id)).toMatch(/--cursor-grab: url\("data:image\/svg\+xml,/)
+    }
+  })
+
+  it('não deve desenhar as mãos quando há imagem para elas, nem com themed: false', () => {
+    const own = withCursor({ defaultCursors: { ...theme.customCursor.defaultCursors, grab: { path: '/mao.png' }, grabbing: { path: '/punho.png' } } })
+    expect(block(own, 'dark')).toBeUndefined()
+    expect(own).toContain('--cursor-grab: url(\'/mao.png\'), grab;')
+    expect(withCursor({ themed: false })).not.toContain('data:image/svg+xml')
   })
 
   it('não deve desenhar cursores com themed: false', () => {
@@ -291,13 +303,13 @@ describe('generateCustomCursorCSS', () => {
 
   it('deve usar os cursores do sistema operacional com \'none\'', () => {
     const css = withCursor({ themeCursors: { natal: 'none' } })
-    expect(block(css, 'natal')).toBe('\n  --cursor-default: default;\n  --cursor-pointer: pointer;\n  --cursor-text: text;\n')
+    expect(block(css, 'natal')).toBe(SYSTEM_CURSORS)
   })
 
   it('deve voltar aos cursores do sistema quando o visitante desliga o cursor, depois dos blocos de tema', () => {
     const css = generateCustomCursorCSS(theme)
     const off = css.match(/:root\[data-venix-cursor='off'\] \{([^}]*)\}/)?.[1]
-    expect(off).toBe('\n  --cursor-default: default;\n  --cursor-pointer: pointer;\n  --cursor-text: text;\n')
+    expect(off).toBe(SYSTEM_CURSORS)
     // Mesma especificidade de `:root[data-theme='…']`: vence por vir depois
     expect(css.indexOf('data-venix-cursor')).toBeGreaterThan(css.lastIndexOf(':root[data-theme='))
   })
@@ -324,11 +336,31 @@ describe('generateCustomCursorCSS', () => {
   })
 })
 
-describe('cursor desenhado no tema claro', () => {
+describe('cursores de arrastar e tom no claro', () => {
   const theme = loadTheme()
   theme.customCursor = { ...theme.customCursor, enabled: true }
   const css = generateCustomCursorCSS(theme)
-  const fill = (id: string) => css.match(new RegExp(`:root\\[data-theme='${id}'\\] \\{[^}]*?fill='%23([\\dA-F]{6})'`, 'i'))?.[1]
+  const value = (id: string, type: string) => css.match(new RegExp(`:root\\[data-theme='${id}'\\] \\{[^}]*--cursor-${type}: ([^\n]*);`))?.[1]
+  const fill = (id: string) => value(id, 'default')?.match(/fill='%23([\dA-F]{6})'/i)?.[1]
+
+  it('deve desenhar as mãos aberta e fechada, com o do sistema como reserva', () => {
+    for (const type of ['grab', 'grabbing']) {
+      expect(value('natal', type)).toMatch(new RegExp(`^url\\("data:image/svg\\+xml,[^"]+"\\) \\d+ \\d+, ${type}$`))
+      expect(css).toContain(`  --cursor-${type}: ${type};`)
+      expect(css).toContain(`html .cursor-${type} {\n  cursor: var(--cursor-${type});\n}`)
+    }
+    expect(value('natal', 'grab')).not.toBe(value('natal', 'grabbing'))
+  })
+
+  it('deve mostrar a mão sobre o que se arrasta, e a fechada enquanto segura', () => {
+    expect(css).toMatch(/\[draggable="true"\],[^{]*\{\n {2}cursor: var\(--cursor-grab\);/)
+    expect(css).toMatch(/\[draggable="true"\]:active,[^{]*\{\n {2}cursor: var\(--cursor-grabbing\);/)
+    expect(css.indexOf('/* 3d.')).toBeGreaterThan(css.indexOf('/* 3c.'))
+  })
+
+  it('deve desenhar as mãos do Venix claro no tom do escuro', () => {
+    expect(value('light', 'grab')).toBe(value('dark', 'grab'))
+  })
 
   it('deve desenhar o cursor do claro no mesmo tom do escuro', () => {
     for (const [light, dark] of [['natal-light', 'natal'], ['halloween-light', 'halloween']] as const) {

@@ -30,6 +30,19 @@ const SHAPES: Record<CursorType, CursorShape> = {
     hotspot: '16 16',
     shape: `<path d='M11 3h10a1 1 0 0 1 0 3h-3.5v20H21a1 1 0 0 1 0 3H11a1 1 0 0 1 0-3h3.5V6H11a1 1 0 0 1 0-3z'/>`,
   },
+  // The open hand: four fingers up, the middle one tallest, the thumb out to
+  // the left. Same palm and finger width as the pointer.
+  grab: {
+    hotspot: '16 15',
+    shape: `<path d='M9 17V8.5c0-1.3.9-2.2 2-2.2s2 .9 2 2.2V14V5.2C13 3.9 13.9 3 15 3s2 .9 2 2.2V14V7c0-1.3.9-2.2 2-2.2s2 .9 2 2.2v8v-4.8c0-1.3.9-2.2 2-2.2s2 .9 2 2.2V21c0 5-3 8-8 8h-1c-3 0-5-1.2-6.5-3.5l-5.7-6c-.8-1.2-.6-2.6.4-3.2 1.1-.6 2.4-.2 3.2.9L9 19.5z'/>`,
+    details: `<path d='M13 9.5V15M17 8.5V15M21 11v4.5'/>`,
+  },
+  // The same hand closed: the fingers folded down to a row of knuckles.
+  grabbing: {
+    hotspot: '16 17',
+    shape: `<path d='M9 17.5v-4.3c0-1.3.9-2.2 2-2.2s2 .9 2 2.2c0-1.3.9-2.2 2-2.2s2 .9 2 2.2c0-1.1.9-1.9 2-1.9s2 .9 2 2.2c.2-1 1-1.6 2-1.6 1.1 0 2 .9 2 2.2V21c0 5-3 8-8 8h-1c-3 0-5-1.2-6.5-3.5l-2-3.5c-1-1.7-.7-4 .8-4.8.8-.4 1.6-.2 2.7.8z'/>`,
+    details: `<path d='M13 13.5v3.8M17 13.5v3.8M21 14v3.3'/>`,
+  },
 }
 
 // Shown size, in pixels: about the height of the fire cursors (26×26), so
