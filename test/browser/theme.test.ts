@@ -142,6 +142,7 @@ describe('theme in a browser', async () => {
       const page = await open('2026-12-26T23:59:50')
       expect(await dataTheme(page)).toMatch(/^natal/)
 
+      await page.waitForLoadState('networkidle')
       await page.clock.runFor(20_000)
       await page.waitForFunction(() => !document.documentElement.dataset.theme?.startsWith('natal'))
     })
