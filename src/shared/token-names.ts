@@ -108,13 +108,16 @@ export function surfacesOf(entry: { dark?: boolean, neutralTint?: boolean | 'viv
 }
 
 /**
- * How the neutral tokens are tinted, from the variant's `surfaces` (which wins)
- * or its `neutralTint`: `true` leans slightly toward the primary's hue, `false`
- * is plain gray, `'vivid'` takes the hue at a clearly visible strength.
+ * How the neutral tokens are tinted: `true` leans slightly toward the primary's
+ * hue, `false` is plain gray, `'vivid'` takes the hue at a clearly visible
+ * strength. `surfaces` `'soft'` and `'vivid'` say it themselves; with `'bold'`
+ * it is the `neutralTint` set, else `'vivid'`; without `surfaces`, the
+ * `neutralTint`, else `true`.
  */
 export function neutralTintOf(entry: Parameters<typeof surfacesOf>[0]): boolean | 'vivid' {
   const surfaces = surfacesOf(entry)
-  if (surfaces === 'vivid' || surfaces === 'bold') return 'vivid'
+  if (surfaces === 'bold') return entry.neutralTint ?? 'vivid'
+  if (surfaces === 'vivid') return 'vivid'
   if (surfaces === 'soft') return true
   return entry.neutralTint ?? true
 }

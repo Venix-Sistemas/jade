@@ -126,6 +126,11 @@ describe('surfaces e neutralTint', () => {
     expect(page({ ...GREEN, surfaces: 'soft', neutralTint: false })).toEqual(page({ ...GREEN, surfaces: undefined, neutralTint: true }))
   })
 
+  it.each([false, true, 'vivid'] as const)('com `surfaces: "bold"`, deve deixar a página no `neutralTint: %s` definido', (neutralTint) => {
+    expect(page({ ...GREEN, neutralTint })).toEqual(page({ ...GREEN, surfaces: undefined, neutralTint }))
+    expect(generateBoldSurface({ ...GREEN, neutralTint })).toEqual(generateBoldSurface(GREEN))
+  })
+
   it('deve levar `surfaces` do tema para as variantes', () => {
     const light = { primary: '#2D900C', background: '#FFFFFF' }
     const { themes } = normalizeColorThemes({ t: { tokens: true, surfaces: 'bold', light, dark: { primary: '#4CAF50', background: '#121212' } } })

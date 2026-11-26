@@ -317,11 +317,11 @@ color: {
 }
 ```
 
-<a id="surfaces"></a>**Surfaces: how much of the page is the brand's.** `surfaces` is a preference with three levels: `'soft'` (the subtle tint), `'vivid'` (the colorful neutrals above, same as `neutralTint: 'vivid'`) and `'bold'`, for a client who wants the brand color on a big part of the page (a side menu, a header, some cards) instead of white or black everywhere. It wins over `neutralTint`.
+<a id="surfaces"></a>**Surfaces: how much of the page is the brand's.** `surfaces` is a preference with three levels: `'soft'` (the subtle tint), `'vivid'` (the colorful neutrals above, same as `neutralTint: 'vivid'`) and `'bold'`, for a client who wants the brand color on a big part of the page (a side menu, a header, some cards) instead of white or black everywhere. `'soft'` and `'vivid'` win over `neutralTint`; `'bold'` takes the page's neutrals from a `neutralTint` that is set, and uses the vivid ones otherwise, so `surfaces: 'bold'` with `neutralTint: false` is brand panels on a gray page.
 
 **The default depends on the mode:** a light variant is `'bold'`, a dark one is not (it keeps the subtle tint). Set it on the theme for both variants, or inside `light`/`dark` for one of them, which wins. A light variant that sets `neutralTint` and no `surfaces` follows its `neutralTint` and is not bold.
 
-`'bold'` is `'vivid'` for the page plus a **scope**. Inside an element with `data-jade-surface="bold"` the tokens are redefined on a deep tone of `primary`, so what you put in it adapts by itself:
+`'bold'` is `'vivid'` for the page (unless `neutralTint` says otherwise) plus a **scope**. Inside an element with `data-jade-surface="bold"` the tokens are redefined on a deep tone of `primary`, so what you put in it adapts by itself:
 
 ```vue
 <aside data-jade-surface="bold">

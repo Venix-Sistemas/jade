@@ -103,7 +103,7 @@ export interface ThemeMeta {
    * - `'vivid'`: `neutralTint: 'vivid'`. The page stays as the `background`;
    *   cards, borders and text take the hue of `primary` at a visible strength.
    * - `'bold'` (default of a light variant that sets no `neutralTint`):
-   *   `'vivid'` plus a **scope** for areas painted in the brand
+   *   `'vivid'` (or the `neutralTint` set) plus a **scope** for areas painted in the brand
    *   color (a side menu, a header, some cards). Inside an element with
    *   `data-jade-surface="bold"` the neutral and role tokens (`--jade-bg`,
    *   `--jade-text`, `--jade-fill-primary`…) are redefined on a deep tone of
@@ -113,7 +113,8 @@ export interface ThemeMeta {
    *   registers a `<variant>-bold` theme for `<v-navigation-drawer theme>`,
    *   `<v-card theme>`… The page itself is not painted: you choose where.
    *
-   * When set, it wins over `neutralTint`.
+   * `'soft'` and `'vivid'` win over `neutralTint`; with `'bold'`, a `neutralTint`
+   * that is set still chooses the page's neutrals.
    */
   surfaces?: ThemeSurfaces
   /**
