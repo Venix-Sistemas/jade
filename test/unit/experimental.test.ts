@@ -70,9 +70,10 @@ describe('tokens padrão × Vuetify', () => {
     expect([...customize().colors.defaultTokens ?? []].sort()).toEqual([...BUILT_IN].sort())
   })
 
-  it('não deve dar ao Vuetify as cores dos tokens padrão (continua escolhendo o texto do primary)', () => {
+  it('não deve dar ao Vuetify as superfícies dos tokens padrão, só o texto sobre as cores', () => {
     const vuetify = buildVuetifyThemes(customize().colors)
-    expect(vuetify.light?.colors['on-primary']).toBeUndefined()
+    expect(vuetify.light?.colors['on-primary']).toBe('#FFFFFF')
+    expect(vuetify.dark?.colors['on-primary']).toBe('#000000')
     expect(vuetify.dark?.colors['on-surface']).toBeUndefined()
     // (os temas `-bold` do escopo são novos: não mudam nenhum dos que já existiam)
     const withoutBold = Object.fromEntries(Object.entries(vuetify).filter(([name]) => !name.endsWith('-bold')))
@@ -83,15 +84,15 @@ describe('tokens padrão × Vuetify', () => {
   it('deve dar ao Vuetify as cores dos tokens que o projeto ligou no próprio tema', () => {
     const theme = customize({ color: { themes: { own: { ...OWN, tokens: true } } } })
     expect(theme.colors.defaultTokens).not.toContain('own-light')
-    expect(buildVuetifyThemes(theme.colors)['own-light']?.colors['on-primary']).toBeDefined()
+    expect(buildVuetifyThemes(theme.colors)['own-light']?.colors['on-surface']).toBeDefined()
   })
 
   it('deve dar ao Vuetify as cores dos tokens de um tema embutido em que o projeto mexeu em `tokens`', () => {
     const theme = customize({ color: { themes: { natal: { tokens: { 'bg-subtle': 'neutral-3' } } } } })
     expect(theme.colors.defaultTokens).not.toContain('natal-light')
     expect(theme.colors.defaultTokens).not.toContain('natal')
-    expect(buildVuetifyThemes(theme.colors).natal?.colors['on-primary']).toBeDefined()
-    expect(buildVuetifyThemes(theme.colors)['halloween-light']?.colors['on-primary']).toBeUndefined()
+    expect(buildVuetifyThemes(theme.colors).natal?.colors['on-surface']).toBeDefined()
+    expect(buildVuetifyThemes(theme.colors)['halloween-light']?.colors['on-surface']).toBeUndefined()
   })
 
   it('deixa de fora um tema embutido com `tokens: false`', () => {
@@ -133,7 +134,7 @@ describe('experimental', () => {
   it('pede os tokens em todo lugar: nada é "padrão do módulo", e o Vuetify recebe as cores de todos', () => {
     const theme = customize({ experimental: true })
     expect(theme.colors.defaultTokens).toBeUndefined()
-    expect(buildVuetifyThemes(theme.colors).light?.colors['on-primary']).toBeDefined()
+    expect(buildVuetifyThemes(theme.colors).light?.colors['on-surface']).toBeDefined()
   })
 
   it('não faz nada com as cores desligadas', () => {

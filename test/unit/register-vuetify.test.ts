@@ -18,11 +18,11 @@ const FLAT: ThemeColors = { dark: false, primary: '#FF0000', secondary: '#FF8800
 const TOKENS: ThemeColors = { dark: false, tokens: true, primary: '#FF0000', secondary: '#FF8800', background: '#FAFAFA' }
 
 describe('buildVuetifyThemes', () => {
-  it('deve manter os temas sem tokens como estavam', () => {
+  it('deve manter as cores dos temas sem tokens, com o texto legível sobre elas', () => {
     expect(buildVuetifyThemes(colors({ flat: FLAT }))).toEqual({
       flat: {
         dark: false,
-        colors: { primary: '#FF0000', secondary: '#FF8800', background: '#FAFAFA', background2: '#EEEEEE', surface: '#EEEEEE', inverse: '#000000' },
+        colors: { 'primary': '#FF0000', 'secondary': '#FF8800', 'background': '#FAFAFA', 'background2': '#EEEEEE', 'surface': '#EEEEEE', 'inverse': '#000000', 'on-primary': '#000000', 'on-secondary': '#000000' },
       },
     })
   })
@@ -34,14 +34,17 @@ describe('buildVuetifyThemes', () => {
     expect(contrastRatio(theme.colors['on-primary']!, theme.colors.primary!)).toBeGreaterThan(5)
   })
 
-  it('não deve dar ao Vuetify o on-<cor> de accent e dos papéis de status: ele segue escolhendo o texto sobre essas cores', () => {
-    const full: ThemeColors = { ...TOKENS, accent: '#82B1FF', error: '#FF5252', info: '#2196F3', success: '#4CAF50', warning: '#FCCF3D' }
+  it.each([['com', TOKENS], ['sem', FLAT]] as const)('deve dar o texto legível sobre todas as cores, num tema %s tokens', (_label, base) => {
+    const full: ThemeColors = { ...base, accent: '#82B1FF', error: '#B00020', info: '#2196F3', success: '#4CAF50', warning: '#FCCF3D' }
     const theme = buildVuetifyThemes(colors({ t: full })).t!
-    for (const role of ['accent', 'error', 'info', 'success', 'warning']) {
-      expect(theme.colors[role], role).toBe(full[role as 'accent'])
-      expect(theme.colors[`on-${role}`], `on-${role}`).toBeUndefined()
+    for (const role of ['primary', 'secondary', 'accent', 'error', 'info', 'success', 'warning'] as const) {
+      expect(theme.colors[role], role).toBe(full[role])
+      expect(contrastRatio(theme.colors[`on-${role}`]!, theme.colors[role]!), role).toBeGreaterThanOrEqual(4.5)
     }
-    expect(theme.colors['on-primary']).toBe('#000000')
+    // O mesmo que os tokens `on-<cor>`
+    const tokens = Object.fromEntries(generateTokens({ ...full, tokens: true }))
+    expect(theme.colors['on-error']).toBe(tokens['on-error'])
+    expect(theme.colors['on-error']).toBe('#FFFFFF')
   })
 
   it('não deve dar ao Vuetify o on-secondary de um secondary derivado: não há cor secondary para ele', () => {

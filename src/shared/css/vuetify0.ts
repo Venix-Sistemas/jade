@@ -1,13 +1,9 @@
 // src/shared/css/vuetify0.ts
 import type { ThemeColors } from '../types'
-import { contrastRatio } from '../utils/contrast'
+import { onColor } from '../utils/contrast'
 import { tokensEnabled, TOKEN_ROLES as ROLES } from '../token-names'
 
 const HEX = /^#(?:[\da-f]{3}|[\da-f]{6})$/i
-
-/** Black or white, whichever reads better over `color`. */
-const onColor = (color: string): string =>
-  contrastRatio('#000000', color) >= contrastRatio('#FFFFFF', color) ? '#000000' : '#FFFFFF'
 
 /**
  * The colors of a variant under Vuetify0's names (`--v0-primary`,

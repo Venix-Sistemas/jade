@@ -6,15 +6,10 @@ import type { ThemeConfig, ColorsConfig, ContrastLevel, ThemeColors } from '../s
 import { isColorTheme, getThemeHexColors } from '../shared/utils/theme-resolve'
 import { generateTokens } from '../shared/css/tokens'
 import { generateBoldSurface } from '../shared/css/bold'
-import { tokensEnabled } from '../shared/token-names'
+import { onColor } from '../shared/utils/contrast'
+import { TOKEN_ROLES, tokensEnabled } from '../shared/token-names'
 
-/**
- * The roles whose `on-<role>` Vuetify takes from the tokens. The other token
- * roles (`accent`, `error`, `info`, `success`, `warning`) are not handed over
- * yet: Vuetify keeps choosing the text color on its own status colors, so a
- * `v-alert` or `v-btn color="error"` looks as it did before the roles existed.
- */
-const VUETIFY_TOKEN_ROLES = ['primary', 'secondary'] as const
+const HEX = /^#(?:[\da-f]{3}|[\da-f]{6})$/i
 
 interface VuetifyThemeDefinition {
   dark: boolean
@@ -33,24 +28,27 @@ interface VuetifyRegisterModuleConfig {
 type RegisterModuleFn = (config: VuetifyRegisterModuleConfig) => void
 
 /**
- * What a token theme (`tokens: true`) gives Vuetify besides its seeds. Vuetify
- * picks the text color on `primary`/`secondary` itself (white or black by
- * its own contrast model, which can disagree with WCAG: it prefers white on
- * the Venix red, 4.0:1), and accepts an `on-<color>` entry as an override, so
- * the generated `on` tokens go in. Surfaces and their text follow the tokens
- * too: `surface` is `bg-subtle` (unless the theme sets `background2`), and
- * `on-background` / `on-surface` are the main `text`.
+ * The text color of every brand and status color the theme sets (`on-primary`,
+ * `on-success`…): black or white, whichever reads better over it, the same as
+ * the `on-<role>` tokens. Left to itself, Vuetify picks by its own contrast
+ * model, which puts white on a bright orange (2.4:1).
  */
-function tokenColorsForVuetify(themeColors: ThemeColors, level: ContrastLevel, hasBackground2: boolean): Record<string, string> {
+function onColorsForVuetify(themeColors: ThemeColors): Record<string, string> {
+  return Object.fromEntries(TOKEN_ROLES.flatMap((role) => {
+    const color = themeColors[role]
+    return color && HEX.test(color) ? [[`on-${role}`, onColor(color)]] : []
+  }))
+}
+
+/**
+ * The surfaces of a token theme (`tokens: true`) for Vuetify: `surface` is
+ * `bg-subtle` (unless the theme sets `background2`), and `on-background` /
+ * `on-surface` are the main `text`.
+ */
+function tokenSurfacesForVuetify(themeColors: ThemeColors, level: ContrastLevel, hasBackground2: boolean): Record<string, string> {
   const tokens = Object.fromEntries(generateTokens(themeColors, level))
   const colors: Record<string, string> = {}
 
-  // Only for a seed the theme sets: Vuetify has no `secondary` color to put an
-  // `on-secondary` on when the role was derived for the tokens.
-  for (const role of VUETIFY_TOKEN_ROLES) {
-    const on = tokens[`on-${role}`]
-    if (on && themeColors[role]) colors[`on-${role}`] = on
-  }
   if (tokens['bg-subtle'] && !hasBackground2) colors.surface = tokens['bg-subtle']
   if (tokens.text) {
     colors['on-background'] = tokens.text
@@ -69,7 +67,7 @@ function boldVuetifyColors(base: Record<string, string>, tokens: Record<string, 
   colors['on-surface'] = colors['on-background']
   colors.inverse = tokens.bg ?? base.inverse ?? '#000000'
 
-  for (const role of ['primary', 'secondary'] as const) {
+  for (const role of TOKEN_ROLES) {
     if (!themeColors[role]) continue
     const fill = tokens[`fill-${role}`]
     const on = tokens[`on-${role}`]
@@ -98,9 +96,11 @@ export function buildVuetifyThemes(colors: ColorsConfig): Record<string, Vuetify
     if (themeColors.background2) vuetifyColors.surface = themeColors.background2
     vuetifyColors.inverse = isDark ? '#FFFFFF' : '#000000'
 
-    // (Not for the module's own default tokens on its built-in themes: in 1.x
-    // Vuetify keeps picking its own text color on `primary`, see `defaultTokens`.)
-    if (tokensEnabled(themeColors) && !colors.defaultTokens?.includes(name)) Object.assign(vuetifyColors, tokenColorsForVuetify(themeColors, colors.contrast || 'AA', !!themeColors.background2))
+    // Legible text on every colored component, on every theme
+    Object.assign(vuetifyColors, onColorsForVuetify(themeColors))
+    // (The surfaces not for the module's own default tokens on its built-in
+    // themes: in 1.x Vuetify keeps theirs, see `defaultTokens`.)
+    if (tokensEnabled(themeColors) && !colors.defaultTokens?.includes(name)) Object.assign(vuetifyColors, tokenSurfacesForVuetify(themeColors, colors.contrast || 'AA', !!themeColors.background2))
 
     themes[name] = { dark: isDark, colors: vuetifyColors }
 

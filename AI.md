@@ -58,6 +58,15 @@ custom property that reads a token (`--title: var(--jade-text)`) must be declare
 .field { background: var(--jade-bg); border: 1px solid var(--jade-border-strong); color: var(--jade-text); }
 ```
 
+## With Vuetify
+
+Jade gives every theme a legible text color for each color (`on-primary`, `on-success`…), so:
+
+- Colored components are filled: `variant="flat"` (or the default `elevated`). `outlined`,
+  `text` and `plain` write in the color itself, which is not readable on every theme.
+- Don't set a text color on a colored component: leave it to Vuetify.
+- Vuetify fades a field's label; if the audit flags it, give it `opacity: 1` and keep its color.
+
 ## Before you finish
 
 ```bash

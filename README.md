@@ -434,7 +434,7 @@ A warning usually means the seed itself can't get there, not that the scale is w
 - **CSS:** in the variant's `[data-jade-theme]` block, after the usual variables.
 - **`useJade().tokens`:** `all` (every variant's tokens by `data-jade-theme` id), `current` (the applied theme's, `undefined` when it has none) and `cssVar('text-primary')` → `'var(--jade-text-primary)'`. See [`useJade()`](#usevenixtheme).
 - **UnoCSS:** one class per token, with the `jade-` prefix: `jade-bg-subtle`, `jade-text-muted`, `jade-fill-primary`. See [UnoCSS preset](#unocss-preset).
-- **Vuetify:** `on-primary`, `on-secondary`, `surface`, `on-surface` and `on-background`. See [Vuetify](#vuetify).
+- **Vuetify:** `surface`, `on-surface` and `on-background` (the text on the colors goes to every theme, with or without tokens). See [Vuetify](#vuetify).
 - **Not in `<JadeThemeSwitcher>`:** it never takes theme colors, with or without tokens (see [Theme switcher](#theme-switcher)).
 
 **High contrast.** `color.highContrast: true` (experimental, off by default) also writes the AAA version of every token that changes, per variant, inside `@media (prefers-contrast: more)`: visitors who ask their system for more contrast get text at 7:1 with no setting on the site. With the built-in themes it adds about 7 kB of CSS (before compression) and under a second to the build. Seeds don't change (`fill-*` stays the exact seed), and a pair that can't reach 7:1 with black or white (`on-*` on a mid-tone seed) keeps the best the scale can do, with no build warning. The CSS variables follow the preference; `useJade().tokens` keeps reporting the regular values. There is nothing to add when `color.contrast` is already `'AAA'`.
@@ -447,7 +447,7 @@ Venix and the four seasonal themes ship with `tokens: true`, **next to** the old
 
 Two things are left as they were for projects that already exist:
 
-- **Vuetify.** The tokens of the built-in themes don't feed Vuetify's colors in 1.x: it keeps picking its own text color on `primary`, so buttons don't change. A theme you set `tokens` on yourself does feed it, with `on-primary` and `on-secondary` only: Vuetify keeps choosing the text color on its own `error`, `success`, `warning` and `info`, so `v-alert` and `v-btn color="error"` look as before.
+- **Vuetify's surfaces.** The tokens of the built-in themes don't feed Vuetify's `surface` and `on-surface` in 1.x. The text on the colors is another matter: every theme gives Vuetify a legible `on-*` for each of them.
 - **The build's contrast check.** It skips the built-in themes: at `'AAA'` some of their seeds can't reach 7:1, and that isn't yours to fix.
 
 Your own themes opt in per theme with `tokens`. To get the tokens on all of them at once, turn on the `experimental` option. It's **off by default**:
@@ -1117,7 +1117,8 @@ export default defineNuxtConfig({
 
 - **Order matters:** the themes are registered through Vuetify's [`vuetify:registerModule`](https://nuxt.vuetifyjs.com/guide/advanced/layers-and-hooks.html) hook, which only sees modules listed before Vuetify.
 - **Real colors:** Vuetify computes contrast and `on-*` colors in JavaScript, so it receives the actual hex values, not `var(...)`. `background2` also fills Vuetify's `surface` slot (cards, toolbars, …).
-- **Semantic tokens** (experimental): a theme you set `tokens: true` on (or every theme, with `experimental`) also gives Vuetify `on-primary` and `on-secondary` (it would otherwise pick its own, which prefers white on the Venix red, 4.0:1), `surface` from `bg-subtle` (unless the theme sets `background2`), and `on-surface` and `on-background` from `text`. The built-in themes carry tokens of their own, but in 1.x those stay out of Vuetify, so its colors don't change under existing projects. See [Semantic tokens](#semantic-tokens-experimental).
+- **Text on colors:** every theme gives Vuetify an `on-*` for each brand and status color it sets (`on-primary`, `on-success`, `on-warning`…): black or white, whichever reads better, so a filled `v-btn`, `v-chip` or `v-alert` is legible. Left to itself, Vuetify puts white on a bright orange (2.4:1).
+- **Semantic tokens** (experimental): a theme you set `tokens: true` on (or every theme, with `experimental`) also gives Vuetify `surface` from `bg-subtle` (unless the theme sets `background2`), and `on-surface` and `on-background` from `text`. The built-in themes carry tokens of their own, but in 1.x their surfaces stay out of Vuetify. See [Semantic tokens](#semantic-tokens-experimental).
 - **Your values win:** anything you set in `vuetify.vuetifyOptions.theme.themes` is merged per color on top of the generated themes.
 - **Always in sync:** a small runtime plugin starts Vuetify on the same theme the page gets (so the first paint is right, with or without SSR) and applies every later switch with `theme.change()`, inside the same View Transition as the rest of the page.
 - **No flash in SPA mode** (`ssr: false`): Vuetify's theme stylesheet only reaches the DOM after the first render there, so the plugin writes a temporary copy into `<head>` before mount and removes it once Vuetify's own arrives.

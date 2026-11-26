@@ -205,9 +205,9 @@ export interface ColorsConfig {
   /**
    * The variants (ids in `themes`) whose tokens are the module's own default
    * for its built-in themes, not something the project asked for with
-   * `tokens` or `experimental`. In 1.x Vuetify leaves their colors alone, so
-   * its text on `primary` and its surfaces don't change under existing
-   * projects, and the build doesn't warn about their contrast. Build time
+   * `tokens` or `experimental`. In 1.x Vuetify keeps its own surfaces on them,
+   * so those don't change under existing projects, and the build doesn't warn
+   * about their contrast. Build time
    * only. Removed in 2.0, when the tokens become the only model.
    */
   defaultTokens?: string[]

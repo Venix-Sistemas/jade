@@ -36,6 +36,11 @@ export function relativeLuminance(hex: string): number {
   return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b)
 }
 
+/** Black or white, whichever reads better over `color`: never under 4.58:1. */
+export function onColor(color: string): string {
+  return contrastRatio('#000000', color) >= contrastRatio('#FFFFFF', color) ? '#000000' : '#FFFFFF'
+}
+
 /**
  * WCAG contrast ratio between two hex colors, from 1 to 21. Symmetric: the
  * order of the arguments doesn't matter.
