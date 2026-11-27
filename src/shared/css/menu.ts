@@ -12,8 +12,8 @@ import { vuetify0Vars } from './vuetify0'
 /**
  * The side menu of a theme variant: an element with
  * `data-jade-surface="menu"`. Its `menu` choice says how much brand color it
- * takes: `'faint'`, the page's tone with a trace of `primary` (see
- * `faint-menu.ts`), `'soft'`, a light tone of it (`bg-primary`), or `'bold'`,
+ * takes: `'plain'`, none of it, in grays; `'faint'`, the page's tone with a
+ * trace of `primary` (both in `faint-menu.ts`), `'soft'`, a light tone of it (`bg-primary`), or `'bold'`,
  * the same panel as the bold scope, also on a theme that isn't bold.
  */
 
@@ -49,7 +49,10 @@ export function generateMenuCss(mode: string, colors: ThemeColors, level: Contra
   if (!tokensEnabled(colors)) return ''
   const selector = `${themeSelector(mode, lab, true)} [data-jade-surface='menu']`
   const bold = generateMenuSurface(colors, level)
-  const faint = menuOf(colors) === 'faint' ? generateFaintMenu(colors, level) : null
+  const kind = menuOf(colors)
+  // The panels barely set apart from the page: with a trace of the brand, or none
+  const quiet = (at: ContrastLevel) => kind === 'faint' || kind === 'plain' ? generateFaintMenu(colors, at, kind === 'faint') : null
+  const faint = quiet(level)
   const declare = (tokens: Array<[string, string]>) => tokens.map(([name, value]) => `  --jade-${name}: ${value};`)
   const vars = bold
     ? [
@@ -74,7 +77,7 @@ export function generateMenuCss(mode: string, colors: ThemeColors, level: Contra
   const own = bold?.tokens ?? faint
   if (own && highContrast && level !== 'AAA') {
     const base = new Map(own)
-    const changed = (bold ? generateMenuSurface(colors, 'AAA')?.tokens : generateFaintMenu(colors, 'AAA'))
+    const changed = (bold ? generateMenuSurface(colors, 'AAA')?.tokens : quiet('AAA'))
       ?.filter(([name, value]) => base.get(name) !== value)
       .map(([name, value]) => `    --jade-${name}: ${value};`)
       .join('\n')

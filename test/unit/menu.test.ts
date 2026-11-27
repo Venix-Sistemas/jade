@@ -56,6 +56,30 @@ describe('menu lateral', () => {
     expect(generateFaintMenu({ ...DARK, primary: undefined })).toBeNull()
   })
 
+  it('neutro: sem tom nenhum, só quando o tema pede', () => {
+    const colors: ThemeColors = { ...DARK, menu: 'plain' }
+    const page = Object.fromEntries(generateTokens(colors))
+    const menu = Object.fromEntries(generateFaintMenu(colors, 'AA', false)!)
+    const css = generateMenuCss('dark', colors)
+    for (const name of ['bg', 'bg-hover', 'bg-active', 'bg-primary', 'bg-primary-hover', 'bg-primary-active', 'border']) {
+      expect(chromaOf(menu[name]!), name).toBeLessThan(0.002)
+      expect(css).toContain(`--jade-${name}: ${menu[name]};`)
+    }
+    expect(contrastRatio(menu.bg!, page.bg!)).toBeLessThan(1.1)
+    expect(generateMenuSurface(colors)).toBeNull()
+    // não depende do primary, e nunca é o padrão
+    expect(generateFaintMenu({ ...colors, primary: undefined }, 'AA', false)).not.toBeNull()
+    for (const variant of [DARK, LIGHT, { ...LIGHT, neutralTint: false } as ThemeColors]) expect(menuOf(variant)).not.toBe('plain')
+  })
+
+  it.each(BUILT_IN.flatMap(entry => (['AA', 'AAA'] as const).map(level => [...entry, level] as const)))('neutro em %s: os textos se leem sobre o menu (%s)', (_id, colors, level) => {
+    const menu = new Map([...generateTokens(colors, level), ...generateFaintMenu(colors, level, false)!])
+    const texts = [...menu.keys()].filter(name => /^text(?:-muted|-primary|-secondary|-accent|-error|-info|-success|-warning)?$/.test(name))
+    for (const surface of ['bg', 'bg-hover', 'bg-active', 'bg-primary', 'bg-primary-hover', 'bg-primary-active']) {
+      for (const text of texts) expect(contrastRatio(menu.get(text)!, menu.get(surface)!), `${text} sobre ${surface}`).toBeGreaterThanOrEqual(level === 'AA' ? 4.5 : 7)
+    }
+  })
+
   it('fraco: o alto contraste leva os valores AAA ao prefers-contrast', () => {
     const css = generateMenuCss('dark', DARK, 'AA', true)
     const aaa = Object.fromEntries(generateFaintMenu(DARK, 'AAA')!)
@@ -108,7 +132,7 @@ describe('menu lateral', () => {
     expect(themes['t-dark']).toMatchObject({ menu: 'bold' })
   })
 
-  it.each(['faint', 'soft', 'bold'] as const)('o menu %s escrito na configuração chega à variante', (menu) => {
+  it.each(['plain', 'faint', 'soft', 'bold'] as const)('o menu %s escrito na configuração chega à variante', (menu) => {
     const { themes } = normalizeColorThemes({ t: { tokens: true, dark: { primary: '#FF6B6B', menu } } })
     expect(themes['t-dark']!.menu).toBe(menu)
   })
@@ -122,7 +146,7 @@ describe('menu lateral', () => {
     expect(decodeChoices('light,1,v,d,mx', ['light'])).toEqual({})
   })
 
-  it.each(['faint', 'soft', 'bold'] as const)('o cookie guarda o menu %s', (menu) => {
+  it.each(['plain', 'faint', 'soft', 'bold'] as const)('o cookie guarda o menu %s', (menu) => {
     const encoded = encodeChoices({ dark: { ...choiceOf(DARK), menu } })
     expect(decodeChoices(encoded, ['dark']).dark!.menu).toBe(menu)
   })

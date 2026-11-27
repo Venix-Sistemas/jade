@@ -58,7 +58,7 @@ function tokensFlag(entry: Partial<ThemeEntry>, variant?: ThemeVariant): { token
     ...(typeof neutralTint === 'boolean' || neutralTint === 'vivid' ? { neutralTint } : {}),
     ...(surfaces === 'soft' || surfaces === 'vivid' || surfaces === 'bold' ? { surfaces } : {}),
     ...(borders === 'soft' || borders === 'default' ? { borders } : {}),
-    ...(menu === 'faint' || menu === 'soft' || menu === 'bold' ? { menu } : {}),
+    ...(menu === 'plain' || menu === 'faint' || menu === 'soft' || menu === 'bold' ? { menu } : {}),
   }
   if (!tokensEnabled(entry)) return choices
   const tokens = typeof entry.tokens === 'object' ? { ...entry.tokens } : true as const

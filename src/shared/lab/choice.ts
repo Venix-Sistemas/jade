@@ -81,9 +81,9 @@ export function applyChoice(colors: ThemeColors, choice: LabChoice): ThemeColors
 }
 
 /** How the cookie writes a chosen menu. */
-const MENUS = { mf: 'faint', ms: 'soft', mb: 'bold' } as const
+const MENUS = { mp: 'plain', mf: 'faint', ms: 'soft', mb: 'bold' } as const
 
-/** The cookie: per variant, `id,bold,tint,borders`, `mf`/`ms`/`mb` for a chosen menu and one `position-RRGGBB` per changed color. */
+/** The cookie: per variant, `id,bold,tint,borders`, `mp`/`mf`/`ms`/`mb` for a chosen menu and one `position-RRGGBB` per changed color. */
 export function encodeChoices(choices: LabChoices): string {
   return Object.entries(choices)
     .filter(([id]) => VARIANT_ID.test(id))

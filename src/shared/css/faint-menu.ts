@@ -9,7 +9,8 @@ import { generateTokens } from './tokens'
  * a menu that is barely set apart. The scale steps of `primary` are too
  * colorful for it (step 1 on a dark page is already a saturated red), so its
  * surfaces keep only a little of the primary's chroma, each a set contrast
- * away from the page.
+ * away from the page. The `'plain'` menu is the same panel with no hue at all:
+ * black on a dark page, white on a light one, in grays.
  */
 
 /** OKLab chroma of the surfaces: a trace of the hue. A primary with less keeps its own. */
@@ -46,19 +47,20 @@ function walk(L: number, away: 1 | -1, paint: (L: number) => string, passes: (co
 }
 
 /**
- * The tokens a faint menu redefines, as `[name, hex]` pairs: its surfaces and
+ * The tokens a faint menu (or, with `tint` off, a plain one) redefines, as `[name, hex]` pairs: its surfaces and
  * line, and the texts and field outline moved as far as needed to still read
- * on them at `level`. `null` without a `primary`.
+ * on them at `level`. `null` for a tinted one without a `primary`.
  */
-export function generateFaintMenu(colors: ThemeColors, level: ContrastLevel = 'AA'): Array<[string, string]> | null {
+export function generateFaintMenu(colors: ThemeColors, level: ContrastLevel = 'AA', tint = true): Array<[string, string]> | null {
   const primary = colors.primary
-  if (!primary) return null
+  if (tint && !primary) return null
   const page = new Map(generateTokens(colors, level))
   const background = page.get('bg')!
   const away = colors.dark === true ? 1 : -1
-  const own = chromaOf(primary)
+  const own = tint ? chromaOf(primary!) : 0
 
-  const tinted = (chroma: number) => (L: number) => colorWithHue(L, primary, Math.min(chroma, own)) ?? oklabToHex(L, 0, 0)!
+  const gray = (L: number) => oklabToHex(L, 0, 0)!
+  const tinted = (chroma: number) => (L: number) => own ? colorWithHue(L, primary!, Math.min(chroma, own)) ?? gray(L) : gray(L)
   const surfaces = new Map<string, string>(SURFACES.map(([name, ratio, chroma]) => [
     name,
     walk(hexToOklab(background)[0], away, tinted(chroma), color => contrastRatio(color, background) >= ratio),
