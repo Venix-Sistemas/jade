@@ -1,6 +1,27 @@
 # Changelog
 
 
+## v1.6.1
+
+[compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.6.0...v1.6.1)
+
+### 🚀 Enhancements
+
+- **tokens:** Add a faint side menu, the default on dark themes ([d11378b](https://github.com/Venix-Sistemas/jade/commit/d11378b))
+- **tokens:** Add a plain side menu without brand color ([91fddbe](https://github.com/Venix-Sistemas/jade/commit/91fddbe))
+- **color:** Let a theme tone its page background ([ef4a4ba](https://github.com/Venix-Sistemas/jade/commit/ef4a4ba))
+- **color:** Give the dark Venix vivid neutrals ([cdb6e77](https://github.com/Venix-Sistemas/jade/commit/cdb6e77))
+
+### 🩹 Fixes
+
+- **lab:** Name the surfaces option after what it does ([b550e82](https://github.com/Venix-Sistemas/jade/commit/b550e82))
+- **color:** Tone only the page, not the surfaces ([0169def](https://github.com/Venix-Sistemas/jade/commit/0169def))
+- **tokens:** Follow the page hue in the faint side menu ([58898ed](https://github.com/Venix-Sistemas/jade/commit/58898ed))
+
+### ❤️ Contributors
+
+- Vinicius ([@VBviniciusVB](https://github.com/VBviniciusVB))
+
 ## v1.6.0
 
 [compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.5.0...v1.6.0)
