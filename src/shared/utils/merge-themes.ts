@@ -2,8 +2,9 @@
 import type { ThemeMenu, ThemeBorders, ThemeSurfaces, ThemeColors, ThemeDefinition, ThemeEntry, ThemeMode, ThemePalette, ThemeVariant, ResolvedThemeGroup } from '../types'
 import { COLOR_PROPERTIES, THEME_MODES } from '../constants'
 import { tokensEnabled } from '../token-names'
+import { toneBackgrounds } from './background-tone'
 
-const META_PROPERTIES = ['seasonal', 'dateRange', 'translations', 'icon', 'tokens', 'neutralTint', 'surfaces', 'borders', 'menu'] as const
+const META_PROPERTIES = ['seasonal', 'dateRange', 'translations', 'icon', 'tokens', 'neutralTint', 'surfaces', 'borders', 'menu', 'backgroundTone'] as const
 
 /** Grouped format: at least one `light`/`dark` variant object. */
 export function isThemeDefinition(entry: Partial<ThemeEntry> | undefined): entry is ThemeDefinition {
@@ -63,6 +64,12 @@ function tokensFlag(entry: Partial<ThemeEntry>, variant?: ThemeVariant): { token
   if (!tokensEnabled(entry)) return choices
   const tokens = typeof entry.tokens === 'object' ? { ...entry.tokens } : true as const
   return { tokens, ...choices }
+}
+
+/** The variant's colors, its page colors in the `backgroundTone` it (or its theme) asks for. */
+function tonedPalette(entry: Partial<ThemeEntry>, variant: Partial<ThemeEntry> | ThemeVariant, mode: ThemeMode): ThemePalette {
+  const tone = (variant as ThemeVariant).backgroundTone ?? (entry as ThemeVariant).backgroundTone
+  return toneBackgrounds(pickPalette(variant), tone, mode === 'dark')
 }
 
 const variantId = (themeName: string, mode: ThemeMode, variant: ThemeVariant): string =>
@@ -175,13 +182,13 @@ export function normalizeColorThemes(entries: Record<string, ThemeEntry>): {
         const variant = entry[mode]
         if (!variant) continue
         const id = variantId(themeName, mode, variant)
-        themes[id] = { dark: mode === 'dark', ...tokensFlag(entry, variant), ...pickPalette(variant) }
+        themes[id] = { dark: mode === 'dark', ...tokensFlag(entry, variant), ...tonedPalette(entry, variant, mode) }
         group.variants[mode] = id
       }
     }
     else if (isLegacyThemeEntry(entry)) {
       const mode: ThemeMode = entry.dark === false ? 'light' : 'dark'
-      themes[themeName] = { dark: mode === 'dark', ...tokensFlag(entry), ...pickPalette(entry) }
+      themes[themeName] = { dark: mode === 'dark', ...tokensFlag(entry), ...tonedPalette(entry, entry, mode) }
       group.variants[mode] = themeName
     }
 

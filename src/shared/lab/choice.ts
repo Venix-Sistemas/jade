@@ -1,9 +1,10 @@
 // src/shared/lab/choice.ts
 // A visitor's choices for a theme variant (`color.lab`). No color engine here:
 // this is what loads with the page.
-import type { ThemeBorders, ThemeColors, ThemeMenu } from '../types'
+import type { BackgroundTone, ThemeBorders, ThemeColors, ThemeMenu } from '../types'
 import { chromaOf, colorWithHue, hexToOklab, normalizeHex, oklabToHex } from '../utils/oklab'
 import { neutralTintOf, surfacesOf, tokensEnabled } from '../token-names'
+import { toneColor } from '../utils/background-tone'
 import { COLOR_PROPERTIES } from '../constants'
 
 /** Every color of a theme can be changed. The cookie names them by position: new ones go at the end. */
@@ -21,6 +22,8 @@ export interface LabChoice {
   borders: ThemeBorders
   /** The side menu; left out, it follows the theme (`menu`) and its style. */
   menu?: ThemeMenu
+  /** The page's color; left out, the theme's. */
+  tone?: BackgroundTone
   /** The colors the visitor changed, as `#RRGGBB`; the others are the theme's. */
   colors?: Partial<Record<LabColor, string>>
 }
@@ -77,13 +80,21 @@ export function applyChoice(colors: ThemeColors, choice: LabChoice): ThemeColors
     const hex = asHex(choice.colors?.[name])
     if (hex) result[name] = BACKGROUNDS.includes(name) ? limitBackground(hex, colors.dark === true) : hex
   }
+  // Over the theme's page colors only: one the visitor picked stays as picked
+  if (choice.tone) {
+    for (const name of BACKGROUNDS) {
+      if (result[name] && !asHex(choice.colors?.[name])) result[name] = toneColor(result[name], result.primary, choice.tone, colors.dark === true)
+    }
+  }
   return result
 }
 
 /** How the cookie writes a chosen menu. */
 const MENUS = { mp: 'plain', mf: 'faint', ms: 'soft', mb: 'bold' } as const
+/** The same for a chosen page color. */
+const TONES = { bt: 'theme', bn: 'neutral', bb: 'brand' } as const
 
-/** The cookie: per variant, `id,bold,tint,borders`, `mp`/`mf`/`ms`/`mb` for a chosen menu and one `position-RRGGBB` per changed color. */
+/** The cookie: per variant, `id,bold,tint,borders`, `mp`/`mf`/`ms`/`mb` for a chosen menu, `bt`/`bn`/`bb` for a chosen page color and one `position-RRGGBB` per changed color. */
 export function encodeChoices(choices: LabChoices): string {
   return Object.entries(choices)
     .filter(([id]) => VARIANT_ID.test(id))
@@ -93,6 +104,7 @@ export function encodeChoices(choices: LabChoices): string {
       choice.tint === 'vivid' ? 'v' : choice.tint ? 's' : 'g',
       choice.borders === 'soft' ? 'q' : 'd',
       ...(choice.menu ? [`m${choice.menu.charAt(0)}`] : []),
+      ...(choice.tone ? [`b${choice.tone.charAt(0)}`] : []),
       ...LAB_COLORS.flatMap((name, i) => {
         const hex = asHex(choice.colors?.[name])
         return hex ? [`${i}-${hex.slice(1)}`] : []
@@ -112,10 +124,12 @@ export function decodeChoices(value: unknown, variants: readonly string[]): LabC
 
   for (const entry of value.split('|').slice(0, MAX_VARIANTS)) {
     const parts = entry.split(',')
-    if (parts.length < 4 || parts.length > 5 + LAB_COLORS.length) continue
+    if (parts.length < 4 || parts.length > 6 + LAB_COLORS.length) continue
     const [id, bold, tint, borders, ...rest] = parts as [string, string, string, string, ...string[]]
     const menu = Object.hasOwn(MENUS, rest[0] ?? '') ? MENUS[rest[0] as keyof typeof MENUS] : undefined
-    const changed = menu ? rest.slice(1) : rest
+    const afterMenu = menu ? rest.slice(1) : rest
+    const tone = Object.hasOwn(TONES, afterMenu[0] ?? '') ? TONES[afterMenu[0] as keyof typeof TONES] : undefined
+    const changed = tone ? afterMenu.slice(1) : afterMenu
     if (!VARIANT_ID.test(id) || !variants.includes(id)) continue
     if (!['0', '1'].includes(bold) || !Object.hasOwn(TINTS, tint) || !['d', 'q'].includes(borders)) continue
 
@@ -127,6 +141,7 @@ export function decodeChoices(value: unknown, variants: readonly string[]): LabC
     })
     if (colors.includes(null) || changed.length > LAB_COLORS.length) continue
     if (menu) choice.menu = menu
+    if (tone) choice.tone = tone
     if (colors.length) choice.colors = Object.fromEntries(colors as (readonly [LabColor, string])[])
     choices[id] = choice
   }

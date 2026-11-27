@@ -49,6 +49,8 @@ export interface ThemeVariant extends ThemePalette {
   borders?: ThemeBorders
   /** `ThemeMeta.menu` for this variant only; wins over the theme's. */
   menu?: ThemeMenu
+  /** `ThemeMeta.backgroundTone` for this variant only; wins over the theme's. */
+  backgroundTone?: BackgroundTone
 }
 
 /** What a theme is called, how it's drawn and when it's active — shared by both variants. */
@@ -147,7 +149,19 @@ export interface ThemeMeta {
    * `'soft'` on a light one.
    */
   menu?: ThemeMenu
+  /**
+   * The color of the page: `background`, `background2` and `background3`.
+   *
+   * - `'theme'` (default): the colors the theme writes.
+   * - `'neutral'`: the same lightness in gray.
+   * - `'brand'`: the same lightness with a trace of `primary`, as a seasonal
+   *   theme's page has. A gray `primary` gives a gray page.
+   */
+  backgroundTone?: BackgroundTone
 }
+
+/** The color of the page itself. See `ThemeMeta.backgroundTone`. */
+export type BackgroundTone = 'theme' | 'neutral' | 'brand'
 
 /** How much brand color a side menu takes. See `ThemeMeta.menu`. */
 export type ThemeMenu = 'plain' | 'faint' | 'soft' | 'bold'
