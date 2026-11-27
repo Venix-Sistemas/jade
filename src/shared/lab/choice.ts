@@ -80,10 +80,14 @@ export function applyChoice(colors: ThemeColors, choice: LabChoice): ThemeColors
     const hex = asHex(choice.colors?.[name])
     if (hex) result[name] = BACKGROUNDS.includes(name) ? limitBackground(hex, colors.dark === true) : hex
   }
-  // Over the theme's page colors only: one the visitor picked stays as picked
-  if (choice.tone) {
-    for (const name of BACKGROUNDS) {
-      if (result[name] && !asHex(choice.colors?.[name])) result[name] = toneColor(result[name], result.primary, choice.tone, colors.dark === true)
+  // A page color the visitor picked is the page and the base of its surfaces.
+  // Otherwise the tone goes over the theme's own background, which stays that base
+  if (asHex(choice.colors?.background)) delete result.surfaceBase
+  else if (choice.tone && choice.tone !== 'theme') {
+    const own = colors.surfaceBase ?? colors.background
+    if (own) {
+      result.background = toneColor(own, result.primary, choice.tone, colors.dark === true)
+      result.surfaceBase = own
     }
   }
   return result

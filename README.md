@@ -351,7 +351,7 @@ color: {
 }
 ```
 
-<a id="background-tone"></a>**Page background.** `backgroundTone` says what color the page is, without rewriting the theme's colors: `'theme'` (default) keeps the ones it writes, `'neutral'` makes `background`, `background2` and `background3` grays, and `'brand'` gives them a trace of `primary`, as a seasonal theme's page has. The lightness stays, and the tokens are generated over the new page. Set it on the theme or inside `light`/`dark`; the theme editor offers it too.
+<a id="background-tone"></a>**Page background.** `backgroundTone` says what color the page is, without rewriting the theme's colors: `'theme'` (default) keeps the `background` it writes, `'neutral'` makes it a gray, and `'brand'` gives it a trace of `primary`, as a seasonal theme's page has. Only the page changes: cards and other surfaces still come from the theme's own `background` (and `neutralTint`), `background2` and `background3` stay, and the lightness is the same, so texts and outlines keep their contrast. Set it on the theme or inside `light`/`dark`; the theme editor offers it too.
 
 ```ts
 color: {

@@ -2,7 +2,7 @@
 import type { ThemeMenu, ThemeBorders, ThemeSurfaces, ThemeColors, ThemeDefinition, ThemeEntry, ThemeMode, ThemePalette, ThemeVariant, ResolvedThemeGroup } from '../types'
 import { COLOR_PROPERTIES, THEME_MODES } from '../constants'
 import { tokensEnabled } from '../token-names'
-import { toneBackgrounds } from './background-tone'
+import { toneBackground } from './background-tone'
 
 const META_PROPERTIES = ['seasonal', 'dateRange', 'translations', 'icon', 'tokens', 'neutralTint', 'surfaces', 'borders', 'menu', 'backgroundTone'] as const
 
@@ -66,10 +66,10 @@ function tokensFlag(entry: Partial<ThemeEntry>, variant?: ThemeVariant): { token
   return { tokens, ...choices }
 }
 
-/** The variant's colors, its page colors in the `backgroundTone` it (or its theme) asks for. */
+/** The variant's colors, its page in the `backgroundTone` it (or its theme) asks for. */
 function tonedPalette(entry: Partial<ThemeEntry>, variant: Partial<ThemeEntry> | ThemeVariant, mode: ThemeMode): ThemePalette {
   const tone = (variant as ThemeVariant).backgroundTone ?? (entry as ThemeVariant).backgroundTone
-  return toneBackgrounds(pickPalette(variant), tone, mode === 'dark')
+  return toneBackground(pickPalette(variant), tone, mode === 'dark')
 }
 
 const variantId = (themeName: string, mode: ThemeMode, variant: ThemeVariant): string =>

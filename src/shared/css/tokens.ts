@@ -30,7 +30,7 @@ const tokenCache = new Map<string, Array<[string, string]>>()
  * written. Memoized: the CSS and the build check ask for the same variant.
  */
 export function generateTokens(colors: ThemeColors, level: ContrastLevel = 'AA'): Array<[string, string]> {
-  const key = JSON.stringify([colors.dark === true, colors.background, ROLES.map(role => colors[role]), level, neutralTintOf(colors), colors.borders, tokenOverrides(colors)])
+  const key = JSON.stringify([colors.dark === true, colors.background, colors.surfaceBase, ROLES.map(role => colors[role]), level, neutralTintOf(colors), colors.borders, tokenOverrides(colors)])
   let tokens = tokenCache.get(key)
   if (!tokens) {
     tokens = buildTokens(colors, level)
@@ -58,7 +58,9 @@ function buildTokens(colors: ThemeColors, level: ContrastLevel): Array<[string, 
   }
 
   const overrides = tokenOverrides(colors)
-  const { neutral, roles } = generateScales(background, seeds, mode, level, {
+  // A toned page (`backgroundTone`) is the page only: the surfaces come from the theme's own background
+  const { neutral, roles } = generateScales(colors.surfaceBase ?? background, seeds, mode, level, {
+    page: background,
     tint: neutralTintOf(colors) !== false,
     vivid: neutralTintOf(colors) === 'vivid',
     mutedOver: farthestNeutralSurface(overrides),

@@ -254,6 +254,7 @@ export function generateNeutralScale(
   level: ContrastLevel = 'AA',
   mutedOver: number = DEFAULT_MUTED_OVER,
   vivid: boolean = false,
+  page?: string,
 ): string[] {
   const exact = normalizeHex(background)
   const ownChroma = chromaOf(exact)
@@ -284,6 +285,10 @@ export function generateNeutralScale(
   }
 
   const withRatio = (ratio: number) => finish(generateSteps(key, key, mode, [ratio])[0]!, ratio)
+
+  // A page of another color than the one the surfaces come from takes step 1,
+  // before the texts and outlines are placed: they must read on it
+  if (page) steps[0] = normalizeHex(page)
 
   // Step 9 outlines form fields: 3:1 on the page and on the subtle area.
   steps[8] = reachTarget(ratios[8]!, OUTLINE_TARGET, steps.slice(0, 2), withRatio).color
@@ -367,11 +372,11 @@ export function generateScales(
   seeds: Record<string, string>,
   mode: ThemeMode,
   level: ContrastLevel = 'AA',
-  options: { tint?: boolean, mutedOver?: number, vivid?: boolean } = {},
+  options: { tint?: boolean, mutedOver?: number, vivid?: boolean, page?: string } = {},
 ): GeneratedScales {
   const entries = Object.entries(seeds)
   const tintSeed = options.tint === false ? null : (entries[0]?.[1] ?? background)
-  const neutral = generateNeutralScale(background, tintSeed, mode, level, options.mutedOver, options.vivid === true)
+  const neutral = generateNeutralScale(background, tintSeed, mode, level, options.mutedOver, options.vivid === true, options.page)
 
   const roles: Record<string, RoleScale> = {}
   for (const [role, seed] of entries) roles[role] = generateScale(seed, neutral, mode, level)

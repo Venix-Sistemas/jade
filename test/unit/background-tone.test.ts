@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { checkTokenContrast, generateTokens } from '../../src/shared/css/tokens'
+import { generateThemeVars } from '../../src/shared/css/colors'
 import { applyChoice, choiceOf, decodeChoices, encodeChoices } from '../../src/shared/lab/choice'
-import { toneBackgrounds, toneColor } from '../../src/shared/utils/background-tone'
+import { toneBackground, toneColor } from '../../src/shared/utils/background-tone'
 import { mergeColorThemes, normalizeColorThemes } from '../../src/shared/utils/merge-themes'
 import { chromaOf, hexToOklab, hueOf } from '../../src/shared/utils/oklab'
 import builtIn from '../../src/shared/theme.json'
@@ -41,11 +42,18 @@ describe('toneColor', () => {
     expect(toneColor('rgb(0 0 0)', '#FF0000', 'neutral', true)).toBe('rgb(0 0 0)')
   })
 
-  it('muda só as cores da página', () => {
-    const toned = toneBackgrounds(DARK, 'brand', true)
-    expect(toned.primary).toBe(DARK.primary)
-    for (const name of ['background', 'background2', 'background3'] as const) expect(toned[name], name).not.toBe(DARK[name])
-    expect(toneBackgrounds(DARK, undefined, true)).toBe(DARK)
+  it('muda só o fundo da página, e guarda o do tema para as superfícies', () => {
+    const toned = toneBackground(DARK, 'brand', true)
+    expect(toned.background).not.toBe(DARK.background)
+    expect(toned.surfaceBase).toBe(DARK.background)
+    for (const name of ['primary', 'background2', 'background3'] as const) expect(toned[name], name).toBe(DARK[name])
+    expect(toneBackground(DARK, undefined, true)).toBe(DARK)
+    // um cinza posto em neutro não muda nada
+    expect(toneBackground(DARK, 'neutral', true)).toBe(DARK)
+  })
+
+  it('não vira variável de cor no CSS', () => {
+    expect(generateThemeVars('dark', toneBackground(DARK, 'brand', true))).not.toContain('surfaceBase')
   })
 })
 
@@ -62,16 +70,39 @@ describe('backgroundTone na configuração', () => {
   })
 
   it.each(BUILT_IN.flatMap(entry => (['neutral', 'brand'] as const).map(tone => [...entry, tone] as const)))('os tokens de %s continuam legíveis sobre o fundo %s', (_id, colors, tone) => {
-    const toned = { ...colors, ...toneBackgrounds(colors, tone, colors.dark === true) }
+    const toned = toneBackground(colors, tone, colors.dark === true)
     expect(checkTokenContrast(generateTokens(toned), 'AA')).toEqual([])
+  })
+
+  it.each(BUILT_IN.flatMap(entry => (['neutral', 'brand'] as const).map(tone => [...entry, tone] as const)))('em %s o fundo %s não muda os cartões', (_id, colors, tone) => {
+    const before = Object.fromEntries(generateTokens(colors))
+    const toned = toneBackground(colors, tone, colors.dark === true)
+    const after = Object.fromEntries(generateTokens(toned))
+    expect(after.bg).toBe(toned.background!.toUpperCase())
+    for (const name of ['bg-subtle', 'bg-muted', 'bg-hover', 'bg-active', 'border']) expect(after[name], name).toBe(before[name])
   })
 })
 
 describe('backgroundTone no editor', () => {
-  it('aplica o tom às cores do tema, sem mexer na que o visitante escolheu', () => {
-    const applied = applyChoice(DARK, { ...choiceOf(DARK), tone: 'brand', colors: { background2: '#101820' } })
+  it('aplica o tom só ao fundo da página', () => {
+    const applied = applyChoice(DARK, { ...choiceOf(DARK), tone: 'brand' })
     expect(applied.background).toBe(toneColor('#0C0C0C', DARK.primary, 'brand', true))
-    expect(applied.background2).toBe('#101820')
+    expect(applied.surfaceBase).toBe('#0C0C0C')
+    expect(applied.background2).toBe(DARK.background2)
+  })
+
+  it('um fundo escolhido pelo visitante vale como está, também para as superfícies', () => {
+    const configured = { ...DARK, ...toneBackground(DARK, 'brand', true) }
+    const applied = applyChoice(configured, { ...choiceOf(configured), tone: 'brand', colors: { background: '#101820' } })
+    expect(applied.background).toBe('#101820')
+    expect(applied.surfaceBase).toBeUndefined()
+  })
+
+  it('troca o tom da configuração partindo do fundo do tema', () => {
+    const configured = { ...NATAL, ...toneBackground(NATAL, 'brand', true) }
+    const applied = applyChoice(configured, { ...choiceOf(configured), tone: 'neutral' })
+    expect(applied.background).toBe(toneColor('#0B1611', NATAL.primary, 'neutral', true))
+    expect(applied.surfaceBase).toBe('#0B1611')
   })
 
   it('segue o primary escolhido', () => {

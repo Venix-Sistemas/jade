@@ -150,9 +150,10 @@ export interface ThemeMeta {
    */
   menu?: ThemeMenu
   /**
-   * The color of the page: `background`, `background2` and `background3`.
+   * The color of the page (`background`), and only of it: cards and the other
+   * surfaces keep coming from the theme's own `background`.
    *
-   * - `'theme'` (default): the colors the theme writes.
+   * - `'theme'` (default): the color the theme writes.
    * - `'neutral'`: the same lightness in gray.
    * - `'brand'`: the same lightness with a trace of `primary`, as a seasonal
    *   theme's page has. A gray `primary` gives a gray page.
@@ -190,6 +191,12 @@ export interface ThemeDefinition extends ThemeMeta {
  */
 export interface ThemeColors extends ThemeMeta, ThemePalette {
   dark?: boolean
+  /**
+   * Set by the module, not by a project: the theme's own `background` when
+   * `backgroundTone` painted the page another color. Cards and the other
+   * surfaces are still generated from it.
+   */
+  surfaceBase?: string
 }
 
 /** An entry of `color.themes`: the grouped format, or the deprecated flat one. */

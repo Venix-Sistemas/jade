@@ -156,4 +156,5 @@ export const NON_COLOR_PROPERTIES = [
   'surfaces',
   'borders',
   'menu',
+  'surfaceBase',
 ] as const
