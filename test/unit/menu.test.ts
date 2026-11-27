@@ -5,7 +5,8 @@ import { generateFaintMenu } from '../../src/shared/css/faint-menu'
 import { generateTokens } from '../../src/shared/css/tokens'
 import { applyChoice, choiceOf, decodeChoices, encodeChoices } from '../../src/shared/lab/choice'
 import { contrastRatio } from '../../src/shared/utils/contrast'
-import { chromaOf } from '../../src/shared/utils/oklab'
+import { chromaOf, hueOf } from '../../src/shared/utils/oklab'
+import { toneBackground } from '../../src/shared/utils/background-tone'
 import { normalizeColorThemes } from '../../src/shared/utils/merge-themes'
 import builtIn from '../../src/shared/theme.json'
 import type { ThemeColors } from '../../src/shared/types'
@@ -48,6 +49,20 @@ describe('menu lateral', () => {
     // o item sob o cursor e o marcado se afastam um pouco mais, nesta ordem
     expect(contrastRatio(menu['bg-hover']!, page.bg!)).toBeGreaterThan(contrastRatio(menu.bg!, page.bg!))
     expect(contrastRatio(menu['bg-active']!, page.bg!)).toBeGreaterThan(contrastRatio(menu['bg-hover']!, page.bg!))
+  })
+
+  it.each(BUILT_IN.filter(([, colors]) => chromaOf(colors.background!) >= 0.004))('fraco em %s: o menu segue o matiz do fundo colorido, e o item marcado o do primary', (_id, colors) => {
+    const menu = Object.fromEntries(generateFaintMenu(colors)!)
+    const distance = (a: string, b: string) => Math.abs(((hueOf(a)! - hueOf(b)! + 540) % 360) - 180)
+    for (const name of ['bg', 'bg-hover', 'bg-active', 'border']) expect(distance(menu[name]!, colors.background!), name).toBeLessThan(10)
+    expect(distance(menu['bg-primary-active']!, colors.primary!)).toBeLessThan(10)
+  })
+
+  it('fraco: num fundo cinza o matiz vem do primary, também com a página tingida pela marca', () => {
+    const gray = Object.fromEntries(generateFaintMenu(DARK)!)
+    expect(Math.abs(hueOf(gray.bg!)! - hueOf(DARK.primary!)!)).toBeLessThan(10)
+    const toned = Object.fromEntries(generateFaintMenu({ ...DARK, ...toneBackground(DARK, 'brand', true) })!)
+    expect(Math.abs(hueOf(toned.bg!)! - hueOf(DARK.primary!)!)).toBeLessThan(10)
   })
 
   it('fraco: um primary cinza dá um menu cinza, e sem primary não há menu', () => {

@@ -2,6 +2,7 @@
 import type { ContrastLevel, ThemeColors } from '../types'
 import { contrastRatio } from '../utils/contrast'
 import { chromaOf, colorWithHue, hexToOklab, oklabToHex } from '../utils/oklab'
+import { THEMED_BACKGROUND_CHROMA } from '../utils/scale'
 import { generateTokens } from './tokens'
 
 /**
@@ -9,11 +10,14 @@ import { generateTokens } from './tokens'
  * a menu that is barely set apart. The scale steps of `primary` are too
  * colorful for it (step 1 on a dark page is already a saturated red), so its
  * surfaces keep only a little of the primary's chroma, each a set contrast
- * away from the page. The `'plain'` menu is the same panel with no hue at all:
- * black on a dark page, white on a light one, in grays.
+ * away from the page. On a theme whose `background` has a color of its own (a
+ * seasonal one), the surfaces take that hue, like its cards, or a pink primary
+ * would turn the menu wine red on a purple page; the selected item keeps the
+ * primary's. The `'plain'` menu is the same panel with no hue at all: black on
+ * a dark page, white on a light one, in grays.
  */
 
-/** OKLab chroma of the surfaces: a trace of the hue. A primary with less keeps its own. */
+/** OKLab chroma of the surfaces: a trace of the hue. A primary with less keeps its own where it gives the hue. */
 const FAINT_CHROMA = 0.025
 /** The `bg-primary` tones, a menu's selected item: a little more of the hue, so the choice shows. */
 const SELECTED_CHROMA = 0.045
@@ -59,11 +63,18 @@ export function generateFaintMenu(colors: ThemeColors, level: ContrastLevel = 'A
   const away = colors.dark === true ? 1 : -1
   const own = tint ? chromaOf(primary!) : 0
 
+  // The theme's own background, also under a toned page: the cards come from it
+  const base = colors.surfaceBase ?? background
+  const themed = tint && chromaOf(base) >= THEMED_BACKGROUND_CHROMA
+
   const gray = (L: number) => oklabToHex(L, 0, 0)!
-  const tinted = (chroma: number) => (L: number) => own ? colorWithHue(L, primary!, Math.min(chroma, own)) ?? gray(L) : gray(L)
+  const tinted = (name: string, chroma: number) => (L: number) => {
+    if (themed && !name.startsWith('bg-primary')) return colorWithHue(L, base, chroma) ?? gray(L)
+    return own ? colorWithHue(L, primary!, Math.min(chroma, own)) ?? gray(L) : gray(L)
+  }
   const surfaces = new Map<string, string>(SURFACES.map(([name, ratio, chroma]) => [
     name,
-    walk(hexToOklab(background)[0], away, tinted(chroma), color => contrastRatio(color, background) >= ratio),
+    walk(hexToOklab(background)[0], away, tinted(name, chroma), color => contrastRatio(color, background) >= ratio),
   ]))
   const tokens: Array<[string, string]> = [...surfaces]
 

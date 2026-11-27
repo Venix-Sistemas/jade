@@ -165,7 +165,7 @@ function reachTarget(
 }
 
 /** A background with at least this OKLab chroma has a color of its own (`#FFF8F0` is 0.013; `#FAFAFA` is 0). */
-const THEMED_BACKGROUND_CHROMA = 0.004
+export const THEMED_BACKGROUND_CHROMA = 0.004
 /** Surfaces (steps 2–8) of a themed background gain this much chroma per unit of contrast ratio above 1... */
 const SURFACE_CHROMA_GROWTH = 6
 /** ...up to this many times the background's own chroma... */

@@ -142,6 +142,8 @@ export interface ThemeMeta {
    * - `'plain'`: no brand color: black on a dark variant, white on a light one,
    *   in grays. Only when asked for.
    * - `'faint'`: the page's own tone with a trace of `primary`, barely set apart.
+   *   On a `background` with a color of its own, that hue instead, with the
+   *   selected item in the `primary`'s.
    * - `'soft'`: a light tone of `primary` (`bg-primary`), with the page's text.
    * - `'bold'`: the panel of the bold scope, also on a theme that isn't bold.
    *

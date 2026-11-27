@@ -361,7 +361,7 @@ color: {
 }
 ```
 
-<a id="side-menu"></a>**Side menu.** Put `data-jade-surface="menu"` on a side menu and the tokens inside it are redefined so it stands apart from the page. `menu` chooses how much brand color it takes: `'plain'`, none (black on a dark theme, white on a light one, in grays; only when you ask for it); `'faint'`, the page's own tone with a trace of `primary`, barely set apart; `'soft'`, a light tone of `primary`; or `'bold'`, the same panel as the bold scope, also on a theme that isn't bold. Left out, it is `'bold'` on a bold variant, `'faint'` on a dark one and `'soft'` on a light one. In every one of them the text reads at the `color.contrast` level. Like `surfaces`, set it on the theme or inside `light`/`dark`.
+<a id="side-menu"></a>**Side menu.** Put `data-jade-surface="menu"` on a side menu and the tokens inside it are redefined so it stands apart from the page. `menu` chooses how much brand color it takes: `'plain'`, none (black on a dark theme, white on a light one, in grays; only when you ask for it); `'faint'`, the page's own tone with a trace of `primary`, barely set apart (on a `background` with a color of its own, as a seasonal theme's, the menu takes that hue and only its selected item the primary's); `'soft'`, a light tone of `primary`; or `'bold'`, the same panel as the bold scope, also on a theme that isn't bold. Left out, it is `'bold'` on a bold variant, `'faint'` on a dark one and `'soft'` on a light one. In every one of them the text reads at the `color.contrast` level. Like `surfaces`, set it on the theme or inside `light`/`dark`.
 
 ```vue
 <aside data-jade-surface="menu">
