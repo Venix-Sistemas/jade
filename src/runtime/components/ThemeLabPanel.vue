@@ -190,17 +190,17 @@ const PICK_PAUSE = 350
 
 const TEXT = {
   'en-US': {
-    title: 'Customize colors', close: 'Close', theme: 'Theme', mode: 'Editing', light: 'Light', dark: 'Dark', surface: 'Surfaces', normal: 'Normal', bold: 'Bold', tint: 'Neutrals', gray: 'Gray', soft: 'Soft', vivid: 'Vivid', borders: 'Card outlines', bordered: 'Standard', quiet: 'Soft', menu: 'Side menu', menuSoft: 'Discreet', menuBold: 'Strong',
+    title: 'Customize colors', close: 'Close', theme: 'Theme', mode: 'Editing', light: 'Light', dark: 'Dark', surface: 'Surfaces', normal: 'Normal', bold: 'Bold', tint: 'Neutrals', gray: 'Gray', soft: 'Soft', vivid: 'Vivid', borders: 'Card outlines', bordered: 'Standard', quiet: 'Soft', menu: 'Side menu', menuFaint: 'Faint', menuSoft: 'Discreet', menuBold: 'Strong',
     brand: 'Brand', statusColors: 'Status', backgrounds: 'Backgrounds', primary: 'Primary', secondary: 'Secondary', accent: 'Accent', error: 'Error', info: 'Info', success: 'Success', warning: 'Warning', background: 'Background', background2: 'Background 2', background3: 'Background 3', working: 'Applying…', refused: 'Not applied: some text would be hard to read.', adjusted: 'Adjusted to {color}, the closest readable tone.', noTone: 'No readable tone close to this color was found.',
     notSaved: 'These colors won\'t be remembered.', save: 'Save', reset: 'Reset theme', resetAll: 'Reset all', copy: 'Copy configuration', copied: 'Configuration copied.',
   },
   'pt-BR': {
-    title: 'Personalizar cores', close: 'Fechar', theme: 'Tema', mode: 'Editar o modo', light: 'Claro', dark: 'Escuro', surface: 'Superfícies', normal: 'Normal', bold: 'Bold', tint: 'Neutros', gray: 'Cinza', soft: 'Sutil', vivid: 'Vivid', borders: 'Borda dos cards', bordered: 'Padrão', quiet: 'Suave', menu: 'Menu lateral', menuSoft: 'Discreto', menuBold: 'Forte',
+    title: 'Personalizar cores', close: 'Fechar', theme: 'Tema', mode: 'Editar o modo', light: 'Claro', dark: 'Escuro', surface: 'Superfícies', normal: 'Normal', bold: 'Bold', tint: 'Neutros', gray: 'Cinza', soft: 'Sutil', vivid: 'Vivid', borders: 'Borda dos cards', bordered: 'Padrão', quiet: 'Suave', menu: 'Menu lateral', menuFaint: 'Fraco', menuSoft: 'Discreto', menuBold: 'Forte',
     brand: 'Cores da marca', statusColors: 'Cores de estado', backgrounds: 'Fundos', primary: 'Principal', secondary: 'Secundária', accent: 'Destaque', error: 'Erro', info: 'Informação', success: 'Sucesso', warning: 'Alerta', background: 'Fundo', background2: 'Fundo 2', background3: 'Fundo 3', working: 'Aplicando…', refused: 'Não aplicado: algum texto ficaria difícil de ler.', adjusted: 'Ajustado para {color}, o tom legível mais próximo.', noTone: 'Não há um tom legível perto dessa cor.',
     notSaved: 'Estas cores não serão lembradas.', save: 'Salvar', reset: 'Restaurar tema', resetAll: 'Restaurar todos', copy: 'Copiar configuração', copied: 'Configuração copiada.',
   },
   'es-ES': {
-    title: 'Personalizar colores', close: 'Cerrar', theme: 'Tema', mode: 'Editar el modo', light: 'Claro', dark: 'Oscuro', surface: 'Superficies', normal: 'Normal', bold: 'Bold', tint: 'Neutros', gray: 'Gris', soft: 'Sutil', vivid: 'Vivid', borders: 'Borde de las tarjetas', bordered: 'Estándar', quiet: 'Suave', menu: 'Menú lateral', menuSoft: 'Discreto', menuBold: 'Fuerte',
+    title: 'Personalizar colores', close: 'Cerrar', theme: 'Tema', mode: 'Editar el modo', light: 'Claro', dark: 'Oscuro', surface: 'Superficies', normal: 'Normal', bold: 'Bold', tint: 'Neutros', gray: 'Gris', soft: 'Sutil', vivid: 'Vivid', borders: 'Borde de las tarjetas', bordered: 'Estándar', quiet: 'Suave', menu: 'Menú lateral', menuFaint: 'Tenue', menuSoft: 'Discreto', menuBold: 'Fuerte',
     brand: 'Colores de marca', statusColors: 'Colores de estado', backgrounds: 'Fondos', primary: 'Principal', secondary: 'Secundario', accent: 'Acento', error: 'Error', info: 'Información', success: 'Éxito', warning: 'Aviso', background: 'Fondo', background2: 'Fondo 2', background3: 'Fondo 3', working: 'Aplicando…', refused: 'No aplicado: algún texto sería difícil de leer.', adjusted: 'Ajustado a {color}, el tono legible más cercano.', noTone: 'No hay un tono legible cerca de ese color.',
     notSaved: 'Estos colores no se recordarán.', save: 'Guardar', reset: 'Restaurar tema', resetAll: 'Restaurar todos', copy: 'Copiar configuración', copied: 'Configuración copiada.',
   },
@@ -260,7 +260,7 @@ const colorSections = computed(() => ([
 // The same rule as `menuOf` (css/menu.ts), without bringing the color engine along
 const menu = computed(() => {
   const applied = applyChoice(base.value!, current.value)
-  return applied.menu ?? (surfacesOf(applied) === 'bold' ? 'bold' : 'soft')
+  return applied.menu ?? (surfacesOf(applied) === 'bold' ? 'bold' : applied.dark === true ? 'faint' : 'soft')
 })
 
 const owner = computed(() => Object.entries(theme.colors.groups).find(([, group]) => Object.values(group.variants).includes(id.value))?.[0] ?? id.value)
@@ -349,7 +349,7 @@ const groups = computed<Group[]>(() => [
   choiceGroup('borders', text.value.borders, [{ value: 'default', label: text.value.bordered }, { value: 'soft', label: text.value.quiet }]),
   // Until one is picked, the menu follows the style: the option in effect shows
   {
-    ...choiceGroup('menu', text.value.menu, [{ value: 'soft', label: text.value.menuSoft }, { value: 'bold', label: text.value.menuBold }]),
+    ...choiceGroup('menu', text.value.menu, [{ value: 'faint', label: text.value.menuFaint }, { value: 'soft', label: text.value.menuSoft }, { value: 'bold', label: text.value.menuBold }]),
     selected: menu.value,
   },
 ])

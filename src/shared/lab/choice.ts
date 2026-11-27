@@ -80,7 +80,10 @@ export function applyChoice(colors: ThemeColors, choice: LabChoice): ThemeColors
   return result
 }
 
-/** The cookie: per variant, `id,bold,tint,borders`, `ms`/`mb` for a chosen menu and one `position-RRGGBB` per changed color. */
+/** How the cookie writes a chosen menu. */
+const MENUS = { mf: 'faint', ms: 'soft', mb: 'bold' } as const
+
+/** The cookie: per variant, `id,bold,tint,borders`, `mf`/`ms`/`mb` for a chosen menu and one `position-RRGGBB` per changed color. */
 export function encodeChoices(choices: LabChoices): string {
   return Object.entries(choices)
     .filter(([id]) => VARIANT_ID.test(id))
@@ -89,7 +92,7 @@ export function encodeChoices(choices: LabChoices): string {
       choice.bold ? '1' : '0',
       choice.tint === 'vivid' ? 'v' : choice.tint ? 's' : 'g',
       choice.borders === 'soft' ? 'q' : 'd',
-      ...(choice.menu ? [choice.menu === 'bold' ? 'mb' : 'ms'] : []),
+      ...(choice.menu ? [`m${choice.menu.charAt(0)}`] : []),
       ...LAB_COLORS.flatMap((name, i) => {
         const hex = asHex(choice.colors?.[name])
         return hex ? [`${i}-${hex.slice(1)}`] : []
@@ -111,7 +114,7 @@ export function decodeChoices(value: unknown, variants: readonly string[]): LabC
     const parts = entry.split(',')
     if (parts.length < 4 || parts.length > 5 + LAB_COLORS.length) continue
     const [id, bold, tint, borders, ...rest] = parts as [string, string, string, string, ...string[]]
-    const menu = rest[0] === 'mb' ? 'bold' : rest[0] === 'ms' ? 'soft' : undefined
+    const menu = Object.hasOwn(MENUS, rest[0] ?? '') ? MENUS[rest[0] as keyof typeof MENUS] : undefined
     const changed = menu ? rest.slice(1) : rest
     if (!VARIANT_ID.test(id) || !variants.includes(id)) continue
     if (!['0', '1'].includes(bold) || !Object.hasOwn(TINTS, tint) || !['d', 'q'].includes(borders)) continue

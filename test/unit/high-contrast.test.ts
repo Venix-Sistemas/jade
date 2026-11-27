@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { generateThemeVars } from '../../src/shared/css/colors'
 import { generateHighContrastVars, generateTokens } from '../../src/shared/css/tokens'
 import { processTheme } from '../../src/shared/css'
+import { menuOf } from '../../src/shared/css/menu'
 import { loadTheme } from '../../src/shared/utils/load'
 import type { ThemeColors } from '../../src/shared/types'
 import { surfacesOf } from '../../src/shared/token-names'
@@ -80,9 +81,12 @@ describe('processTheme com colors.highContrast', () => {
     expect(off).not.toContain(MEDIA)
 
     const on = processTheme({ ...theme, colors: { ...theme.colors, highContrast: true } })
-    // um bloco por variante e, nas que têm o escopo `bold`, outro para o escopo e outro para o menu forte
+    // um bloco por variante; nas que têm o escopo `bold`, outro para o escopo e outro para o menu forte;
+    // e um para o menu fraco das escuras
     const variants = Object.values(themes).filter(colors => colors.tokens)
-    expect(on.split(MEDIA).length - 1).toBe(variants.length + 2 * variants.filter(colors => surfacesOf(colors) === 'bold').length)
+    const bold = variants.filter(colors => surfacesOf(colors) === 'bold').length
+    const faint = variants.filter(colors => menuOf(colors) === 'faint').length
+    expect(on.split(MEDIA).length - 1).toBe(variants.length + 2 * bold + faint)
     expect(on.startsWith(off.slice(0, 200))).toBe(true)
   })
 })

@@ -3,6 +3,7 @@ import type { ContrastLevel, ThemeColors, ThemeMenu } from '../types'
 import { contrastRatio } from '../utils/contrast'
 import { surfacesOf, tokensEnabled } from '../token-names'
 import { generateBoldSurface } from './bold'
+import { generateFaintMenu } from './faint-menu'
 import { generateTokens } from './tokens'
 import { themeSelector } from './selector'
 import type { LabSelector } from './selector'
@@ -11,13 +12,14 @@ import { vuetify0Vars } from './vuetify0'
 /**
  * The side menu of a theme variant: an element with
  * `data-jade-surface="menu"`. Its `menu` choice says how much brand color it
- * takes: `'soft'`, a light tone of `primary` (`bg-primary`), or `'bold'`, the
- * same panel as the bold scope, also on a theme that isn't bold.
+ * takes: `'faint'`, the page's tone with a trace of `primary` (see
+ * `faint-menu.ts`), `'soft'`, a light tone of it (`bg-primary`), or `'bold'`,
+ * the same panel as the bold scope, also on a theme that isn't bold.
  */
 
-/** The `menu` of a variant: the one set, else `'bold'` on a bold theme and `'soft'` on the others. */
+/** The `menu` of a variant: the one set, else `'bold'` on a bold theme, `'faint'` on a dark one and `'soft'` on a light one. */
 export function menuOf(colors: ThemeColors): ThemeMenu {
-  return colors.menu ?? (surfacesOf(colors) === 'bold' ? 'bold' : 'soft')
+  return colors.menu ?? (surfacesOf(colors) === 'bold' ? 'bold' : colors.dark === true ? 'faint' : 'soft')
 }
 
 /** The bold panel's tokens for a `'bold'` menu, or `null` for a soft one. */
@@ -47,16 +49,18 @@ export function generateMenuCss(mode: string, colors: ThemeColors, level: Contra
   if (!tokensEnabled(colors)) return ''
   const selector = `${themeSelector(mode, lab, true)} [data-jade-surface='menu']`
   const bold = generateMenuSurface(colors, level)
+  const faint = menuOf(colors) === 'faint' ? generateFaintMenu(colors, level) : null
+  const declare = (tokens: Array<[string, string]>) => tokens.map(([name, value]) => `  --jade-${name}: ${value};`)
   const vars = bold
     ? [
         `  color-scheme: ${bold.dark ? 'dark' : 'light'};`,
-        ...bold.tokens.map(([name, value]) => `  --jade-${name}: ${value};`),
+        ...declare(bold.tokens),
         '  --jade-scrollbar-thumb: var(--jade-border-strong);',
         '  --jade-scrollbar-thumb-hover: var(--jade-fill-primary);',
         '  --jade-scrollbar-track: var(--jade-bg-subtle);',
         '  --jade-scrollbar-border: var(--jade-bg-subtle);',
       ].join('\n')
-    : softVars(colors, level)
+    : faint ? declare(faint).join('\n') : softVars(colors, level)
   if (vars === null) return ''
 
   let css = `\n/* Side menu - ${mode} */\n${selector} {\n`
@@ -67,10 +71,11 @@ export function generateMenuCss(mode: string, colors: ThemeColors, level: Contra
     + '  color: var(--jade-text);\n'
     + '}\n'
 
-  if (bold && highContrast && level !== 'AAA') {
-    const base = new Map(bold.tokens)
-    const changed = generateMenuSurface(colors, 'AAA')?.tokens
-      .filter(([name, value]) => base.get(name) !== value)
+  const own = bold?.tokens ?? faint
+  if (own && highContrast && level !== 'AAA') {
+    const base = new Map(own)
+    const changed = (bold ? generateMenuSurface(colors, 'AAA')?.tokens : generateFaintMenu(colors, 'AAA'))
+      ?.filter(([name, value]) => base.get(name) !== value)
       .map(([name, value]) => `    --jade-${name}: ${value};`)
       .join('\n')
     if (changed) css += `@media (prefers-contrast: more) {\n  ${selector} {\n${changed}\n  }\n}\n`

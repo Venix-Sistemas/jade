@@ -137,16 +137,18 @@ export interface ThemeMeta {
    * Only with `tokens`. How much brand color a side menu takes: an element with
    * `data-jade-surface="menu"`, whose tokens are redefined for what is inside.
    *
+   * - `'faint'`: the page's own tone with a trace of `primary`, barely set apart.
    * - `'soft'`: a light tone of `primary` (`bg-primary`), with the page's text.
    * - `'bold'`: the panel of the bold scope, also on a theme that isn't bold.
    *
-   * Default: `'bold'` on a bold variant, `'soft'` on the others.
+   * Default: `'bold'` on a bold variant, else `'faint'` on a dark one and
+   * `'soft'` on a light one.
    */
   menu?: ThemeMenu
 }
 
 /** How much brand color a side menu takes. See `ThemeMeta.menu`. */
-export type ThemeMenu = 'soft' | 'bold'
+export type ThemeMenu = 'faint' | 'soft' | 'bold'
 
 /** How much the card and menu outlines stand out. See `ThemeMeta.borders`. */
 export type ThemeBorders = 'default' | 'soft'
