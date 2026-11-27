@@ -42,10 +42,11 @@ describe('tokens nos temas embutidos', () => {
     expect(findTokenOverrideIssues(theme.colors.themes)).toEqual([])
   })
 
-  it('deve manter o Venix escuro em cinzas puros, sem o tom do vermelho', () => {
+  it('deve dar o tom do vermelho aos cartões do Venix escuro, sobre a página cinza', () => {
     const tokens = Object.fromEntries(generateTokens(theme.colors.themes.dark!))
-    expect(chromaOf(tokens['bg-subtle']!)).toBeLessThan(0.002)
-    expect(chromaOf(tokens['bg-muted']!)).toBeLessThan(0.002)
+    expect(chromaOf(tokens.bg!)).toBeLessThan(0.002)
+    expect(chromaOf(tokens['bg-subtle']!)).toBeGreaterThan(0.01)
+    expect(chromaOf(tokens['bg-muted']!)).toBeGreaterThan(0.01)
   })
 
   it('deve dar o tom do vermelho às superfícies do Venix claro', () => {

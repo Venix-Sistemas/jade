@@ -116,7 +116,7 @@
                 },
                 "dark": {
                     "id": "dark",
-                    "neutralTint": false,
+                    "neutralTint": "vivid",
                     "primary": "#FF6B6B",
                     "secondary": "#FFB96A",
                     "accent": "#82B1FF",

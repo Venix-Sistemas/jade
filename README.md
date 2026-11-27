@@ -356,7 +356,7 @@ color: {
 ```ts
 color: {
   themes: {
-    venix: { dark: { backgroundTone: 'brand' } }, // the gray page of Venix, with a touch of its red
+    venix: { dark: { backgroundTone: 'brand' } }, // the gray page of Venix, with a touch of its red (its cards are red already)
   },
 }
 ```
@@ -453,7 +453,7 @@ The tokens are generated at build time with [Adobe Leonardo](https://github.com/
 
 #### Built-in themes and `experimental`
 
-Venix and the four seasonal themes ship with `tokens: true`, **next to** the old model: `--jade-primary`, `--jade-background2`… keep the values they had (the light Venix red is the one change: `#d80000`, so the text on it is white). Their light variants are bold, as any light variant is by default: the page keeps its `background`, cards, borders and text take the hue of the theme's `primary`, and elements with `data-jade-surface="bold"` are painted in it. The dark ones look as before (Venix with plain gray surfaces, `neutralTint: false`; a seasonal theme with the hue of its own `background`). Set `surfaces: 'soft'` on a theme to give its light variant the subtle tint too, or `surfaces: 'bold'` to make the dark one bold.
+Venix and the four seasonal themes ship with `tokens: true`, **next to** the old model: `--jade-primary`, `--jade-background2`… keep the values they had (the light Venix red is the one change: `#d80000`, so the text on it is white). Their light variants are bold, as any light variant is by default: the page keeps its `background`, cards, borders and text take the hue of the theme's `primary`, and elements with `data-jade-surface="bold"` are painted in it. The dark Venix has vivid neutrals (`neutralTint: 'vivid'`): cards, borders and text take its red over the gray page; the dark seasonal themes keep the hue of their own `background`. Set `surfaces: 'soft'` on a theme to give its light variant the subtle tint too, or `surfaces: 'bold'` to make the dark one bold.
 
 Two things are left as they were for projects that already exist:
 
