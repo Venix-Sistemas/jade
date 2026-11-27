@@ -1,6 +1,81 @@
 # Changelog
 
 
+## v1.6.0
+
+[compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.5.0...v1.6.0)
+
+### 🚀 Enhancements
+
+- **tokens:** Add a vivid neutral tint for colorful surfaces ([f90a75c](https://github.com/Venix-Sistemas/jade/commit/f90a75c))
+- **tokens:** Add the surfaces preference with a bold scope ([87949e1](https://github.com/Venix-Sistemas/jade/commit/87949e1))
+- **scrollbar:** Follow the colors of a bold panel ([92fcb16](https://github.com/Venix-Sistemas/jade/commit/92fcb16))
+- **themes:** Make light variants bold by default ([debe5c0](https://github.com/Venix-Sistemas/jade/commit/debe5c0))
+- **cursor:** Add open and closed hands for dragging ([02865d5](https://github.com/Venix-Sistemas/jade/commit/02865d5))
+- Move to jade names, keeping the old ones with legacyNames ([602db38](https://github.com/Venix-Sistemas/jade/commit/602db38))
+- **vuetify0:** Paint Vuetify0 with the theme and keep it in sync ([e5e83a8](https://github.com/Venix-Sistemas/jade/commit/e5e83a8))
+- **tokens:** Add borders: 'soft' for quiet card and menu outlines ([1f322b3](https://github.com/Venix-Sistemas/jade/commit/1f322b3))
+- **switcher:** Add buttonColors to recolor the menu button ([dd79102](https://github.com/Venix-Sistemas/jade/commit/dd79102))
+- **switcher:** Show the themes in two columns, in their own colors ([95aa381](https://github.com/Venix-Sistemas/jade/commit/95aa381))
+- **tokens:** Let neutralTint choose the page of a bold theme ([099de03](https://github.com/Venix-Sistemas/jade/commit/099de03))
+- **cursor:** Draw the themed cursors in a very light tint ([8575aa1](https://github.com/Venix-Sistemas/jade/commit/8575aa1))
+- **lab:** Let the visitor customize the theme colors ([6fe59cd](https://github.com/Venix-Sistemas/jade/commit/6fe59cd))
+- **tokens:** Add a side menu surface, discreet or strong ([cb2121a](https://github.com/Venix-Sistemas/jade/commit/cb2121a))
+- **audit:** Add venix-jade audit and a color guide for AI assistants ([ddd79ba](https://github.com/Venix-Sistemas/jade/commit/ddd79ba))
+- **lab:** Make Vuetify follow the visitor's colors ([bd5cc95](https://github.com/Venix-Sistemas/jade/commit/bd5cc95))
+
+### 🔥 Performance
+
+- **tokens:** Generate the color scales about twice as fast ([3c73945](https://github.com/Venix-Sistemas/jade/commit/3c73945))
+
+### 🩹 Fixes
+
+- **tokens:** Keep bold role text readable on its soft background ([2a3afaa](https://github.com/Venix-Sistemas/jade/commit/2a3afaa))
+- **themes:** Darken the light Venix red so text on it is white ([e0035fd](https://github.com/Venix-Sistemas/jade/commit/e0035fd))
+- **switcher:** Keep it neutral, whatever the theme colors ([b6061d0](https://github.com/Venix-Sistemas/jade/commit/b6061d0))
+- **cursor:** Draw light theme cursors in the dark tone ([ce9e946](https://github.com/Venix-Sistemas/jade/commit/ce9e946))
+- Register the Nitro plugin with addNitroPlugin ([b6be688](https://github.com/Venix-Sistemas/jade/commit/b6be688))
+- **switcher:** List one theme per row again ([435ab0d](https://github.com/Venix-Sistemas/jade/commit/435ab0d))
+- **playground:** Paint text with the text tokens ([a536df1](https://github.com/Venix-Sistemas/jade/commit/a536df1))
+- **vuetify:** Give every theme legible text on its colors ([d01f7ed](https://github.com/Venix-Sistemas/jade/commit/d01f7ed))
+- **playground:** Fill the accent button and show the field label ([8aa121c](https://github.com/Venix-Sistemas/jade/commit/8aa121c))
+
+### 💅 Refactors
+
+- **icon:** Install @nuxt/icon as a module dependency ([4b46efd](https://github.com/Venix-Sistemas/jade/commit/4b46efd))
+
+### 📖 Documentation
+
+- **playground:** Show the bold surfaces ([0948ecb](https://github.com/Venix-Sistemas/jade/commit/0948ecb))
+- **playground:** Drop the bold strip from the color tabs ([854de60](https://github.com/Venix-Sistemas/jade/commit/854de60))
+- **playground:** Fit the bold demo to dark variants without a scope ([4272458](https://github.com/Venix-Sistemas/jade/commit/4272458))
+- **playground:** Set the example menu apart in dark mode ([5499857](https://github.com/Venix-Sistemas/jade/commit/5499857))
+- **playground:** Move the examples to a section at the end ([6d75712](https://github.com/Venix-Sistemas/jade/commit/6d75712))
+- **playground:** Tint the same example areas in dark mode ([e71a617](https://github.com/Venix-Sistemas/jade/commit/e71a617))
+- Retake the README pictures and the switcher animation ([d38df3a](https://github.com/Venix-Sistemas/jade/commit/d38df3a))
+
+### 📦 Build
+
+- Silence the false implicit dependencies warning ([1603bee](https://github.com/Venix-Sistemas/jade/commit/1603bee))
+
+### 🏡 Chore
+
+- **playground:** Compare Ocean variations with and without borders ([c9fd31c](https://github.com/Venix-Sistemas/jade/commit/c9fd31c))
+- **playground:** Compare every Ocean surface variation ([a537bb3](https://github.com/Venix-Sistemas/jade/commit/a537bb3))
+- **playground:** Keep a single Ocean theme ([05002c6](https://github.com/Venix-Sistemas/jade/commit/05002c6))
+
+### ✅ Tests
+
+- **browser:** Wait for the page before the midnight check ([b4878fc](https://github.com/Venix-Sistemas/jade/commit/b4878fc))
+
+### 🤖 CI
+
+- Audit the playground colors ([ead6cb3](https://github.com/Venix-Sistemas/jade/commit/ead6cb3))
+
+### ❤️ Contributors
+
+- Vinicius ([@VBviniciusVB](https://github.com/VBviniciusVB))
+
 ## v1.5.0
 
 [compare changes](https://github.com/Venix-Sistemas/jade/compare/v1.4.1...v1.5.0)
